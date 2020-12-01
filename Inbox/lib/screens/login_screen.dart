@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -32,6 +33,9 @@ class _LoginScreenState extends State<LoginScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 32, right: 32),
               child: TextFormField(
+                inputFormatters: <TextInputFormatter>[
+                  WhitelistingTextInputFormatter(RegExp("[a-z0-9_]"))//RegEx Username Contains only a-z and underscores
+                ],
                 cursorColor: Colors.grey,
                 autofocus: false,
                 style: TextStyle(
@@ -104,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ), 
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-                child: Text("Login",
+                child: Text("Sign In",
                 style: TextStyle(
                   fontFamily: 'Montserrat'
                 ),
@@ -115,6 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height : 50,
             ),
+            // Don't Have Account Line
             Padding(
               padding: const EdgeInsets.only(left: 32),
               child: Row(
@@ -132,6 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
       
+            //signUP button
             Padding(
               padding: const EdgeInsets.only(left: 16),
               child: Row(
@@ -139,6 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: <Widget>[
                   FlatButton(
                     onPressed: () {
+                      Navigator.pop(context);
                       Navigator.pushNamed(context, 'registration_screen');
                     },
                       child: Text("SIGN UP",

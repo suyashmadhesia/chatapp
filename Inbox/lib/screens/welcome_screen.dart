@@ -27,7 +27,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ), 
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("Login",
+                child: Text("Sign In",
                 style: TextStyle(
                   fontFamily: 'Montserrat'
                 ),
@@ -51,7 +51,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ), 
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("Register",
+                child: Text("Sign Up",
                 style: TextStyle(
                   color: Colors.grey[900],
                   fontFamily: 'Montserrat'
