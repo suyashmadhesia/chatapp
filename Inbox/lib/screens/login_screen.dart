@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:Inbox/reusable/components.dart';//first read this file to understand all classes
-//import 'package:Inbox/constant.dart';//read constant.dart 
+
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -9,6 +8,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+
+
+
+  String username;
+  String password;
+
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,15 +41,28 @@ class _LoginScreenState extends State<LoginScreen> {
             //Username
             Padding(
               padding: const EdgeInsets.only(left: 32, right: 32),
-              child: UsernameField(),
+              child: UsernameAndEmailField(
+                onChanged: (value){
+                  username = value;
+                },
+                
+                hintText: 'Username', 
+                icons: Icons.person_outline, 
+                regExp: '[a-zA-Z0-9_]'),
             ),
             SizedBox(
-              height : 20.0
+              height : 50.0
             ),
             //Password
             Padding(
               padding: const EdgeInsets.only(left: 32,right: 32),
-              child: PasswordFields(hintText: 'Password', iconName: Icons.vpn_key),
+              child: PasswordFields(
+                onChanged: (value){
+                  password = value;
+                },
+               
+                hintText: 'Password', 
+                iconName: Icons.vpn_key),
             ),
             //Forget Password Widget Row
             Row(

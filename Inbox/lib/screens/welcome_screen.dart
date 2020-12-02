@@ -40,7 +40,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
             //Register button
             FlatButton(
-              splashColor: Colors.grey[300],
+              splashColor: Colors.grey[400],
               onPressed: () {
                 //  navigate to Register
                 Navigator.pushNamed(context, 'registration_screen');

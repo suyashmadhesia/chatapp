@@ -78,8 +78,10 @@ class PasswordFields extends StatelessWidget {
 
   final String hintText;
   final IconData iconName;
+  final Function onChanged;
+  final Function validation;
  
-  PasswordFields({@required this.hintText, @required this.iconName});
+  PasswordFields({@required this.hintText, @required this.iconName, this.onChanged, this.validation});
  
 
   @override
@@ -87,7 +89,9 @@ class PasswordFields extends StatelessWidget {
    
   
     return TextFormField(
-      
+     //autovalidate: true,
+      validator: validation,
+      onChanged: onChanged,
       obscureText: true,
       cursorColor: Colors.grey,
       autofocus: false,
@@ -109,14 +113,30 @@ class PasswordFields extends StatelessWidget {
   
 }
 
-//UsernameField
-class UsernameField extends StatelessWidget {
+//UsernameField and email field
+class UsernameAndEmailField extends StatelessWidget {
   
+  final String hintText;
+  final IconData icons;
+  final String helperText;
+  final String regExp;
+  final Function onChanged;
+  final Function validation;
+  final Icon suffixIcon;
+  
+
+  UsernameAndEmailField({@required this.hintText, this.helperText, @required this.icons, @required this.regExp, this.onChanged, this.validation, this.suffixIcon});
+
+  
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+     // autovalidate: true,
+      validator: validation,
+      onChanged: onChanged,
       inputFormatters: <TextInputFormatter>[
-        WhitelistingTextInputFormatter(RegExp("[a-z0-9_]"))//RegEx Username Contains only a-z and underscores
+        WhitelistingTextInputFormatter(RegExp(regExp))//RegEx Username Contains only a-z and underscores
       ],
       cursorColor: Colors.grey,
       autofocus: false,
@@ -128,9 +148,12 @@ class UsernameField extends StatelessWidget {
         focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.grey, width: 2)),
         prefixIcon:
-            Icon(Icons.person_outline, color: Colors.grey[400]),
-        hintText: 'Username',
+            Icon(icons, color: Colors.grey[400]),
+          suffixIcon: suffixIcon,
+        hintText: hintText,
         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16.0, fontFamily: 'Montserrat'),
+        helperText: helperText,
+        helperStyle: TextStyle(color: Colors.grey[400], fontSize: 12.0, fontFamily: 'Montserrat'),
       ),
     );
   }
