@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     validation: usernameValidator,
                     hintText: 'Username', 
                     icons: Icons.person_outline, 
-                    regExp: '[a-zA-Z0-9_]'),
+                    regExp: '[a-z0-9_]'),
                 ),
                 SizedBox(
                   height : 50.0
