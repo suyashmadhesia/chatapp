@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "499681422906",
+    "firebase_url": "https://unme-37a26.firebaseio.com",
+    "project_id": "unme-37a26",
+    "storage_bucket": "unme-37a26.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499681422906:android:010fe1d6892881be65cf03",
+        "android_client_info": {
+          "package_name": "com.eracreation.Inbox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "499681422906-qi9v7262sonqorn4so4qrpcsplc0rv3i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDP7-9xn2JpcldlHbKN0BuOp_SjnfoPGCQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "499681422906-qi9v7262sonqorn4so4qrpcsplc0rv3i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
