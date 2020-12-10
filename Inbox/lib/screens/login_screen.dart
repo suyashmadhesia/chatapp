@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     getValidationData().whenComplete(() async {
-if(finalEmail != null) {
+      if (finalEmail != null) {
         Navigator.pushNamed(context, 'home_screen');
       }
     });
@@ -86,7 +86,6 @@ if(finalEmail != null) {
                         Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
                           child: UsernameAndEmailField(
-                            
                               onChanged: (value) {
                                 username = value + '@gmail.com';
                               },
@@ -138,22 +137,22 @@ if(finalEmail != null) {
                                 showSnipper = true;
                               });
                               try {
-                                // final user =
-                                //     await _auth.signInWithEmailAndPassword(
-                                //         email: username, password: password);
-                                // if (user != null) {
-                                //   Navigator.pop(context);
-                                //   Navigator.pushNamed(context, 'home_screen');
-                                // }
-                                // setState(() {
-                                //   showSnipper = false;
-                                // });
-
-                                final SharedPreferences sharedPreferences =
+                                final user =
+                                    await _auth.signInWithEmailAndPassword(
+                                        email: username, password: password);
+                                
+                                if (user != null) {                                 
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, 'home_screen');
+                                }
+                                setState(() async{
+                                  final SharedPreferences sharedPreferences =
                                     await SharedPreferences.getInstance();
-                                sharedPreferences.setString(
-                                    'email', username);
-                                Navigator.pushNamed(context, 'home_screen');
+                                sharedPreferences.setString('email', username);
+                                  showSnipper = false;
+                                });
+
+                                // Navigator.pushNamed(context, 'home_screen');
                               } catch (e) {
                                 print(e);
                               }
