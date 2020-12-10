@@ -146,10 +146,12 @@ if(finalEmail != null) {
                                   Navigator.pushNamed(context, 'home_screen');
                                 }
                                 setState(() async{
+
                                   final SharedPreferences sharedPreferences =
                                     await SharedPreferences.getInstance();
                                 sharedPreferences.setString(
                                     'email', username);
+                                    
                                   showSnipper = false;
                                 });
 
