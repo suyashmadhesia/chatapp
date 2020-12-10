@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+
+
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -21,7 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: implement initState
     super.initState();
     pageController = PageController();
+    
   }
+
+ 
 
   @override
   void dispose() {
@@ -74,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         // animationDuration: Duration(milliseconds: 200),
-        
+
         // animationCurve: Curves.bounceInOut,
         onTap: onTap,
       ),

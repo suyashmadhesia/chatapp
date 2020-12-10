@@ -5,7 +5,10 @@ import 'package:form_field_validator/form_field_validator.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:firebase_core/firebase_core.dart';
+
+String finalEmail;
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -15,6 +18,27 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   //TODO make reference store in firebase for saving email(username) and password separately
   //later use it for stayed in loggedIN process;
+
+@override
+  void initState() {
+    getValidationData().whenComplete(() async {
+      if (finalEmail != null) {
+        Navigator.pushNamed(context, 'home_screen');
+      }
+    });
+    super.initState();
+  }
+
+Future getValidationData() async {
+    final SharedPreferences sharedPreferences =
+        await SharedPreferences.getInstance();
+    var obtainedEmail = sharedPreferences.getString('email');
+    setState(() {
+      finalEmail = obtainedEmail;
+    });
+  }
+
+
 
   final _formKey = GlobalKey<FormState>();
 
@@ -131,7 +155,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   Navigator.pop(context);
                                   Navigator.pushNamed(context, 'home_screen');
                                 }
-                                setState(() {
+                                setState(() async{
+                                  User user = FirebaseAuth.instance.currentUser;
+                                  final SharedPreferences sharedPreferences =
+                                      await SharedPreferences.getInstance();
+                                  sharedPreferences.setString('email', user.uid);
                                   showSpinner = false;
                                 });
                               } catch (e) {

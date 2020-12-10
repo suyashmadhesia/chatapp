@@ -1,6 +1,10 @@
+
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/screens/registration_screen.dart';
+import 'package:Inbox/screens/home.dart';
+
+
 class WelcomeScreen extends StatefulWidget {
   @override
   _WelcomeScreenState createState() => _WelcomeScreenState();
@@ -9,7 +13,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+  return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -63,5 +67,5 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ),
       ),
     );
-  }
+}
 }

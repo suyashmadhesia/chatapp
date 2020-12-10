@@ -33,28 +33,7 @@ class _ChatAppState extends State<ChatApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-
-          // Navigation Bar
-          bottomNavigationBar: CurvedNavigationBar(
-            color: Colors.black,
-            backgroundColor: Colors.white,
-            height: 50,
-            items: <Widget>[
-              Icon(Icons.favorite, size: 20, color: Colors.white,),
-              Icon(Icons.add, size: 30, color: Colors.white,),
-              Icon(Icons.person, size: 20, color: Colors.white,),
-            ],
-            // animationDuration: Duration(milliseconds: 200),
-            index: 1,
-            // animationCurve: Curves.bounceInOut,
-            onTap: (index) {
-              //Handle button tap
-            },
-          ),
-        ),
-
-
+        home: Scaffold(),
         theme: ThemeData.dark().copyWith(
           textTheme: TextTheme(
             bodyText1: TextStyle(color: Colors.black54),

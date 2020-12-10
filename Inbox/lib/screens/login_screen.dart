@@ -51,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String username;
   String password;
+  String userUid;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -140,18 +141,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 final user =
                                     await _auth.signInWithEmailAndPassword(
                                         email: username, password: password);
-                                
-                                if (user != null) {                                 
+
+                                if (user != null) {
+                                  User user = FirebaseAuth.instance.currentUser;
+                                  userUid = user.uid;
                                   Navigator.pop(context);
                                   Navigator.pushNamed(context, 'home_screen');
                                 }
-                                setState(() async{
+                                setState(() async {
                                   final SharedPreferences sharedPreferences =
-                                    await SharedPreferences.getInstance();
-                                sharedPreferences.setString('email', username);
+                                      await SharedPreferences.getInstance();
+                                  sharedPreferences.setString('email', userUid);
                                   showSnipper = false;
                                 });
-                                
 
                                 // Navigator.pushNamed(context, 'home_screen');
                               } catch (e) {
