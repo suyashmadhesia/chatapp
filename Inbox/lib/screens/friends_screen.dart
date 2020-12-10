@@ -1,15 +1,16 @@
 // import 'package:firebase_core/firebase_core.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class ChatScreen extends StatefulWidget {
+
+
+class FriendsScreen extends StatefulWidget {
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _FriendsScreenState createState() => _FriendsScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _FriendsScreenState extends State<FriendsScreen> {
   final _auth = FirebaseAuth.instance;
   // FirebaseUser loggedInUser;
 
@@ -33,7 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: SafeArea(
         child: Center(
           child: Buttons(
-              buttonName: 'Sign Out',
+              buttonName: 'friends',
               onPressed: () {
                 _auth.signOut();
                 Navigator.pop(context);
@@ -41,8 +42,6 @@ class _ChatScreenState extends State<ChatScreen> {
               }),
         ),
       ),
-      
-          
     );
   }
 }

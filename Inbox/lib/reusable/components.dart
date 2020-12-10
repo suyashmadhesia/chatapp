@@ -136,7 +136,7 @@ class UsernameAndEmailField extends StatelessWidget {
       validator: validation,
       onChanged: onChanged,
       inputFormatters: <TextInputFormatter>[
-        WhitelistingTextInputFormatter(RegExp(regExp))//RegEx for  only correct input taken 
+        FilteringTextInputFormatter(RegExp(regExp), allow: true)//RegEx for  only correct input taken 
       ],
       cursorColor: Colors.grey,
       autofocus: false,

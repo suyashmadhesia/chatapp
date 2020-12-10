@@ -1,15 +1,17 @@
 // import 'package:firebase_core/firebase_core.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ChatScreen extends StatefulWidget {
+
+
+class ProfileScreen extends StatefulWidget {
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   final _auth = FirebaseAuth.instance;
   // FirebaseUser loggedInUser;
 
@@ -33,16 +35,17 @@ class _ChatScreenState extends State<ChatScreen> {
       body: SafeArea(
         child: Center(
           child: Buttons(
-              buttonName: 'Sign Out',
-              onPressed: () {
+              buttonName: 'profile',
+              onPressed: () async{
                 _auth.signOut();
-                Navigator.pop(context);
-                Navigator.pushNamed(context, 'login_screen');
+                final SharedPreferences sharedPreferences =
+                                    await SharedPreferences.getInstance();
+                                sharedPreferences.remove(
+                                    'email');
+                                Navigator.pushNamed(context, 'login_screen');
               }),
         ),
       ),
-      
-          
     );
   }
 }
