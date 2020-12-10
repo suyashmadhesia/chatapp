@@ -20,11 +20,18 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     getValidationData().whenComplete(() async {
 if(finalEmail != null) {
+      Navigator.pop(context);
         Navigator.pushNamed(context, 'home_screen');
       }
     });
     super.initState();
   }
+
+  AlertDialog alert = AlertDialog(content: Text('Invalid Credential',style: TextStyle(color: Colors.red),),
+    title: Text("Error",
+    style: TextStyle(color: Colors.red),
+    ),
+  );
 
   Future getValidationData() async {
     final SharedPreferences sharedPreferences =
@@ -159,9 +166,10 @@ if(finalEmail != null) {
                                 // Navigator.pushNamed(context, 'home_screen');
                               } catch (e) {
                                 print(e);
+                                }
                               }
                             }
-                          },
+                          
                         ),
                         SizedBox(
                           height: 50,

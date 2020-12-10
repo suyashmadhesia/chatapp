@@ -45,26 +45,26 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          FriendsScreen(),
           SearchScreen(),
+          FriendsScreen(),
           ProfileScreen(),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
       ),
       bottomNavigationBar: CurvedNavigationBar(
-        color: Colors.black,
+        color: Colors.grey[900],
         backgroundColor: Colors.white,
         height: 50,
         items: <Widget>[
           Icon(
-            Icons.favorite,
+          Icons.search,
             size: 20,
             color: Colors.white,
           ),
           Icon(
-            Icons.add,
-            size: 30,
+            Icons.favorite_rounded,
+            size: 25,
             color: Colors.white,
           ),
           Icon(

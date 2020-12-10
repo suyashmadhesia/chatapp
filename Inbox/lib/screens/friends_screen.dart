@@ -12,14 +12,7 @@ class FriendsScreen extends StatefulWidget {
 
 class _FriendsScreenState extends State<FriendsScreen> {
   final _auth = FirebaseAuth.instance;
-  // FirebaseUser loggedInUser;
-
-  // void getCurrentUser() async {
-  //   final user = await _auth.currentUser();
-  //   if (user != null) {
-  //     loggedInUser = user;
-  //   }
-  // }
+ 
 
   @override
   void initState() {
@@ -34,11 +27,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
       body: SafeArea(
         child: Center(
           child: Buttons(
-              buttonName: 'friends',
+              buttonName: 'Friends',
               onPressed: () {
-                _auth.signOut();
-                Navigator.pop(context);
-                Navigator.pushNamed(context, 'login_screen');
+               
               }),
         ),
       ),

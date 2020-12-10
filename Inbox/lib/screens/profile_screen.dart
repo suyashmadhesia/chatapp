@@ -13,14 +13,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _auth = FirebaseAuth.instance;
-  // FirebaseUser loggedInUser;
 
-  // void getCurrentUser() async {
-  //   final user = await _auth.currentUser();
-  //   if (user != null) {
-  //     loggedInUser = user;
-  //   }
-  // }
 
   @override
   void initState() {
@@ -35,14 +28,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: Center(
           child: Buttons(
-              buttonName: 'profile',
+              buttonName: 'Sign Out',
               onPressed: () async{
                 _auth.signOut();
                 final SharedPreferences sharedPreferences =
-                                    await SharedPreferences.getInstance();
-                                sharedPreferences.remove(
-                                    'email');
-                                Navigator.pushNamed(context, 'login_screen');
+                  await SharedPreferences.getInstance();
+                  sharedPreferences.remove(
+                  'email');
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, 'login_screen');
               }),
         ),
       ),

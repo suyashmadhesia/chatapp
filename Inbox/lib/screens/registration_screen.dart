@@ -29,6 +29,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final usernameValidator = MultiValidator([
     RequiredValidator(errorText: 'Username is required'),
     MinLengthValidator(4, errorText: 'Username must be at least 4 characters'),
+    MaxLengthValidator(10, errorText: 'Username must be less than 10 characters')
   ]);
 
   String username;

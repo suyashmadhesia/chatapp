@@ -32,13 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
-          child: Buttons(
-              buttonName: 'Sign Out',
-              onPressed: () {
-                _auth.signOut();
-                Navigator.pop(context);
-                Navigator.pushNamed(context, 'login_screen');
-              }),
+          
         ),
       ),
       
