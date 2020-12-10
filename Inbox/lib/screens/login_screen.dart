@@ -138,22 +138,23 @@ if(finalEmail != null) {
                                 showSnipper = true;
                               });
                               try {
-                                // final user =
-                                //     await _auth.signInWithEmailAndPassword(
-                                //         email: username, password: password);
-                                // if (user != null) {
-                                //   Navigator.pop(context);
-                                //   Navigator.pushNamed(context, 'home_screen');
-                                // }
-                                // setState(() {
-                                //   showSnipper = false;
-                                // });
-
-                                final SharedPreferences sharedPreferences =
+                                final user =
+                                    await _auth.signInWithEmailAndPassword(
+                                        email: username, password: password);
+                                if (user != null) {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, 'home_screen');
+                                }
+                                setState(() async{
+                                  final SharedPreferences sharedPreferences =
                                     await SharedPreferences.getInstance();
                                 sharedPreferences.setString(
                                     'email', username);
-                                Navigator.pushNamed(context, 'home_screen');
+                                  showSnipper = false;
+                                });
+
+                                
+                                // Navigator.pushNamed(context, 'home_screen');
                               } catch (e) {
                                 print(e);
                               }
