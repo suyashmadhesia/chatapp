@@ -151,6 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 sharedPreferences.setString('email', username);
                                   showSnipper = false;
                                 });
+                                
 
                                 // Navigator.pushNamed(context, 'home_screen');
                               } catch (e) {
