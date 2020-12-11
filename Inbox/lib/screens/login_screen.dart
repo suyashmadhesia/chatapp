@@ -11,6 +11,8 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'home.dart';
+
 String finalEmail;
 
 class LoginScreen extends StatefulWidget {
@@ -29,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       print('initialization Complete');
                                       setState(() {});
                                     });
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => FriendsScreen()));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
   }
 
   bool showSnipper = false;

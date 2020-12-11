@@ -1,4 +1,5 @@
 // import 'package:firebase_core/firebase_core.dart';
+import 'package:Inbox/screens/search_screen.dart';
 import 'package:Inbox/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -27,23 +28,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: Buttons(
-              buttonName: 'Sign Out',
-              onPressed: () async{
-                _auth.signOut();
-                final SharedPreferences sharedPreferences =
-                  await SharedPreferences.getInstance();
-                  sharedPreferences.remove(
-                  'email');
-                  Navigator.popUntil(context, ModalRoute.withName('login_screen'));
-                   Firebase.initializeApp().whenComplete(() {
-                  print('initialization Complete');
-                  setState(() {});
+        child: Expanded(
+                  child: Column(
+            children: [
+              Center(
+                child: Buttons(
+                    buttonName: 'Sign Out',
+                    onPressed: () async{
+                      _auth.signOut();
+                      final SharedPreferences sharedPreferences =
+                        await SharedPreferences.getInstance();
+                        sharedPreferences.remove(
+                        'email');
+                        Navigator.popUntil(context, ModalRoute.withName('login_screen'));
+                         Firebase.initializeApp().whenComplete(() {
+                        print('initialization Complete');
+                        setState(() {});
     });
-                   Navigator.push(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
+                         Navigator.push(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
   
-              }),
+                    }),
+              ),
+              Buttons(
+                buttonName: 'Goto Search',
+                onPressed: () {
+                
+                 Navigator.push(context, MaterialPageRoute(builder: (context) => SearchScreen()));
+                })
+            ],
+          ),
         ),
       ),
     );

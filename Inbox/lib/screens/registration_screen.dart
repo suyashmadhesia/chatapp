@@ -1,5 +1,6 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:Inbox/screens/friends_screen.dart';
+import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -167,15 +168,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                FriendsScreen()));
+                                                HomeScreen()));
                                   });
                                 }
-                                setState(() async {
-                                  User user = FirebaseAuth.instance.currentUser;
-                                  final SharedPreferences sharedPreferences =
-                                      await SharedPreferences.getInstance();
-                                  sharedPreferences.setString(
-                                      'email', user.uid);
+                                setState(()  {                                 
                                   showSpinner = false;
                                 });
                               } catch (e) {

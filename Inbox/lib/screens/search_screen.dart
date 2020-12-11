@@ -1,5 +1,7 @@
 // import 'package:firebase_core/firebase_core.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:Inbox/screens/friends_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -8,34 +10,135 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  @override
-  void initState() {
-
-    super.initState();
-  }
-
-  // final String _collection = 'users';
-  // final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
-
-  // void getUsers() async {
-  //   await for (var snapshot in _fireStore.collection(_collection).snapshots()) {
-  //     for (var user in snapshot.docs) {
-  //       print(user.data());
-  //     }
-  //   }
-  // }
+  TextEditingController textEditingController = TextEditingController();
+  final database = FirebaseFirestore.instance;
+  String searchString;
 
   @override
   Widget build(BuildContext context) {
+//     children: snapshot.data.docs
+//                                   .map((DocumentSnapshot document) {
+// }
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Text('Search',
-        style: TextStyle(color: Colors.black),
-        ),
-        ),
-      
-    );
+        backgroundColor: Colors.white,
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 15.0, left: 20.0, right: 20.0 ),
+                      child: Container(
+                        decoration: BoxDecoration(color: Colors.grey[100],
+                        borderRadius: BorderRadius.all(Radius.circular(50.0))),              
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20.0, right:20.0),
+                          child: TextField(
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                            onChanged: (val) {
+                              setState(() {
+                                searchString = val.toLowerCase();
+                              });
+                            },
+                            controller: textEditingController,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              
+                                suffixIcon: IconButton(
+                                  icon: Icon(Icons.clear),
+                                  onPressed: () => textEditingController.clear(),
+                                ),
+                                hintText: 'Search User here...',
+                                hintStyle: TextStyle(color: Colors.grey)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                      child: StreamBuilder<QuerySnapshot>(
+                    stream: (searchString == null || searchString.trim() == '')
+                        ? null
+                        : FirebaseFirestore.instance
+                            .collection('users')
+                            .where('username',
+                                isGreaterThanOrEqualTo: searchString)
+                            .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('we got an error');
+                      }
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                          return SizedBox(
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                backgroundColor: Colors.lightBlueAccent,
+                              ),
+                            ),
+                          );
+                        case ConnectionState.none:
+                          return Center(child: Text('Search Users here'));
+
+                        case ConnectionState.done:
+                          return Text('we are done');
+
+                        default:
+                          return new ListView(
+                              children: snapshot.data.docs
+                                  .map((DocumentSnapshot document) {
+                            return Column(
+                              children: [
+                                new GestureDetector(
+                                  onTap: () => print('tapped'),
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: Colors.white,
+                                      backgroundImage: document['avtar'] == '' ?  AssetImage('assets/images/avtar.png') : CachedNetworkImageProvider(document['avtar']),
+                                      // backgroundImage: AssetImage('assets/images/avtar.png'),
+                                    ),
+                                    // backgroundImage: (this.profileImgPath == null) ? new AssetImage('images/user-avatar.png') : new CachedNetworkImageProvider(this.profileImgPath),
+                                    
+                                    // leading: CachedNetworkImage(
+                                    //   imageUrl:
+                                    //       (document['avtar'] == '' ?  AssetImage('assets/images/avtar.png') : document['avtar']),
+                                    //   progressIndicatorBuilder: (context, url,
+                                    //           downloadProgress) =>
+                                    //       CircularProgressIndicator(
+                                    //           value: downloadProgress.progress),
+                                    //   errorWidget: (context, url, error) =>
+                                    //       Icon(Icons.error),
+                                    // ),
+                                    title: Text(
+                                      document['username'],
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 65.0, right: 20.0),
+                                  child: Divider(
+                                    height: 1.0,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList());
+                      }
+                    },
+                  )),                
+                ],
+              ),
+            ),
+            
+          ],
+        ));
   }
 }
-
