@@ -1,5 +1,8 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:Inbox/screens/friends_screen.dart';
+import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
@@ -16,10 +19,8 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  //TODO make reference store in firebase for saving email(username) and password separately
-  //later use it for stayed in loggedIN process;
 
-@override
+  @override
   void initState() {
     getValidationData().whenComplete(() async {
       if (finalEmail != null) {
@@ -29,7 +30,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.initState();
   }
 
-Future getValidationData() async {
+  Future getValidationData() async {
     final SharedPreferences sharedPreferences =
         await SharedPreferences.getInstance();
     var obtainedEmail = sharedPreferences.getString('email');
@@ -37,8 +38,6 @@ Future getValidationData() async {
       finalEmail = obtainedEmail;
     });
   }
-
-
 
   final _formKey = GlobalKey<FormState>();
 
@@ -53,15 +52,14 @@ Future getValidationData() async {
   final usernameValidator = MultiValidator([
     RequiredValidator(errorText: 'Username is required'),
     MinLengthValidator(4, errorText: 'Username must be at least 4 characters'),
+    MaxLengthValidator(10,
+        errorText: 'Username must be less than 10 characters')
   ]);
 
   String username;
   String password;
   String confirmPassword;
   String name;
-  String bio;
-  String avtar;
-  String gender;
 
   bool showSpinner = false;
 
@@ -146,20 +144,38 @@ Future getValidationData() async {
                                         email: username, password: password);
 
                                 if (newUser != null) {
+                                  User user = FirebaseAuth.instance.currentUser;
                                   _firestore.collection('users').add({
                                     'username': name,
-                                    'bio': null,
-                                    'avtar': null,
-                                    'gender': null
+                                    'bio': '',
+                                    'avtar': '',
+                                    'gender': '',
+                                    'userId': user.uid,
+                                    'password': password,
+                                    'securityQuestion': '',
+                                    'securityAnswer': '',
+                                  }).then((value) async {
+                                    SharedPreferences prefs =
+                                        await SharedPreferences.getInstance();
+                                    prefs.setString('email', username);
+                                    Navigator.pop(context);
+                                    Firebase.initializeApp().whenComplete(() {
+                                      print('initialization Complete');
+                                      setState(() {});
+                                    });
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                FriendsScreen()));
                                   });
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(context, 'home_screen');
                                 }
-                                setState(() async{
+                                setState(() async {
                                   User user = FirebaseAuth.instance.currentUser;
                                   final SharedPreferences sharedPreferences =
                                       await SharedPreferences.getInstance();
-                                  sharedPreferences.setString('email', user.uid);
+                                  sharedPreferences.setString(
+                                      'email', user.uid);
                                   showSpinner = false;
                                 });
                               } catch (e) {
@@ -185,7 +201,10 @@ Future getValidationData() async {
                               PageChangeButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  Navigator.pushNamed(context, 'login_screen');
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => LoginScreen()));
                                 },
                                 btnName: 'SIGN IN',
                               ),

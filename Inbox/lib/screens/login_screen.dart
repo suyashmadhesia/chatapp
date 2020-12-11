@@ -1,6 +1,9 @@
 import 'dart:async';
 
-import 'package:Inbox/screens/home.dart';
+import 'package:Inbox/screens/friends_screen.dart';
+// import 'package:Inbox/screens/home.dart';
+import 'package:Inbox/screens/registration_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
 import 'package:form_field_validator/form_field_validator.dart';
@@ -16,23 +19,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  @override
-  void initState() {
-    getValidationData().whenComplete(() async {
-      if (finalEmail != null) {
-        Navigator.pushNamed(context, 'home_screen');
-      }
-    });
-    super.initState();
-  }
+  
 
-  Future getValidationData() async {
-    final SharedPreferences sharedPreferences =
-        await SharedPreferences.getInstance();
-    var obtainedEmail = sharedPreferences.getString('email');
-    setState(() {
-      finalEmail = obtainedEmail;
-    });
+  Future<void> isAuth() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+                                    prefs.setString('email', username);
+                                    Navigator.pop(context);
+                                     Firebase.initializeApp().whenComplete(() {
+                                      print('initialization Complete');
+                                      setState(() {});
+                                    });
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => FriendsScreen()));
   }
 
   bool showSnipper = false;
@@ -107,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               hintText: 'Password',
                               iconName: Icons.vpn_key),
                         ),
-                        //TODO Forget Password Widget Row when backend is
+                        
                         // Row(
                         //   mainAxisAlignment: MainAxisAlignment.end,
                         //   children: <Widget>[
@@ -141,26 +138,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                 final user =
                                     await _auth.signInWithEmailAndPassword(
                                         email: username, password: password);
-
                                 if (user != null) {
-                                  User user = FirebaseAuth.instance.currentUser;
-                                  userUid = user.uid;
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(context, 'home_screen');
+                                 isAuth();
                                 }
-                                setState(() async {
-                                  final SharedPreferences sharedPreferences =
-                                      await SharedPreferences.getInstance();
-                                  sharedPreferences.setString('email', userUid);
+                                setState(() async{
+
+                                 
+                                    
                                   showSnipper = false;
                                 });
 
-                                // Navigator.pushNamed(context, 'home_screen');
+                                
                               } catch (e) {
                                 print(e);
+                                }
                               }
                             }
-                          },
+                          
                         ),
                         SizedBox(
                           height: 50,
@@ -185,8 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   btnName: 'SIGN UP',
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    Navigator.pushNamed(
-                                        context, 'registration_screen');
+                                    
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => RegistrationScreen()));
                                   },
                                 ),
                               ]),

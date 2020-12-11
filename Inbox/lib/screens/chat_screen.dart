@@ -1,8 +1,6 @@
 // import 'package:firebase_core/firebase_core.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:Inbox/reusable/components.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -10,7 +8,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final _auth = FirebaseAuth.instance;
+  // final _auth = FirebaseAuth.instance;
   // FirebaseUser loggedInUser;
 
   // void getCurrentUser() async {
@@ -22,7 +20,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -32,13 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
-          child: Buttons(
-              buttonName: 'Sign Out',
-              onPressed: () {
-                _auth.signOut();
-                Navigator.pop(context);
-                Navigator.pushNamed(context, 'login_screen');
-              }),
+          
         ),
       ),
       
