@@ -1,6 +1,8 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:Inbox/screens/friends_screen.dart';
+import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
@@ -134,6 +136,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     SharedPreferences prefs = await SharedPreferences.getInstance();
                                     prefs.setString('email', username);
                                     Navigator.pop(context);
+                                     Firebase.initializeApp().whenComplete(() {
+                                      print('initialization Complete');
+                                      setState(() {});
+    });
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => FriendsScreen()));
                                   });
                                 }
@@ -162,8 +168,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             children: <Widget>[
                               PageChangeButton(
                                 onPressed: () {
-                                  // Navigator.pop(context);
-                                  // Navigator.pushNamed(context, 'login_screen');
+                                  Navigator.pop(context);
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
                                 },
                                 btnName: 'SIGN IN',
                               ),

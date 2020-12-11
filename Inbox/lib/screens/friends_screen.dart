@@ -10,20 +10,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 class FriendsScreen extends StatefulWidget {
   @override
   _FriendsScreenState createState() => _FriendsScreenState();
+  
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
-  final _auth = FirebaseAuth.instance;
- 
-
-    @override
+  
+  @override
   void initState() {
+    // TODO: implement initState
     super.initState();
     Firebase.initializeApp().whenComplete(() {
       print('initialization Complete');
       setState(() {});
     });
   }
+
+ 
+
+  final _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +38,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           child: Buttons(
               buttonName: 'Goto Profile',
               onPressed: () {
+              
                Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
               })
         ),

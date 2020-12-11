@@ -19,7 +19,8 @@ class Buttons extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
         child: Text(buttonName,
         style: TextStyle(
-          fontFamily: 'Montserrat'
+          fontFamily: 'Montserrat',
+          color: Colors.white,
         ),
         ),
       ),

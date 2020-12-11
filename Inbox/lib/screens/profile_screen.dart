@@ -1,5 +1,7 @@
 // import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/screens/login_screen.dart';
+import 'package:Inbox/screens/welcome_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,8 +38,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   await SharedPreferences.getInstance();
                   sharedPreferences.remove(
                   'email');
-                  Navigator.pop(context);
-                   Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+                  Navigator.popUntil(context, ModalRoute.withName('login_screen'));
+                   Firebase.initializeApp().whenComplete(() {
+                  print('initialization Complete');
+                  setState(() {});
+    });
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
   
               }),
         ),

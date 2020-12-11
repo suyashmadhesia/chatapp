@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:Inbox/screens/friends_screen.dart';
 import 'package:Inbox/screens/home.dart';
+import 'package:Inbox/screens/registration_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
 import 'package:form_field_validator/form_field_validator.dart';
@@ -23,6 +25,10 @@ class _LoginScreenState extends State<LoginScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
                                     prefs.setString('email', username);
                                     Navigator.pop(context);
+                                     Firebase.initializeApp().whenComplete(() {
+                                      print('initialization Complete');
+                                      setState(() {});
+                                    });
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => FriendsScreen()));
   }
 
@@ -172,9 +178,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 PageChangeButton(
                                   btnName: 'SIGN UP',
                                   onPressed: () {
-                                    // Navigator.pop(context);
-                                    // Navigator.pushNamed(
-                                    //     context, 'registration_screen');
+                                    Navigator.pop(context);
+                                    
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => RegistrationScreen()));
                                   },
                                 ),
                               ]),
