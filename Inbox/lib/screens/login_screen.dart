@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:Inbox/screens/friends_screen.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
@@ -16,30 +17,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  @override
-  void initState() {
-    getValidationData().whenComplete(() async {
-if(finalEmail != null) {
-      Navigator.pop(context);
-        Navigator.pushNamed(context, 'home_screen');
-      }
-    });
-    super.initState();
-  }
+  
 
-  AlertDialog alert = AlertDialog(content: Text('Invalid Credential',style: TextStyle(color: Colors.red),),
-    title: Text("Error",
-    style: TextStyle(color: Colors.red),
-    ),
-  );
-
-  Future getValidationData() async {
-    final SharedPreferences sharedPreferences =
-        await SharedPreferences.getInstance();
-    var obtainedEmail = sharedPreferences.getString('email');
-    setState(() {
-      finalEmail = obtainedEmail;
-    });
+  Future<void> isAuth() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+                                    prefs.setString('email', username);
+                                    Navigator.pop(context);
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => FriendsScreen()));
   }
 
   bool showSnipper = false;
@@ -149,21 +133,16 @@ if(finalEmail != null) {
                                     await _auth.signInWithEmailAndPassword(
                                         email: username, password: password);
                                 if (user != null) {
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(context, 'home_screen');
+                                 isAuth();
                                 }
                                 setState(() async{
 
-                                  final SharedPreferences sharedPreferences =
-                                    await SharedPreferences.getInstance();
-                                sharedPreferences.setString(
-                                    'email', username);
+                                 
                                     
                                   showSnipper = false;
                                 });
 
                                 
-                                // Navigator.pushNamed(context, 'home_screen');
                               } catch (e) {
                                 print(e);
                                 }
@@ -193,9 +172,9 @@ if(finalEmail != null) {
                                 PageChangeButton(
                                   btnName: 'SIGN UP',
                                   onPressed: () {
-                                    Navigator.pop(context);
-                                    Navigator.pushNamed(
-                                        context, 'registration_screen');
+                                    // Navigator.pop(context);
+                                    // Navigator.pushNamed(
+                                    //     context, 'registration_screen');
                                   },
                                 ),
                               ]),

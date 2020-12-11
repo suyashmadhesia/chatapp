@@ -1,4 +1,5 @@
 import 'package:Inbox/screens/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/screens/registration_screen.dart';
 class WelcomeScreen extends StatefulWidget {
@@ -7,6 +8,16 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+
+    @override
+  void initState() {
+    super.initState();
+    Firebase.initializeApp().whenComplete(() {
+      print('initialization Complete');
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
