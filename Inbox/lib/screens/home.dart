@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,7 +8,11 @@ import 'package:Inbox/screens/profile_screen.dart';
 import 'package:Inbox/screens/search_screen.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
-
+// final StorageReference storageRef = FirebaseStorage.instance.ref();
+final usersRef = FirebaseFirestore.instance.collection('users');
+final postsRef = FirebaseFirestore.instance.collection('posts');
+// final DateTime timestamp = DateTime.now();
+User currentUser;
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -20,10 +25,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-   
     super.initState();
+    Firebase.initializeApp().whenComplete(() {
+      print('initialization Complete');
+      setState(() {});
+    });
+    // getUserInfo();
     pageController = PageController();
   }
+
+  User user = FirebaseAuth.instance.currentUser;
+
+  // getUserInfo() async {
+  //   DocumentSnapshot doc = await usersRef.doc(user.uid).get();
+  //   currentUser = User.fromDocument(doc);
+  // }
 
   @override
   void dispose() {
@@ -49,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: <Widget>[
           FriendsScreen(),
           SearchScreen(),
-          ProfileScreen(),
+          ProfileScreen(profileId: currentUser?.uid),
+          // ProfileScreen()
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
@@ -59,14 +76,13 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         height: 50,
         items: <Widget>[
-          
           Icon(
             Icons.favorite_rounded,
             size: 20,
             color: Colors.white,
           ),
           Icon(
-          Icons.search,
+            Icons.search,
             size: 20,
             color: Colors.white,
           ),
@@ -77,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         // animationDuration: Duration(milliseconds: 200),
-        
+
         // animationCurve: Curves.bounceInOut,
         onTap: onTap,
       ),
@@ -90,9 +106,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-  // Widget build(BuildContext context){
-  //   return Scaffold(
-  //     backgroundColor: Colors.red,
-  //   );
+// Widget build(BuildContext context){
+//   return Scaffold(
+//     backgroundColor: Colors.red,
+//   );
 //   }
 // }

@@ -21,17 +21,16 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  
-
-  Future<void> isAuth() async{
+  Future<void> isAuth() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-                                    prefs.setString('email', username);
-                                    Navigator.pop(context);
-                                     Firebase.initializeApp().whenComplete(() {
-                                      print('initialization Complete');
-                                      setState(() {});
-                                    });
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    prefs.setString('email', username);
+    Navigator.pop(context);
+    Firebase.initializeApp().whenComplete(() {
+      print('initialization Complete');
+      setState(() {});
+    });
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => HomeScreen()));
   }
 
   bool showSnipper = false;
@@ -106,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               hintText: 'Password',
                               iconName: Icons.vpn_key),
                         ),
-                        
+
                         // Row(
                         //   mainAxisAlignment: MainAxisAlignment.end,
                         //   children: <Widget>[
@@ -130,34 +129,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(height: 60),
                         //login button
                         Buttons(
-                          buttonName: 'Sign In',
-                          onPressed: () async {
-                            if (_formKey.currentState.validate()) {
-                              setState(() {
-                                showSnipper = true;
-                              });
-                              try {
-                                final user =
-                                    await _auth.signInWithEmailAndPassword(
-                                        email: username, password: password);
-                                if (user != null) {
-                                 isAuth();
-                                }
-                                setState(() async{
-
-                                 
-                                    
-                                  showSnipper = false;
+                            buttonName: 'Sign In',
+                            onPressed: () async {
+                              if (_formKey.currentState.validate()) {
+                                setState(() {
+                                  showSnipper = true;
                                 });
-
-                                
-                              } catch (e) {
-                                print(e);
+                                try {
+                                  final user =
+                                      await _auth.signInWithEmailAndPassword(
+                                          email: username, password: password);
+                                  if (user != null) {
+                                    isAuth();
+                                  }
+                                  setState(() async {
+                                    showSnipper = false;
+                                  });
+                                } catch (e) {
+                                  print(e);
                                 }
                               }
-                            }
-                          
-                        ),
+                            }),
                         SizedBox(
                           height: 50,
                         ),
@@ -181,8 +173,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                   btnName: 'SIGN UP',
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => RegistrationScreen()));
+
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                RegistrationScreen()));
                                   },
                                 ),
                               ]),
