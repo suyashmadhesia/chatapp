@@ -41,7 +41,7 @@ class _ChatAppState extends State<ChatApp> {
             bodyText1: TextStyle(color: Colors.black54),
           ),
         ),
-        initialRoute: 'friends_screen',
+        initialRoute: 'home_screen',
         routes: {
           'welcome_screen': (context) => WelcomeScreen(),
           'login_screen': (context) => LoginScreen(),
