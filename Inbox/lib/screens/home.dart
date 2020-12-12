@@ -62,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Scaffold buildAuthScreen() {
     return Scaffold(
       body: PageView(
+        physics: NeverScrollableScrollPhysics(),
         children: <Widget>[
           FriendsScreen(),
           SearchScreen(),
@@ -72,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onPageChanged: onPageChanged,
       ),
       bottomNavigationBar: CurvedNavigationBar(
+        animationDuration: Duration(milliseconds : 400),
         color: Colors.grey[900],
         backgroundColor: Colors.white,
         height: 50,

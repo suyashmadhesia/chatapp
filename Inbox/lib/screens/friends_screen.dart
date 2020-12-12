@@ -34,38 +34,29 @@ final _auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        
+        title: Text('ChatApp',
+        style: TextStyle(fontFamily: 'Montserrat')),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.grey[900],
+        actions: [
+          IconButton(
+            splashRadius: 16.0,
+            onPressed: (){},
+            icon: Icon(Icons.notifications))
+      ],
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            Center(
-              child: Buttons(
-                  buttonName: 'Goto Profile',
-                  onPressed: () {
-                  
-                   Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
-                  })
-            ),
-            Center(
-                child: Buttons(
-                    buttonName: 'Sign Out',
-                    onPressed: () async{
-                      _auth.signOut();
-                      final SharedPreferences sharedPreferences =
-                        await SharedPreferences.getInstance();
-                        sharedPreferences.remove(
-                        'email');
-                        Navigator.popUntil(context, ModalRoute.withName('login_screen'));
-                         Firebase.initializeApp().whenComplete(() {
-                        print('initialization Complete');
-                        setState(() {});
-    });
-                         Navigator.push(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));
-  
-                    }),
-              ),
-          ],
-        ),
+        child: ListView(
+            physics: BouncingScrollPhysics(),
+            children: [Column(
+            children: [
+              Text('hello world')
+            ],
+          ),
+                  ]),
       ),
     );
   }

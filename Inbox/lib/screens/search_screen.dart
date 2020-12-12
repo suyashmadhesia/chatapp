@@ -31,14 +31,17 @@ class _SearchScreenState extends State<SearchScreen> {
                     Container(
                       color: Colors.white,
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 5.0, left: 20.0, right: 20.0 ),
+                        padding: const EdgeInsets.only(top: 15.0, left: 15.0, right: 15.0 ),
                         child: Container(  
                           height: 45.0,                      
                           decoration: BoxDecoration(color: Colors.grey[100],
-                          borderRadius: BorderRadius.all(Radius.circular(50.0))),              
+                          borderRadius: BorderRadius.all(Radius.circular(8.0))),              
                           child: Padding(
                             padding: const EdgeInsets.only(left: 20.0, right:20.0),
+                            //text TextField
                             child: TextField(
+                              textInputAction: TextInputAction.go,
+                              cursorColor: Colors.grey[400],
                               style: TextStyle(
                                 color: Colors.black,
                               ),
@@ -51,13 +54,20 @@ class _SearchScreenState extends State<SearchScreen> {
                               decoration: InputDecoration(
                                 border: InputBorder.none,
                                 
-                                  suffixIcon: searchString == '' ? null :IconButton(
-                                    icon: Icon(Icons.clear,
-                                    color: Colors.grey[600],),
-                                    onPressed: () => textEditingController.clear(),
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.only(left: 32.0),
+                                    child: IconButton(
+                                      splashRadius: 4.0,
+                                      onPressed: (){},
+                                                                          icon: Icon(Icons.search,
+                                      color: Colors.grey,
+                                      ),
+                                    ),
                                   ),
-                                  hintText: 'Search User here...',
-                                  hintStyle: TextStyle(color: Colors.grey)),
+                                  hintText: 'Search',
+                                  hintStyle: TextStyle(color: Colors.grey,
+                                  fontFamily: 'Montserrat'
+                                  )),
                             ),
                           ),
                         ),
@@ -81,7 +91,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             return SizedBox(
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  backgroundColor: Colors.lightBlueAccent,
+                                  backgroundColor: Colors.grey,
                                 ),
                               ),
                             );
