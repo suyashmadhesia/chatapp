@@ -5,6 +5,7 @@ import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -39,12 +40,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       finalEmail = obtainedEmail;
     });
   }
-
+//const
   final _formKey = GlobalKey<FormState>();
 
-  final _firestore = FirebaseFirestore.instance;
+  final _firestore = FirebaseFirestore.instance.collection('users');
   final _auth = FirebaseAuth.instance;
-
+  final DateTime timeStamp = DateTime.now();
+  
+//end
   final passwordValidator = MultiValidator([
     RequiredValidator(errorText: 'Password is required'),
     MinLengthValidator(6, errorText: 'Password must be at least \n6 characters')
@@ -66,6 +69,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     return Scaffold(
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
@@ -143,23 +149,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 final newUser =
                                     await _auth.createUserWithEmailAndPassword(
                                         email: username, password: password);
-
+//Saving data to firestore 
                                 if (newUser != null) {
                                   User user = FirebaseAuth.instance.currentUser;
-                                  _firestore.collection('users').add({
+                                  _firestore.doc(user.uid).set({
                                     'username': name,
                                     'bio': '',
                                     'avtar': '',
                                     'gender': '',
                                     'userId': user.uid,
                                     'password': password,
-                                    'securityQuestion': '',
-                                    'securityAnswer': '',
+                                    'timeStamp' : timeStamp,
+                                    'email' : '',
                                   }).then((value) async {
                                     SharedPreferences prefs =
                                         await SharedPreferences.getInstance();
                                     prefs.setString('email', username);
-                                    Navigator.pop(context);
+                                    Navigator.popUntil(context, ModalRoute.withName('login_screen'));
+                                    Navigator.popUntil(context, ModalRoute.withName('registration_screen'));
                                     Firebase.initializeApp().whenComplete(() {
                                       print('initialization Complete');
                                       setState(() {});

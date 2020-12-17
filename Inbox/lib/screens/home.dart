@@ -10,7 +10,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
 // final StorageReference storageRef = FirebaseStorage.instance.ref();
 final usersRef = FirebaseFirestore.instance.collection('users');
-final postsRef = FirebaseFirestore.instance.collection('posts');
+
 // final DateTime timestamp = DateTime.now();
 User currentUser;
 
@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: <Widget>[
           FriendsScreen(),
           SearchScreen(),
-          ProfileScreen(profileId: currentUser?.uid),
+          ProfileScreen(profileId: user?.uid),
           // ProfileScreen()
         ],
         controller: pageController,

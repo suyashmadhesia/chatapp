@@ -1,5 +1,6 @@
 import 'package:Inbox/screens/home.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
@@ -29,6 +30,9 @@ class _ChatAppState extends State<ChatApp> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     return MaterialApp(
         home: Scaffold(
 

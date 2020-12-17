@@ -1,4 +1,5 @@
 // import 'package:firebase_core/firebase_core.dart';
+import 'package:Inbox/screens/notification_screen.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:Inbox/screens/welcome_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,10 +42,15 @@ final _auth = FirebaseAuth.instance;
         automaticallyImplyLeading: false,
         backgroundColor: Colors.grey[900],
         actions: [
-          IconButton(
-            splashRadius: 16.0,
-            onPressed: (){},
-            icon: Icon(Icons.notifications))
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: IconButton(
+              splashRadius: 16.0,
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen()));
+              },
+              icon: Icon(Icons.notifications)),
+          )
       ],
       ),
       backgroundColor: Colors.white,
@@ -53,7 +59,7 @@ final _auth = FirebaseAuth.instance;
             physics: BouncingScrollPhysics(),
             children: [Column(
             children: [
-              Text('hello world')
+              
             ],
           ),
                   ]),

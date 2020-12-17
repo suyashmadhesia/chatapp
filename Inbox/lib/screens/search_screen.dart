@@ -1,4 +1,5 @@
 // import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,7 +24,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
-                  child: Column(
+            child: Column(
             children: <Widget>[
               Expanded(
                 child: Column(
@@ -34,7 +35,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: const EdgeInsets.only(top: 15.0, left: 15.0, right: 15.0 ),
                         child: Container(  
                           height: 45.0,                      
-                          decoration: BoxDecoration(color: Colors.grey[100],
+                          decoration: BoxDecoration(color: Colors.grey[200],
                           borderRadius: BorderRadius.all(Radius.circular(8.0))),              
                           child: Padding(
                             padding: const EdgeInsets.only(left: 20.0, right:20.0),
@@ -54,16 +55,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               decoration: InputDecoration(
                                 border: InputBorder.none,
                                 
-                                  suffixIcon: Padding(
-                                    padding: const EdgeInsets.only(left: 32.0),
-                                    child: IconButton(
-                                      splashRadius: 4.0,
-                                      onPressed: (){},
-                                                                          icon: Icon(Icons.search,
-                                      color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
+                                  
                                   hintText: 'Search',
                                   hintStyle: TextStyle(color: Colors.grey,
                                   fontFamily: 'Montserrat'
@@ -73,6 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
                     ),
+                    SizedBox(height: 20),
                     Expanded(
                         child: StreamBuilder<QuerySnapshot>(
                       stream: (searchString == null || searchString.trim() == '')
@@ -80,7 +73,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           : FirebaseFirestore.instance
                               .collection('users')
                               .where('username',
-                                  isGreaterThanOrEqualTo: searchString)
+                                  isEqualTo: searchString)
                               .snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
@@ -96,7 +89,13 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             );
                           case ConnectionState.none:
-                            return Center(child: Text('Search Users here'));
+                            return Center(child: Text('Search users here',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontFamily: 'Mulish',
+                              fontSize: 18.0,
+                            ),
+                            ));
 
                           case ConnectionState.done:
                             return Text('we are done');
@@ -111,31 +110,23 @@ class _SearchScreenState extends State<SearchScreen> {
                                     onTap: () => print('tapped'),
                                     child: ListTile(
                                       leading: CircleAvatar(
+                                        radius: 18,
                                         backgroundColor: Colors.white,
-                                        backgroundImage: document['avtar'] == '' ?  AssetImage('assets/images/avtar.png') : CachedNetworkImageProvider(document['avtar']),
-                                        // backgroundImage: AssetImage('assets/images/avtar.png'),
+                                        backgroundImage: document['avtar'] == '' ? AssetImage('assets/images/profile-user.png') : CachedNetworkImageProvider(document['avtar']),
                                       ),
-                                      // backgroundImage: (this.profileImgPath == null) ? new AssetImage('images/user-avatar.png') : new CachedNetworkImageProvider(this.profileImgPath),
-                                      
-                                      // leading: CachedNetworkImage(
-                                      //   imageUrl:
-                                      //       (document['avtar'] == '' ?  AssetImage('assets/images/avtar.png') : document['avtar']),
-                                      //   progressIndicatorBuilder: (context, url,
-                                      //           downloadProgress) =>
-                                      //       CircularProgressIndicator(
-                                      //           value: downloadProgress.progress),
-                                      //   errorWidget: (context, url, error) =>
-                                      //       Icon(Icons.error),
-                                      // ),
+                                     
                                       title: Text(
                                         document['username'],
-                                        style: TextStyle(color: Colors.black),
+                                        style: TextStyle(color: Colors.black,
+                                        fontFamily: 'Mulish',
+                                        fontSize: 18
+                                        ),
                                       ),
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                        left: 65.0, right: 20.0),
+                                        left: 10.0, right: 10.0),
                                     child: Divider(
                                       height: 1.0,
                                       color: Colors.grey,
