@@ -17,10 +17,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-//     children: snapshot.data.docs
-//                                   .map((DocumentSnapshot document) {
-// }
-
     return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(

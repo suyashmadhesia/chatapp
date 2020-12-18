@@ -38,6 +38,12 @@ dependencies:
   cached_network_image: ^2.4.1
   firebase_messaging: ^7.0.3
   flutter_svg: ^0.19.1
+  image_picker: ^0.6.7+15
+  uuid: ^2.2.2
+  image: ^2.1.19
+  path_provider: ^1.6.24
+  firebase_storage: ^5.2.0
+  
 
 dev_dependencies:
   flutter_test:
