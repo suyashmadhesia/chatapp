@@ -1,4 +1,7 @@
 // import 'package:firebase_core/firebase_core.dart';
+import 'package:Inbox/models/user.dart';
+import 'package:Inbox/screens/home.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -11,135 +14,131 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+
+//const
   TextEditingController textEditingController = TextEditingController();
   final database = FirebaseFirestore.instance;
-  String searchString;
+  Future<QuerySnapshot> searchResult;
+  final usersRef = FirebaseFirestore.instance.collection('users');
+
+//Functions
+
+  handleSearch(String value){
+    Future<QuerySnapshot> users = usersRef.where('username', isEqualTo: value).get();
+    setState(() {
+      searchResult = users;
+    });
+
+  }
+
+
+  AppBar buildSearchField(){
+    return AppBar(
+      toolbarHeight: 75,
+      backgroundColor: Colors.grey[900],
+      automaticallyImplyLeading: false,
+      title: TextFormField(
+        onChanged: handleSearch,
+        cursorColor: Colors.grey[600],
+        decoration: InputDecoration(
+          focusedBorder: UnderlineInputBorder(borderSide: BorderSide.none),
+          hintText: 'Search here......',
+          hintStyle: TextStyle(color: Colors.grey, fontFamily: 'Montserrat', fontSize: 14.0),
+          filled: true,
+          fillColor: Colors.grey[300],
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(left: 32),
+            child: IconButton(
+              splashRadius: 8.0,
+              onPressed: (){
+                FocusScope.of(context).unfocus();
+              },
+              icon: Icon(Icons.search,
+              color: Colors.grey[600],
+              ),
+            ),
+          )
+        )
+      ),
+    );
+  }
+
+  Container buildNoContent(){
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: ListView(
+          physics: BouncingScrollPhysics(),
+          children: [
+            SizedBox(height: 175,),
+            SvgPicture.asset('assets/images/search.svg', height: 200, width: 200),
+            Center(child: Text('Search for new friends...',style: TextStyle(color: Colors.grey, fontSize: 14, fontFamily: 'Mulish'))),
+          ],
+        ),
+        ),
+      );
+    }
+
+    buildSearchResult(){
+      return FutureBuilder(
+        future: searchResult,
+        builder: (context, snapshot){
+          if(!snapshot.hasData){
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          
+          else{
+            List<UserResult> searchResult = [];
+            snapshot.data.documents.forEach((doc){
+              
+              Account users = Account.fromDocument(doc);
+              UserResult userResult = UserResult(users);
+              searchResult.add(userResult);
+            });
+            return ListView(physics: BouncingScrollPhysics(),
+              children: searchResult
+                
+             
+            );
+          }
+        },
+      );
+    }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-            child: Column(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  children: <Widget>[
-                    Container(
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 15.0, left: 15.0, right: 15.0 ),
-                        child: Container(  
-                          height: 45.0,                      
-                          decoration: BoxDecoration(color: Colors.grey[200],
-                          borderRadius: BorderRadius.all(Radius.circular(8.0))),              
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 20.0, right:20.0),
-                            //text TextField
-                            child: TextField(
-                              textInputAction: TextInputAction.go,
-                              cursorColor: Colors.grey[400],
-                              style: TextStyle(
-                                color: Colors.black,
-                              ),
-                              onChanged: (val) {
-                                setState(() {
-                                  searchString = val.toLowerCase();
-                                });
-                              },
-                              controller: textEditingController,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                
-                                  
-                                  hintText: 'Search',
-                                  hintStyle: TextStyle(color: Colors.grey,
-                                  fontFamily: 'Montserrat'
-                                  )),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Expanded(
-                        child: StreamBuilder<QuerySnapshot>(
-                      stream: (searchString == null || searchString.trim() == '')
-                          ? null
-                          : FirebaseFirestore.instance
-                              .collection('users')
-                              .where('username',
-                                  isEqualTo: searchString)
-                              .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return Text('we got an error');
-                        }
-                        switch (snapshot.connectionState) {
-                          case ConnectionState.waiting:
-                            return SizedBox(
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  backgroundColor: Colors.grey,
-                                ),
-                              ),
-                            );
-                          case ConnectionState.none:
-                            return Center(child: Text('Search users here',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontFamily: 'Mulish',
-                              fontSize: 18.0,
-                            ),
-                            ));
+      appBar: buildSearchField(),
+      body: searchResult == null ?  buildNoContent() : buildSearchResult(),
+    );
+  }
+}
 
-                          case ConnectionState.done:
-                            return Text('we are done');
+class UserResult extends StatelessWidget {
 
-                          default:
-                            return new ListView(
-                                children: snapshot.data.docs
-                                    .map((DocumentSnapshot document) {
-                              return Column(
-                                children: [
-                                  new GestureDetector(
-                                    onTap: () => print('tapped'),
-                                    child: ListTile(
-                                      leading: CircleAvatar(
-                                        radius: 18,
-                                        backgroundColor: Colors.white,
-                                        backgroundImage: document['avtar'] == '' ? AssetImage('assets/images/profile-user.png') : CachedNetworkImageProvider(document['avtar']),
-                                      ),
-                                     
-                                      title: Text(
-                                        document['username'],
-                                        style: TextStyle(color: Colors.black,
-                                        fontFamily: 'Mulish',
-                                        fontSize: 18
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 10.0, right: 10.0),
-                                    child: Divider(
-                                      height: 1.0,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList());
-                        }
-                      },
-                    )),                
-                  ],
-                ),
-              ),
-              
-            ],
+  final Account user;
+
+  UserResult( this.user );
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey[50],
+      child: Column(children: [
+        GestureDetector(
+          onTap: () => print('tapped'),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundImage: user.avtar == null || user.avtar == '' ? AssetImage('assets/images/profile-user.png') : CachedNetworkImageProvider(user.avtar),
+            ),
+            title: Text(user.username, style: TextStyle(color: Colors.grey[900], fontSize: 18, fontFamily: 'Monstserrat')),
           ),
-        ));
+        ),
+        Divider(color: Colors.grey[500],height: 2.0,)
+      ],),
+    );
   }
 }

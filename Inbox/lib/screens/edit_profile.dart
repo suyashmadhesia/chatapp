@@ -79,6 +79,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String bio_field;
   String email_field;
 
+  String deletingImgPath;
+
   getUserData() async{
     DocumentSnapshot doc = await userRefs.doc(user.uid).get();
     Account userData = Account.fromDocument(doc);
@@ -87,6 +89,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     email_field = userData.email;
     
   }
+
+
+  removeProfile() async{
+    
+                    
+                    await getUserData();
+                    if(image_field != '') {
+                      setState(() {
+      isUploading = true;
+    });
+                     deletingImgPath = image_field.replaceAll(new RegExp(r'https://firebasestorage.googleapis.com/v0/b/unme-37a26.appspot.com/o/'),'').split('?')[0];
+                     await storageRefs.child(deletingImgPath).delete().then((value) => print('deleted'));
+                     await userRefs.doc(user.uid).update({
+                      'avtar' : '',
+                    });
+                    setState(() {
+                      isUploading = false;
+                    });
+                    
+                     SnackBar snackbar = SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                      backgroundColor: Colors.green[700],
+                      content: Text('Profile Image Deleted !'),);
+                    _scaffoldKey.currentState.showSnackBar(snackbar);
+   
+                    Navigator.pop(context);
+                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                HomeScreen()));
+                  } else{
+                    Navigator.pop(context);
+                  }
+                  }
 
 
   
@@ -101,6 +139,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if(_image != null){
       await compressImage();
       String mediaUrl = await uploadImage(_image);
+//deleting old image profile
+    if(image_field != '')  {
+      deletingImgPath = image_field.replaceAll(new RegExp(r'https://firebasestorage.googleapis.com/v0/b/unme-37a26.appspot.com/o/'),'').split('?')[0];
+      await storageRefs.child(deletingImgPath).delete().then((value) => print('deleted'));
+      await userRefs.doc(user.uid).update({
+                      'avtar' : '',
+                    });
+      }
       userRefs.doc(user.uid).update({
         'avtar' : mediaUrl,
         'bio' : bio == null ? bio_field : bio,
@@ -300,9 +346,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
             ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: FlatButton(
+                    color: Colors.red,
+                    onPressed: removeProfile, 
+                  child: Text('Remove Profile Image',style: TextStyle(color: Colors.white, fontFamily: 'Montserrat', fontSize: 14))),
+                )
+              ],
+            )
+            
         ],
         ),
       ),
     );
   }
+
+   
 }
