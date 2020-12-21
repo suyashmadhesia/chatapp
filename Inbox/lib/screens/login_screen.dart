@@ -30,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
       print('initialization Complete');
       setState(() {});
     });
+    Navigator.popUntil(context, ModalRoute.withName('login_screen'));
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => HomeScreen()));
   }

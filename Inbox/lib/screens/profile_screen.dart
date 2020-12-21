@@ -107,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     ), 
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-                      child: Text("            ",
+                      child: Text("                         ",
                       style: TextStyle(
                         color: Colors.grey,
                         fontFamily: 'Montserrat'
@@ -152,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               SizedBox(height : 20.0),
               SkeletonAnimation(
                               child: Text(
-                  '                                  ',
+                  '                               ',
                   style: TextStyle(
                     backgroundColor: animation.value,
                     color: Colors.black54,
@@ -232,16 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 //   ),
               ],
             ),
-              SizedBox(height : 20.0),
-              Text(
-                user.bio == '' ? 'Bio : Write something about you....' : user.bio,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontFamily: 'Mulish',
-                  fontSize: 16.0
-                ),
-              ),
-              SizedBox(height : 20.0),
+            SizedBox(height : 20.0),
               Text(
                 user.email == '' ? 'Email: Add your email....' : user.email,
                 style: TextStyle(
@@ -250,6 +241,21 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   fontSize: 16.0
                 ),
               ),
+              SizedBox(height : 20.0),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 32, right: 32),
+                  child: Text(
+                    user.bio == '' ? 'Bio : Write something about you....' : user.bio,
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontFamily: 'Mulish',
+                      fontSize: 16.0
+                    ),
+                  ),
+                ),
+              ),
+              
               
           ],
         );

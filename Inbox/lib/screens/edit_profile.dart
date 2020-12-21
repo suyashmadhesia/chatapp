@@ -42,11 +42,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final userRefs = FirebaseFirestore.instance.collection('users');
 
 //Validators
-  final bioValidator = MultiValidator([
-    //RequiredValidator(errorText: 'Bio is required'),
-    MaxLengthValidator(50,
-        errorText: 'Username must be less than 50 characters')
-  ]);
+  // final emailValidator = MultiValidator([
+  //   EmailValidator(errorText: 'Invalid Email...'),
+  // ]);
   
   
 //Functions
@@ -129,7 +127,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   
   handleSubmit() async{
-    if(_formKey.currentState.validate()){
+    
+   
     setState(() {
       isUploading = true;
     });
@@ -145,18 +144,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await storageRefs.child(deletingImgPath).delete().then((value) => print('deleted'));
       await userRefs.doc(user.uid).update({
                       'avtar' : '',
+                      
                     });
       }
       userRefs.doc(user.uid).update({
         'avtar' : mediaUrl,
-        'bio' : bio == null ? bio_field : bio,
-        'email' : email == null ? email_field : email,
+        'bio' : bio == null || bio == '' ? bio_field : bio,
+        'email' : email == null || email == '' ? email_field : email,
     });
     }
     if(_image == null){
       userRefs.doc(user.uid).update({
-        'bio' : bio == null ? bio_field : bio,
-        'email' : email == null ? email_field : email,
+        'bio' : bio == null || bio == '' ? bio_field : bio,
+        'email' : email == null || email == '' ? email_field : email,
     });
     }
     setState(() {
@@ -175,7 +175,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 HomeScreen()));
-  }
+  
+  
   }
 
 
@@ -289,18 +290,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     ),
                   ),
-                  Text(_image == null ? 'No Image Selected'
-                  : 'Image Loaded',
+                  SizedBox(height: 20),
+                  Text(_image == null ? 'No Image Selected, Select one !'
+                  : 'Image Selected tap to change selected image',
                   style: TextStyle(color: Colors.grey[400], fontSize: 12.0, fontFamily: 'Montserrat'),
                   ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: TextFormField(
+                  child: TextField(
      
                     onChanged: (value){
                       bio = value;
                     },
-                    validator: bioValidator,
+                    maxLength: 100,
+                    maxLines: 4,
+                    minLines: 1,
                     cursorColor: Colors.grey,
                     autofocus: false,
                     style: TextStyle(
@@ -325,7 +329,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     onChanged: (value){
                       email = value;
                     },
-                    
+                    //validator: emailValidator,
                     cursorColor: Colors.grey,
                     autofocus: false,
                     style: TextStyle(
@@ -355,7 +359,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: FlatButton(
                     color: Colors.red,
                     onPressed: removeProfile, 
-                  child: Text('Remove Profile Image',style: TextStyle(color: Colors.white, fontFamily: 'Montserrat', fontSize: 14))),
+                  child: Text('Remove Profile Image',style: TextStyle(color: Colors.white, fontFamily: 'Montserrat', fontSize: 10))),
                 )
               ],
             )
