@@ -118,9 +118,6 @@ class _OthersProfileState extends State<OthersProfile>
 //All functions of accepting denying and deleting a friendRequest
 
   sendFriendRequest() async {
-    setState(() {
-      isSentRequest = true;
-    });
     if (!userFriendsList.contains(widget.profileId) &&
         !receiverFriendsList.contains(user)) {
       if (!userRequestList.contains(widget.profileId) &&
@@ -136,12 +133,12 @@ class _OthersProfileState extends State<OthersProfile>
         });
       }
     }
+    setState(() {
+      isSentRequest = true;
+    });
   }
 
   cancelFriendRequest() async {
-    setState(() {
-      isSentRequest = false;
-    });
     List<String> userIdOfSender = [];
     userIdOfSender.add('$user');
     List<String> userIdOfReceiver = [];
@@ -160,6 +157,9 @@ class _OthersProfileState extends State<OthersProfile>
         });
       }
     }
+    setState(() {
+      isSentRequest = false;
+    });
   }
 
   acceptFriendRequest() async {
@@ -256,14 +256,14 @@ class _OthersProfileState extends State<OthersProfile>
             onPressed: () async {
               await acceptFriendRequest();
               SnackBar snackBar = SnackBar(
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.green[700],
-            content: Text('Request Accepted !'),
-          );
-          _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(seconds: 1));
-          Navigator.pop(context);
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.green[700],
+                content: Text('Request Accepted !'),
+              );
+              _scaffoldKey.currentState.showSnackBar(snackBar);
+              await Future.delayed(Duration(seconds: 1));
+              Navigator.pop(context);
             },
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
@@ -283,14 +283,14 @@ class _OthersProfileState extends State<OthersProfile>
             onPressed: () async {
               await denyingFriendRequest();
               SnackBar snackBar = SnackBar(
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.green[700],
-            content: Text('Request Denied !'),
-          );
-          _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(seconds: 1));
-          Navigator.pop(context);
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.green[700],
+                content: Text('Request Denied !'),
+              );
+              _scaffoldKey.currentState.showSnackBar(snackBar);
+              await Future.delayed(Duration(seconds: 1));
+              Navigator.pop(context);
             },
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
@@ -334,48 +334,47 @@ class _OthersProfileState extends State<OthersProfile>
           ),
         ),
       );
-    }else{
+    } else {
       return FlatButton(
-                color: Colors.blue[900],
-                splashColor: Colors.blue[600],
-                onPressed: () async {
-                  if (isSentRequest) {
-                    await cancelFriendRequest();
-                    SnackBar snackBar = SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 2),
-                      backgroundColor: Colors.green[700],
-                      content: Text('Request Cancelled !'),
-                    );
-                    _scaffoldKey.currentState.showSnackBar(snackBar);
-                    await Future.delayed(Duration(seconds: 1));
-                    Navigator.pop(context);
-                  } else if (!isSentRequest) {
-                    await sendFriendRequest();
-                    SnackBar snackBar = SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 1),
-                      backgroundColor: Colors.green[700],
-                      content: Text('Request Sent !'),
-                    );
-                    _scaffoldKey.currentState.showSnackBar(snackBar);
-                    await Future.delayed(Duration(seconds: 2));
-                    Navigator.pop(context);
-                  }
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  side: BorderSide(color: Colors.blue[900], width: 2),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                  child: Text(
-                    isSentRequest ? 'Cancel Request' : 'Add Friend',
-                    style: TextStyle(
-                        color: Colors.white, fontFamily: 'Montserrat'),
-                  ),
-                ),
-              );
+        color: Colors.blue[900],
+        splashColor: Colors.blue[600],
+        onPressed: () async {
+          if (isSentRequest) {
+            await cancelFriendRequest();
+            SnackBar snackBar = SnackBar(
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.green[700],
+              content: Text('Request Cancelled !'),
+            );
+            _scaffoldKey.currentState.showSnackBar(snackBar);
+            await Future.delayed(Duration(seconds: 1));
+            Navigator.pop(context);
+          } else if (!isSentRequest) {
+            await sendFriendRequest();
+            SnackBar snackBar = SnackBar(
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 1),
+              backgroundColor: Colors.green[700],
+              content: Text('Request Sent !'),
+            );
+            _scaffoldKey.currentState.showSnackBar(snackBar);
+            await Future.delayed(Duration(seconds: 2));
+            Navigator.pop(context);
+          }
+        },
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          side: BorderSide(color: Colors.blue[900], width: 2),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: Text(
+            isSentRequest ? 'Cancel Request' : 'Add Friend',
+            style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+          ),
+        ),
+      );
     }
   }
 
