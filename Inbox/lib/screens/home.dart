@@ -12,7 +12,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 final usersRef = FirebaseFirestore.instance.collection('users');
 
 // final DateTime timestamp = DateTime.now();
-User currentUser;
+// User currentUser;
 
 class HomeScreen extends StatefulWidget {
   @override

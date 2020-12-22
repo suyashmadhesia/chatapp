@@ -161,6 +161,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     'password': password,
                                     'timeStamp' : timeStamp,
                                     'email' : '',
+                                    'securityQuestion' : '',
+                                    'securityAnswer' :'',
+                                    'requestList' : <String>[],
+                                    'friendsList' : <String>[],
+                                    'pendingList' : <String>[],
+                                    
                                   }).then((value) async {
                                     SharedPreferences prefs =
                                         await SharedPreferences.getInstance();

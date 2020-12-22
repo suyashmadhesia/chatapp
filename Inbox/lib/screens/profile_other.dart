@@ -7,139 +7,448 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeleton_text/skeleton_text.dart';
-
+import 'home.dart';
+import 'search_screen.dart';
 
 class OthersProfile extends StatefulWidget {
   @override
   _OthersProfileState createState() => _OthersProfileState();
   final String profileId;
-  OthersProfile({ this.profileId });
+  OthersProfile({this.profileId});
 }
 
-class _OthersProfileState extends State<OthersProfile> with TickerProviderStateMixin{
- 
+class _OthersProfileState extends State<OthersProfile>
+    with TickerProviderStateMixin {
   final _auth = FirebaseAuth.instance;
+  String user = FirebaseAuth.instance.currentUser.uid;
   final userRefs = FirebaseFirestore.instance.collection('users');
   Animation animation;
   AnimationController controller;
-   @override
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
   void initState() {
     super.initState();
-    controller = AnimationController(duration: Duration(microseconds: 200),vsync: this);
+    controller =
+        AnimationController(duration: Duration(microseconds: 200), vsync: this);
 
-    animation = ColorTween(begin: Colors.grey[200], end : Colors.white).animate(controller);
+    animation = ColorTween(begin: Colors.grey[200], end: Colors.white)
+        .animate(controller);
     controller.forward();
-   
 
+    getUsersFriendData();
+    isRequestSent();
+    checkingAccept();
+    friendCheck();
   }
 
-   buildProfileHeader(){
-     return FutureBuilder(
+//CollectionField Constant
+  List userRequestList;
+  List userPendingList;
+  List userFriendsList;
+
+  List receiverPendingList;
+  List receiverRequestList;
+  List receiverFriendsList;
+
+  bool isSentRequest = false;
+  bool showAccepted = false;
+  bool isFriends = false;
+
+  checkingAccept() async {
+    final userAccountRefs =
+        await FirebaseFirestore.instance.collection('users').doc(user).get();
+    final receiverAccountRefs = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.profileId)
+        .get();
+    if (userAccountRefs['pendingList'].contains(widget.profileId) &&
+        receiverAccountRefs['requestList'].contains(user)) {
+      setState(() {
+        showAccepted = true;
+      });
+    }
+  }
+
+  getUsersFriendData() async {
+    final userAccountRefs =
+        await FirebaseFirestore.instance.collection('users').doc(user).get();
+    userRequestList = userAccountRefs['requestList'];
+    userPendingList = userAccountRefs['pendingList'];
+    userFriendsList = userAccountRefs['friendsList'];
+    final receiverAccountRefs = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.profileId)
+        .get();
+    receiverPendingList = receiverAccountRefs['pendingList'];
+    receiverRequestList = receiverAccountRefs['requestList'];
+    receiverFriendsList = receiverAccountRefs['friendsList'];
+  }
+
+  isRequestSent() async {
+    final userAccountRefs =
+        await FirebaseFirestore.instance.collection('users').doc(user).get();
+    final receiverAccountRefs = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.profileId)
+        .get();
+    if (userAccountRefs['requestList'].contains(widget.profileId) &&
+        receiverAccountRefs['pendingList'].contains(user)) {
+      setState(() {
+        isSentRequest = true;
+      });
+    }
+  }
+
+  friendCheck() async {
+    final userAccountRefs =
+        await FirebaseFirestore.instance.collection('users').doc(user).get();
+    final receiverAccountRefs = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.profileId)
+        .get();
+    if (userAccountRefs['friendsList'].contains(widget.profileId) &&
+        receiverAccountRefs['friendsList'].contains(user)) {
+      setState(() {
+        isFriends = true;
+      });
+    }
+  }
+
+//All functions of accepting denying and deleting a friendRequest
+
+  sendFriendRequest() async {
+    setState(() {
+      isSentRequest = true;
+    });
+    if (!userFriendsList.contains(widget.profileId) &&
+        !receiverFriendsList.contains(user)) {
+      if (!userRequestList.contains(widget.profileId) &&
+          !receiverPendingList.contains(user) &&
+          !userPendingList.contains(widget.profileId) &&
+          !receiverRequestList.contains(user)) {
+        await userRefs.doc(user).update({
+          'requestList': FieldValue.arrayUnion([widget.profileId]),
+        });
+        //print('working');
+        await userRefs.doc(widget.profileId).update({
+          'pendingList': FieldValue.arrayUnion([user]),
+        });
+      }
+    }
+  }
+
+  cancelFriendRequest() async {
+    setState(() {
+      isSentRequest = false;
+    });
+    List<String> userIdOfSender = [];
+    userIdOfSender.add('$user');
+    List<String> userIdOfReceiver = [];
+    userIdOfReceiver.add(widget.profileId);
+    if (!userFriendsList.contains(widget.profileId) &&
+        !receiverFriendsList.contains(user)) {
+      if (userRequestList.contains(widget.profileId) &&
+          receiverPendingList.contains(user)) {
+        await userRefs.doc(user).update({
+          'requestList': FieldValue.arrayRemove(userIdOfReceiver),
+        });
+        //print('I am Working');
+        //print(userIdOfSender);
+        await userRefs.doc(widget.profileId).update({
+          'pendingList': FieldValue.arrayRemove(userIdOfSender),
+        });
+      }
+    }
+  }
+
+  acceptFriendRequest() async {
+    List<String> userIdOfSender = [];
+    userIdOfSender.add('$user');
+    List<String> userIdOfReceiver = [];
+    userIdOfReceiver.add(widget.profileId);
+    if (!userFriendsList.contains(widget.profileId) &&
+        !receiverFriendsList.contains(user)) {
+      if (userPendingList.contains(widget.profileId) &&
+          receiverRequestList.contains(user)) {
+        userRefs.doc(user).update({
+          'pendingList': FieldValue.arrayRemove(userIdOfReceiver),
+        });
+        print(userIdOfSender);
+        userRefs.doc(user).update({
+          'friendsList': FieldValue.arrayUnion([widget.profileId]),
+        });
+
+        userRefs.doc(widget.profileId).update({
+          'requestList': FieldValue.arrayRemove(userIdOfSender),
+        });
+        userRefs.doc(widget.profileId).update({
+          'friendsList': FieldValue.arrayUnion([user]),
+        });
+        final senderCollectionRef =
+            FirebaseFirestore.instance.collection('users/$user/friends');
+        senderCollectionRef.doc(widget.profileId).set({
+          'isFriend': true,
+          'isBlocked': false,
+        });
+        final receiverCollectionRef = FirebaseFirestore.instance
+            .collection('users/' + widget.profileId + '/friends');
+        receiverCollectionRef.doc(user).set({
+          'isFriend': true,
+          'isBlocked': false,
+        });
+      }
+    }
+    setState(() {
+      showAccepted = false;
+    });
+  }
+
+  unfriending() {
+    if (userFriendsList.contains(widget.profileId) &&
+        receiverFriendsList.contains(user)) {
+      final senderCollectionRef =
+          FirebaseFirestore.instance.collection('users/$user/friends');
+      senderCollectionRef.doc(widget.profileId).delete();
+      final receiverCollectionRef = FirebaseFirestore.instance
+          .collection('users/' + widget.profileId + '/friends');
+      receiverCollectionRef.doc(user).delete();
+      userRefs.doc(user).update({
+        'friendsList': FieldValue.arrayRemove([widget.profileId]),
+      });
+      userRefs.doc(widget.profileId).update({
+        'friendsList': FieldValue.arrayRemove([user]),
+      });
+    }
+  }
+
+  denyingFriendRequest() {
+    List<String> userIdOfSender = [];
+    userIdOfSender.add('$user');
+    List<String> userIdOfReceiver = [];
+    userIdOfReceiver.add(widget.profileId);
+    if (!userFriendsList.contains(widget.profileId) &&
+        !receiverFriendsList.contains(user)) {
+      if (userPendingList.contains(widget.profileId) &&
+          receiverRequestList.contains(user)) {
+        userRefs.doc(user).update({
+          'pendingList': FieldValue.arrayRemove(userIdOfReceiver),
+        });
+
+        userRefs.doc(widget.profileId).update({
+          'requestList': FieldValue.arrayRemove(userIdOfSender),
+        });
+      }
+    }
+    setState(() {
+      showAccepted = false;
+    });
+  }
+
+  buildProfileButton() {
+    if (showAccepted && !isFriends && !isSentRequest) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          FlatButton(
+            color: Colors.blue[900],
+            splashColor: Colors.blue[200],
+            onPressed: () async {
+              await acceptFriendRequest();
+              SnackBar snackBar = SnackBar(
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.green[700],
+            content: Text('Request Accepted !'),
+          );
+          _scaffoldKey.currentState.showSnackBar(snackBar);
+          await Future.delayed(Duration(seconds: 1));
+          Navigator.pop(context);
+            },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              side: BorderSide(color: Colors.blue[900], width: 2),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+              child: Text(
+                "Accept",
+                style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+              ),
+            ),
+          ),
+          FlatButton(
+            color: Colors.white,
+            splashColor: Colors.blue[200],
+            onPressed: () async {
+              await denyingFriendRequest();
+              SnackBar snackBar = SnackBar(
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.green[700],
+            content: Text('Request Denied !'),
+          );
+          _scaffoldKey.currentState.showSnackBar(snackBar);
+          await Future.delayed(Duration(seconds: 1));
+          Navigator.pop(context);
+            },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              side: BorderSide(color: Colors.blue[900], width: 2),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+              child: Text(
+                "Deny",
+                style: TextStyle(color: Colors.black, fontFamily: 'Montserrat'),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (!showAccepted && isFriends && !isSentRequest) {
+      return FlatButton(
+        color: Colors.white,
+        splashColor: Colors.blue[200],
+        onPressed: () async {
+          await unfriending();
+          SnackBar snackBar = SnackBar(
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.green[700],
+            content: Text('Unfriend Done !'),
+          );
+          _scaffoldKey.currentState.showSnackBar(snackBar);
+          await Future.delayed(Duration(seconds: 1));
+          Navigator.pop(context);
+        },
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          side: BorderSide(color: Colors.blue[900], width: 2),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+          child: Text(
+            "Unfriend",
+            style: TextStyle(color: Colors.blue[900], fontFamily: 'Montserrat'),
+          ),
+        ),
+      );
+    }else{
+      return FlatButton(
+                color: Colors.blue[900],
+                splashColor: Colors.blue[600],
+                onPressed: () async {
+                  if (isSentRequest) {
+                    await cancelFriendRequest();
+                    SnackBar snackBar = SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                      backgroundColor: Colors.green[700],
+                      content: Text('Request Cancelled !'),
+                    );
+                    _scaffoldKey.currentState.showSnackBar(snackBar);
+                    await Future.delayed(Duration(seconds: 1));
+                    Navigator.pop(context);
+                  } else if (!isSentRequest) {
+                    await sendFriendRequest();
+                    SnackBar snackBar = SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 1),
+                      backgroundColor: Colors.green[700],
+                      content: Text('Request Sent !'),
+                    );
+                    _scaffoldKey.currentState.showSnackBar(snackBar);
+                    await Future.delayed(Duration(seconds: 2));
+                    Navigator.pop(context);
+                  }
+                },
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  side: BorderSide(color: Colors.blue[900], width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  child: Text(
+                    isSentRequest ? 'Cancel Request' : 'Add Friend',
+                    style: TextStyle(
+                        color: Colors.white, fontFamily: 'Montserrat'),
+                  ),
+                ),
+              );
+    }
+  }
+
+  buildProfileHeader() {
+    return FutureBuilder(
       future: userRefs.doc(widget.profileId).get(),
-      builder: (context, snapshot){
-        if(!snapshot.hasData){
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
           return SizedBox(
             height: 500,
             child: Center(
-              child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            SizedBox(height: 150.0),
-          SkeletonAnimation(
-                          child: CircleAvatar(
-                radius: 50.0,
-                backgroundColor: animation.value,
-                backgroundImage: AssetImage('assets/images/profile-user.png'),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: SkeletonAnimation(
-                              child: Text('                       ',
-                style: TextStyle(
-                  backgroundColor: animation.value,
-                  color: Colors.black,
-                  fontSize: 24.0,
-                  fontFamily: 'Montserrat',
-                ),
-                ),
-              ),
-            ),
-            Row(
+                child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                 FlatButton(
-                   color: animation.value,
-
-                    splashColor: Colors.grey[400],
-                    onPressed: () {
-                       
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4.0),
-                      side: BorderSide(color: Colors.grey[50], width: 2),
-                    ), 
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-                      child: Text("                         ",
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                SizedBox(height: 150.0),
+                SkeletonAnimation(
+                  child: CircleAvatar(
+                    radius: 50.0,
+                    backgroundColor: animation.value,
+                    backgroundImage:
+                        AssetImage('assets/images/profile-user.png'),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: SkeletonAnimation(
+                    child: Text(
+                      '                       ',
                       style: TextStyle(
+                        backgroundColor: animation.value,
+                        color: Colors.black,
+                        fontSize: 24.0,
+                        fontFamily: 'Montserrat',
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    FlatButton(
+                      color: animation.value,
+                      splashColor: Colors.grey[400],
+                      onPressed: () {},
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                        side: BorderSide(color: Colors.grey[50], width: 2),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+                        child: Text(
+                          "                         ",
+                          style: TextStyle(
+                              color: Colors.grey, fontFamily: 'Montserrat'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20.0),
+                SkeletonAnimation(
+                  child: Text(
+                    '                                      ',
+                    style: TextStyle(
+                        backgroundColor: animation.value,
                         color: Colors.grey,
-                        fontFamily: 'Montserrat'
-                      ),
-                      ),
-                    ),  
-                  ),
-              //   FlatButton(
-              //       splashColor: Colors.grey[400],
-              //       color: animation.value,
-              //       onPressed: () {
-                       
-              //       },
-              //       shape: RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.circular(4.0),
-              //         side: BorderSide(color: Colors.grey[50], width: 2),
-              //       ), 
-              //       child: Padding(
-              //         padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-              //         child: Text("           ",
-              //         style: TextStyle(
-              //           color: animation.value,
-              //           fontFamily: 'Montserrat'
-              //         ),
-              //         ),
-              //       ),  
-              //     ),
-               ],
-            ),
-              SizedBox(height : 20.0),
-              SkeletonAnimation(
-                              child: Text(
-                  '                                      ',
-                  style: TextStyle(
-                    backgroundColor: animation.value,
-                    color: Colors.grey,
-                    fontFamily: 'Mulish',
-                    fontSize: 16.0
+                        fontFamily: 'Mulish',
+                        fontSize: 16.0),
                   ),
                 ),
-              ),
-              SizedBox(height : 20.0),
-              SkeletonAnimation(
-                              child: Text(
-                  '                               ',
-                  style: TextStyle(
-                    backgroundColor: animation.value,
-                    color: Colors.black54,
-                    fontFamily: 'Mulish',
-                    fontSize: 16.0
-                  ),
-                ),
-              ),
-              
-          ],
-        )
-            ),
+              ],
+            )),
           );
         }
         Account user = Account.fromDocument(snapshot.data);
@@ -151,120 +460,54 @@ class _OthersProfileState extends State<OthersProfile> with TickerProviderStateM
             CircleAvatar(
               radius: 50.0,
               backgroundColor: Colors.grey[100],
-              backgroundImage: user.avtar == '' ? AssetImage('assets/images/profile-user.png') : CachedNetworkImageProvider(user.avtar),
+              backgroundImage: user.avtar == ''
+                  ? AssetImage('assets/images/profile-user.png')
+                  : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(
               padding: EdgeInsets.all(16),
-              child: Text(user.username,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 24.0,
-                fontFamily: 'Montserrat',
-              ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                 FlatButton(
-                   color: Colors.blue[900],
-                    splashColor: Colors.blue[600],
-                    onPressed: () {
-                       
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4.0),
-                      side: BorderSide(color: Colors.blue[900], width: 2),
-                    ), 
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                      child: Text("Send Friend Request",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Montserrat'
-                      ),
-                      ),
-                    ),  
-                  ),
-                // FlatButton(
-                //     splashColor: Colors.grey[400],
-                //     onPressed: () {
-                       
-                //     },
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(4.0),
-                //       side: BorderSide(color: Colors.grey[50], width: 2),
-                //     ), 
-                //     child: Padding(
-                //       padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-                //       child: Text("Following",
-                //       style: TextStyle(
-                //         color: Colors.indigo,
-                //         fontFamily: 'Montserrat'
-                //       ),
-                //       ),
-                //     ),  
-                //   ),
-              ],
-            ),
-            // SizedBox(height : 20.0),
-            //   Text(
-            //     user.email == '' ? 'Email: Add your email....' : user.email,
-            //     style: TextStyle(
-            //       color: Colors.black54,
-            //       fontFamily: 'Mulish',
-            //       fontSize: 16.0
-            //     ),
-            //   ),
-              SizedBox(height : 40.0),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 32, right: 32),
-                  child: Text(
-                    user.bio == '' ? user.username +' has not provided bio yet' : user.bio,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontFamily: 'Mulish',
-                      fontSize: 18.0
-                    ),
-                  ),
+              child: Text(
+                user.username,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 24.0,
+                  fontFamily: 'Montserrat',
                 ),
               ),
-              
-              
+            ),
+            SizedBox(height: 40.0),
+            buildProfileButton(),
+            SizedBox(height: 40.0),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32),
+                child: Text(
+                  user.bio == ''
+                      ? user.username + ' has not provided bio yet'
+                      : user.bio,
+                  style: TextStyle(
+                      color: Colors.grey, fontFamily: 'Mulish', fontSize: 18.0),
+                ),
+              ),
+            ),
           ],
         );
       },
     );
   }
-    
- 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       appBar: AppBar(
-        
-        title: Text('Profile',
-        style: TextStyle(fontFamily: 'Montserrat')),
+        title: Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
         automaticallyImplyLeading: true,
         backgroundColor: Colors.grey[900],
-        // actions: [
-        //   Padding(
-        //     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        //     child: IconButton(
-        //       splashRadius: 16.0,
-        //       onPressed: () {
-        //       Navigator.pop(context);
-
-        //     },
-        //         icon: Icon(Icons.close),
-        //   ))
-        // ],
-        ),
+      ),
       body: SafeArea(
-        child: ListView( 
+        child: ListView(
           physics: BouncingScrollPhysics(),
           children: [
             buildProfileHeader(),
@@ -273,6 +516,4 @@ class _OthersProfileState extends State<OthersProfile> with TickerProviderStateM
       ),
     );
   }
-
-
 }
