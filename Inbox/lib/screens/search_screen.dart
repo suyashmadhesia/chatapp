@@ -71,7 +71,7 @@ class _SearchScreenState extends State<SearchScreen> {
               color: Colors.grey[700],
               fontFamily: 'Montserrat',
               fontSize: 14.0),
-          onFieldSubmitted: handleSearch,
+          onChanged: handleSearch,
           cursorColor: Colors.grey[600],
           decoration: InputDecoration(
               focusedBorder: UnderlineInputBorder(borderSide: BorderSide.none),

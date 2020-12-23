@@ -54,6 +54,7 @@ class _OthersProfileState extends State<OthersProfile>
   bool isSentRequest = false;
   bool showAccepted = false;
   bool isFriends = false;
+  String username;
 
   checkingAccept() async {
     final userAccountRefs =
@@ -76,6 +77,7 @@ class _OthersProfileState extends State<OthersProfile>
     userRequestList = userAccountRefs['requestList'];
     userPendingList = userAccountRefs['pendingList'];
     userFriendsList = userAccountRefs['friendsList'];
+    username = userAccountRefs['username'];
     final receiverAccountRefs = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.profileId)
@@ -83,6 +85,7 @@ class _OthersProfileState extends State<OthersProfile>
     receiverPendingList = receiverAccountRefs['pendingList'];
     receiverRequestList = receiverAccountRefs['requestList'];
     receiverFriendsList = receiverAccountRefs['friendsList'];
+
   }
 
   isRequestSent() async {
@@ -131,6 +134,12 @@ class _OthersProfileState extends State<OthersProfile>
         await userRefs.doc(widget.profileId).update({
           'pendingList': FieldValue.arrayUnion([user]),
         });
+        final receiverCollectionRef = FirebaseFirestore.instance
+            .collection('users/' + widget.profileId + '/pendingRequests');
+        receiverCollectionRef.doc(user).set({
+          'pendingUserId': user,
+          'SendersUsername' : username,
+        });
       }
     }
     setState(() {
@@ -155,6 +164,9 @@ class _OthersProfileState extends State<OthersProfile>
         await userRefs.doc(widget.profileId).update({
           'pendingList': FieldValue.arrayRemove(userIdOfSender),
         });
+        final receiverCollectionRef = FirebaseFirestore.instance
+            .collection('users/' + widget.profileId + '/pendingRequests');
+        receiverCollectionRef.doc(user).delete();
       }
     }
     setState(() {
@@ -238,6 +250,9 @@ class _OthersProfileState extends State<OthersProfile>
         userRefs.doc(widget.profileId).update({
           'requestList': FieldValue.arrayRemove(userIdOfSender),
         });
+        final receiverCollectionRef = FirebaseFirestore.instance
+            .collection('users/$user/pendingRequests');
+        receiverCollectionRef.doc(widget.profileId).delete();
       }
     }
     setState(() {
@@ -247,62 +262,80 @@ class _OthersProfileState extends State<OthersProfile>
 
   buildProfileButton() {
     if (showAccepted && !isFriends && !isSentRequest) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      return Column(
         children: [
-          FlatButton(
-            color: Colors.blue[900],
-            splashColor: Colors.blue[200],
-            onPressed: () async {
-              await acceptFriendRequest();
-              SnackBar snackBar = SnackBar(
-                behavior: SnackBarBehavior.floating,
-                duration: Duration(seconds: 2),
-                backgroundColor: Colors.green[700],
-                content: Text('Request Accepted !'),
-              );
-              _scaffoldKey.currentState.showSnackBar(snackBar);
-              await Future.delayed(Duration(seconds: 1));
-              Navigator.pop(context);
-            },
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              side: BorderSide(color: Colors.blue[900], width: 2),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-              child: Text(
-                "Accept",
-                style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
-              ),
-            ),
+          Text(
+            'This user had sent you friend request..',
+            style: TextStyle(
+                color: Colors.grey, fontFamily: 'Mulish', fontSize: 18.0),
           ),
-          FlatButton(
-            color: Colors.white,
-            splashColor: Colors.blue[200],
-            onPressed: () async {
-              await denyingFriendRequest();
-              SnackBar snackBar = SnackBar(
-                behavior: SnackBarBehavior.floating,
-                duration: Duration(seconds: 2),
-                backgroundColor: Colors.green[700],
-                content: Text('Request Denied !'),
-              );
-              _scaffoldKey.currentState.showSnackBar(snackBar);
-              await Future.delayed(Duration(seconds: 1));
-              Navigator.pop(context);
-            },
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              side: BorderSide(color: Colors.blue[900], width: 2),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-              child: Text(
-                "Deny",
-                style: TextStyle(color: Colors.black, fontFamily: 'Montserrat'),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              FlatButton(
+                color: Colors.blue[900],
+                splashColor: Colors.blue[200],
+                onPressed: () async {
+                  await acceptFriendRequest();
+                  SnackBar snackBar = SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Colors.red,
+                    content: Text('Request Accepted !',
+                        style: TextStyle(
+                          color: Colors.white,
+                        )),
+                  );
+                  _scaffoldKey.currentState.showSnackBar(snackBar);
+                  //await Future.delayed(Duration(seconds: 1));
+                  Navigator.pop(context);
+                },
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  side: BorderSide(color: Colors.blue[900], width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+                  child: Text(
+                    "Accept",
+                    style: TextStyle(
+                        color: Colors.white, fontFamily: 'Montserrat'),
+                  ),
+                ),
               ),
-            ),
+              FlatButton(
+                color: Colors.white,
+                splashColor: Colors.blue[200],
+                onPressed: () async {
+                  await denyingFriendRequest();
+                  SnackBar snackBar = SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Colors.red,
+                    content: Text('Request Denied !',
+                        style: TextStyle(
+                          color: Colors.white,
+                        )),
+                  );
+                  _scaffoldKey.currentState.showSnackBar(snackBar);
+                  //await Future.delayed(Duration(seconds: 1));
+                  Navigator.pop(context);
+                },
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  side: BorderSide(color: Colors.blue[900], width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+                  child: Text(
+                    "Cancel",
+                    style: TextStyle(
+                        color: Colors.black, fontFamily: 'Montserrat'),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       );
@@ -315,11 +348,14 @@ class _OthersProfileState extends State<OthersProfile>
           SnackBar snackBar = SnackBar(
             behavior: SnackBarBehavior.floating,
             duration: Duration(seconds: 2),
-            backgroundColor: Colors.green[700],
-            content: Text('Unfriend Done !'),
+            backgroundColor: Colors.red,
+            content: Text('Unfriend Done !',
+                style: TextStyle(
+                  color: Colors.white,
+                )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(seconds: 1));
+          //await Future.delayed(Duration(seconds: 1));
           Navigator.pop(context);
         },
         shape: RoundedRectangleBorder(
@@ -344,22 +380,28 @@ class _OthersProfileState extends State<OthersProfile>
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 2),
-              backgroundColor: Colors.green[700],
-              content: Text('Request Cancelled !'),
+              backgroundColor: Colors.red,
+              content: Text('Request Cancelled !',
+                  style: TextStyle(
+                    color: Colors.white,
+                  )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
+            //await Future.delayed(Duration(seconds: 1));
             Navigator.pop(context);
           } else if (!isSentRequest) {
             await sendFriendRequest();
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 1),
-              backgroundColor: Colors.green[700],
-              content: Text('Request Sent !'),
+              backgroundColor: Colors.red,
+              content: Text('Request Sent !',
+                  style: TextStyle(
+                    color: Colors.white,
+                  )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 2));
+            //await Future.delayed(Duration(seconds: 2));
             Navigator.pop(context);
           }
         },
@@ -474,7 +516,7 @@ class _OthersProfileState extends State<OthersProfile>
                 ),
               ),
             ),
-            SizedBox(height: 40.0),
+            SizedBox(height: 20.0),
             buildProfileButton(),
             SizedBox(height: 40.0),
             Center(
