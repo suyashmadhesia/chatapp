@@ -169,10 +169,10 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         }
         Account user = Account.fromDocument(snapshot.data);
         return Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            SizedBox(height: 150.0),
+          
             CircleAvatar(
               radius: 50.0,
               backgroundColor: Colors.grey[100],
@@ -302,12 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         ),
       body: SafeArea(
         child: Center(
-          child: ListView( 
-            physics: BouncingScrollPhysics(),
-            children: [
-              buildProfileHeader(),
-            ],
-          ),
+          child: buildProfileHeader(),
         ),
       ),
     );

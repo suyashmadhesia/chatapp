@@ -55,6 +55,9 @@ class _OthersProfileState extends State<OthersProfile>
   bool showAccepted = false;
   bool isFriends = false;
   String username;
+  String avatar;
+  String rUsername;
+
 
   checkingAccept() async {
     final userAccountRefs =
@@ -78,6 +81,7 @@ class _OthersProfileState extends State<OthersProfile>
     userPendingList = userAccountRefs['pendingList'];
     userFriendsList = userAccountRefs['friendsList'];
     username = userAccountRefs['username'];
+    avatar = userAccountRefs['avtar'];
     final receiverAccountRefs = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.profileId)
@@ -85,6 +89,7 @@ class _OthersProfileState extends State<OthersProfile>
     receiverPendingList = receiverAccountRefs['pendingList'];
     receiverRequestList = receiverAccountRefs['requestList'];
     receiverFriendsList = receiverAccountRefs['friendsList'];
+    rUsername = receiverAccountRefs['username'];
 
   }
 
@@ -139,6 +144,7 @@ class _OthersProfileState extends State<OthersProfile>
         receiverCollectionRef.doc(user).set({
           'pendingUserId': user,
           'SendersUsername' : username,
+          'SendersAvatar' : avatar,
         });
       }
     }
@@ -202,13 +208,25 @@ class _OthersProfileState extends State<OthersProfile>
         senderCollectionRef.doc(widget.profileId).set({
           'isFriend': true,
           'isBlocked': false,
+          'userId' : widget.profileId,
+           'username' : rUsername,
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
         receiverCollectionRef.doc(user).set({
           'isFriend': true,
           'isBlocked': false,
+          'userId' : user,
+           'username' : username,
         });
+        // final receiverCollectionsRefs = FirebaseFirestore.instance
+        //     .collection('users/' + widget.profileId + '/pendingRequests');
+        // receiverCollectionRef.doc(user).set({
+        //   'user': username,
+        // });
+        final receiverCollectionRefs = FirebaseFirestore.instance
+            .collection('users/$user/pendingRequests');
+        receiverCollectionRefs.doc(widget.profileId).delete();
       }
     }
     setState(() {
@@ -288,7 +306,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                  //await Future.delayed(Duration(seconds: 1));
+                  await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -319,7 +337,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                  //await Future.delayed(Duration(seconds: 1));
+                  await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -355,7 +373,7 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          //await Future.delayed(Duration(seconds: 1));
+          await Future.delayed(Duration(seconds: 1));
           Navigator.pop(context);
         },
         shape: RoundedRectangleBorder(
@@ -387,7 +405,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            //await Future.delayed(Duration(seconds: 1));
+            await Future.delayed(Duration(seconds: 1));
             Navigator.pop(context);
           } else if (!isSentRequest) {
             await sendFriendRequest();
@@ -401,7 +419,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            //await Future.delayed(Duration(seconds: 2));
+            await Future.delayed(Duration(seconds: 2));
             Navigator.pop(context);
           }
         },
@@ -425,79 +443,76 @@ class _OthersProfileState extends State<OthersProfile>
       future: userRefs.doc(widget.profileId).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return SizedBox(
-            height: 500,
-            child: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                SizedBox(height: 150.0),
-                SkeletonAnimation(
-                  child: CircleAvatar(
-                    radius: 50.0,
-                    backgroundColor: animation.value,
-                    backgroundImage:
-                        AssetImage('assets/images/profile-user.png'),
-                  ),
+          return Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(height: 150.0),
+              SkeletonAnimation(
+                child: CircleAvatar(
+                  radius: 50.0,
+                  backgroundColor: animation.value,
+                  backgroundImage:
+                      AssetImage('assets/images/profile-user.png'),
                 ),
-                Padding(
-                  padding: EdgeInsets.all(16),
-                  child: SkeletonAnimation(
-                    child: Text(
-                      '                       ',
-                      style: TextStyle(
-                        backgroundColor: animation.value,
-                        color: Colors.black,
-                        fontSize: 24.0,
-                        fontFamily: 'Montserrat',
-                      ),
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    FlatButton(
-                      color: animation.value,
-                      splashColor: Colors.grey[400],
-                      onPressed: () {},
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4.0),
-                        side: BorderSide(color: Colors.grey[50], width: 2),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-                        child: Text(
-                          "                         ",
-                          style: TextStyle(
-                              color: Colors.grey, fontFamily: 'Montserrat'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20.0),
-                SkeletonAnimation(
+              ),
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: SkeletonAnimation(
                   child: Text(
-                    '                                      ',
+                    '                       ',
                     style: TextStyle(
-                        backgroundColor: animation.value,
-                        color: Colors.grey,
-                        fontFamily: 'Mulish',
-                        fontSize: 16.0),
+                      backgroundColor: animation.value,
+                      color: Colors.black,
+                      fontSize: 24.0,
+                      fontFamily: 'Montserrat',
+                    ),
                   ),
                 ),
-              ],
-            )),
-          );
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  FlatButton(
+                    color: animation.value,
+                    splashColor: Colors.grey[400],
+                    onPressed: () {},
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4.0),
+                      side: BorderSide(color: Colors.grey[50], width: 2),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+                      child: Text(
+                        "                         ",
+                        style: TextStyle(
+                            color: Colors.grey, fontFamily: 'Montserrat'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.0),
+              SkeletonAnimation(
+                child: Text(
+                  '                                      ',
+                  style: TextStyle(
+                      backgroundColor: animation.value,
+                      color: Colors.grey,
+                      fontFamily: 'Mulish',
+                      fontSize: 16.0),
+                ),
+              ),
+            ],
+          ));
         }
         Account user = Account.fromDocument(snapshot.data);
         return Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            SizedBox(height: 150.0),
+           
             CircleAvatar(
               radius: 50.0,
               backgroundColor: Colors.grey[100],
@@ -548,12 +563,7 @@ class _OthersProfileState extends State<OthersProfile>
         backgroundColor: Colors.grey[900],
       ),
       body: SafeArea(
-        child: ListView(
-          physics: BouncingScrollPhysics(),
-          children: [
-            buildProfileHeader(),
-          ],
-        ),
+        child: buildProfileHeader(),
       ),
     );
   }

@@ -101,19 +101,15 @@ class _SearchScreenState extends State<SearchScreen> {
     return Container(
       color: Colors.white,
       child: Center(
-        child: ListView(
-          physics: BouncingScrollPhysics(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 175,
-            ),
-            SvgPicture.asset('assets/images/search.svg',
-                height: 200, width: 200),
+            
             Center(
-                child: Text('Search with exact username...',
+                child: Text('Search new user here......',
                     style: TextStyle(
                         color: Colors.grey,
-                        fontSize: 14,
+                        fontSize: 18,
                         fontFamily: 'Mulish'))),
           ],
         ),
@@ -129,7 +125,8 @@ class _SearchScreenState extends State<SearchScreen> {
           return Center(
             child: CircularProgressIndicator(),
           );
-        } else {
+        } else if(snapshot.hasData){
+          if(snapshot.data.documents.length > 0){
           List<UserResult> searchResult = [];
           snapshot.data.documents.forEach((doc) {
             Account users = Account.fromDocument(doc);
@@ -138,6 +135,32 @@ class _SearchScreenState extends State<SearchScreen> {
           });
           return ListView(
               physics: BouncingScrollPhysics(), children: searchResult);
+        }else{
+          return Center(
+              child: Column(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
+                      height: 200, width: 200),
+                      SizedBox(height: 10),
+                      Text('No user found', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
+                ],
+              ),
+            );
+        }
+        }
+        else{
+          return Center(
+              child: Column(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
+                      height: 200, width: 200),
+                      SizedBox(height: 10),
+                      Text('Something went wrong Please try again', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
+                ],
+              ),
+            );
         }
       },
     );

@@ -7,6 +7,7 @@ import 'package:Inbox/screens/friends_screen.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:Inbox/screens/search_screen.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'notification_screen.dart';
 
 // final StorageReference storageRef = FirebaseStorage.instance.ref();
 final usersRef = FirebaseFirestore.instance.collection('users');
@@ -66,8 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
         children: <Widget>[
           FriendsScreen(),
           SearchScreen(),
+          NotificationScreen(),
           ProfileScreen(profileId: user?.uid),
-          // ProfileScreen()
+          
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
@@ -85,6 +87,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Icon(
             Icons.search,
+            size: 20,
+            color: Colors.white,
+          ),
+          Icon(
+            Icons.notifications,
             size: 20,
             color: Colors.white,
           ),
