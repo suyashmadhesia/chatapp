@@ -123,7 +123,7 @@ class _OthersProfileState extends State<OthersProfile>
     }
   }
 
-//All functions of accepting denying and deleting a friendRequest
+//All functions of sending,cancel , accepting, denying and deleting a friendRequest
 
   sendFriendRequest() async {
     if (!userFriendsList.contains(widget.profileId) &&
@@ -210,6 +210,8 @@ class _OthersProfileState extends State<OthersProfile>
           'isBlocked': false,
           'userId' : widget.profileId,
            'username' : rUsername,
+           'friendsAt' : DateTime.now(),
+           'messageAt' : DateTime.now(),
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -218,6 +220,8 @@ class _OthersProfileState extends State<OthersProfile>
           'isBlocked': false,
           'userId' : user,
            'username' : username,
+           'friendsAt' : DateTime.now(),
+           'messageAt' : DateTime.now(),
         });
         // final receiverCollectionsRefs = FirebaseFirestore.instance
         //     .collection('users/' + widget.profileId + '/pendingRequests');
@@ -234,21 +238,27 @@ class _OthersProfileState extends State<OthersProfile>
     });
   }
 
-  unfriending() {
+  unfriending() async{
     if (userFriendsList.contains(widget.profileId) &&
         receiverFriendsList.contains(user)) {
       final senderCollectionRef =
           FirebaseFirestore.instance.collection('users/$user/friends');
-      senderCollectionRef.doc(widget.profileId).delete();
+      await senderCollectionRef.doc(widget.profileId).delete();
       final receiverCollectionRef = FirebaseFirestore.instance
           .collection('users/' + widget.profileId + '/friends');
-      receiverCollectionRef.doc(user).delete();
+      await receiverCollectionRef.doc(user).delete();
       userRefs.doc(user).update({
         'friendsList': FieldValue.arrayRemove([widget.profileId]),
       });
       userRefs.doc(widget.profileId).update({
         'friendsList': FieldValue.arrayRemove([user]),
       });
+      final senderMessageCollectionRef =
+          FirebaseFirestore.instance.collection('users/$user/friends/'+widget.profileId+'/messages');
+      await senderCollectionRef.doc().delete();
+      final receiverMessageCollectionRef = FirebaseFirestore.instance
+          .collection('users/' + widget.profileId + '/friends/$user/messages');
+      await receiverCollectionRef.doc().delete();
     }
   }
 
@@ -306,7 +316,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                  await Future.delayed(Duration(seconds: 1));
+                 // 
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -337,7 +347,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                  await Future.delayed(Duration(seconds: 1));
+                  
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -373,7 +383,7 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(seconds: 1));
+          
           Navigator.pop(context);
         },
         shape: RoundedRectangleBorder(
@@ -405,7 +415,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
+            
             Navigator.pop(context);
           } else if (!isSentRequest) {
             await sendFriendRequest();
@@ -419,7 +429,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 2));
+            
             Navigator.pop(context);
           }
         },

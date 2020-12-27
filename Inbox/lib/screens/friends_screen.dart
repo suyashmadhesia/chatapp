@@ -31,15 +31,24 @@ class _FriendsScreenState extends State<FriendsScreen> {
   final _userId = FirebaseAuth.instance.currentUser.uid;
   List friendsList = [];
 
-  bool empty = true;
+  bool isDataLoaded = true;
+  bool isEmpty = false;
+
   getUsersFriendData() async {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     friendsList = userAccountRefs['friendsList'];
     if (friendsList.isNotEmpty) {
       setState(() {
-        empty = false;
+        isDataLoaded = false;
       });
+    } else if (friendsList.isEmpty) {
+      setState(() {
+        isEmpty = true;
+      });
+      // setState(() {
+      //   isDataLoaded = false;
+      // });
     }
   }
 
@@ -50,28 +59,34 @@ class _FriendsScreenState extends State<FriendsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
+            isEmpty ? Text('') : CircularProgressIndicator(),
             SizedBox(
               height: 10,
             ),
             Center(
-                child: Text('Wait while we loading .....',
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                        fontFamily: 'Mulish'))),
+                child: isEmpty
+                    ? Text('No friends to show....',
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                            fontFamily: 'Mulish'))
+                    : Text('Wait while we loading .....',
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                            fontFamily: 'Mulish'))),
           ],
         ),
       ),
     );
   }
 
-
-
   friendsListStream() {
     return StreamBuilder(
-        stream:
-            _collectionRefs.collection('users/$_userId/friends').snapshots(),
+        stream: _collectionRefs
+            .collection('users/$_userId/friends')
+            .orderBy('messageAt',descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return CircularProgressIndicator();
@@ -94,9 +109,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         showChatScreen(context, profileId: sendersUserId);
                       },
                       child: ListTile(
-                        title: Text(
-                            sendersUsername ,
-
+                        title: Text(sendersUsername,
                             style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 14,
@@ -135,7 +148,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         backgroundColor: Colors.grey[900],
       ),
       backgroundColor: Colors.white,
-      body: empty ? buildNoContentScreen() : friendsListStream(),
+      body: isDataLoaded ? buildNoContentScreen() : friendsListStream(),
     );
   }
 }

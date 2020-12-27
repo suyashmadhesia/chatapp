@@ -147,12 +147,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (user != null) {
                                     isAuth();
                                   }
-                                  setState(() async {
+                                  setState(() {
                                     showSnipper = false;
                                   });
                                 } catch (e) {
                                   print(e);
-                                  setState(() async {
+                                  setState(() {
                                     showSnipper = false;
                                   });
                                 }

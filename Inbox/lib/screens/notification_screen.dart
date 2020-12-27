@@ -50,7 +50,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-           
             SvgPicture.asset('assets/images/notification.svg',
                 height: 200, width: 200),
             Center(
@@ -71,366 +70,363 @@ class _NotificationScreenState extends State<NotificationScreen> {
             .collection('users/$_userId/pendingRequests')
             .snapshots(),
         builder: (context, snapshot) {
-
-            if (!snapshot.hasData) {
-              return Column(
-                children: [
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
+          if (!snapshot.hasData) {
+            return Column(
+              children: [
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
                       ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                )
+              ],
+            );
+          } else if (snapshot.hasData) {
+            final userIds = snapshot.data.documents;
+            List<Widget> notificationWidget = [];
+            for (var userid in userIds) {
+              final sendersUsername = userid['SendersUsername'];
+              final sendersUserId = userid['pendingUserId'];
+              final senderAvatar = userid['SendersAvatar'];
+              final notificationCard = Container(
+                color: Colors.grey[50],
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 5,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        showProfile(context, profileId: sendersUserId);
+                      },
+                      child: ListTile(
+                        leading: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 32,
+                            backgroundImage: senderAvatar == '' ||
+                                    senderAvatar == null
+                                ? AssetImage('assets/images/profile-user.png')
+                                : CachedNetworkImageProvider(senderAvatar)),
+                        title: Text(
+                            sendersUsername +
+                                ' sent you friend request tap to accept or reject',
                             style: TextStyle(
-                                backgroundColor: Colors.grey[200],
                                 color: Colors.black,
                                 fontSize: 14,
                                 fontFamily: 'Monstserrat')),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
+                    SizedBox(
+                      height: 5,
                     ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  )
-                ],
+                    Divider(
+                      color: Colors.grey[500],
+                      height: 2.0,
+                    )
+                  ],
+                ),
               );
-            } else if (snapshot.hasData) {
-              final userIds = snapshot.data.documents;
-              List<Widget> notificationWidget = [];
-              for (var userid in userIds) {
-                final sendersUsername = userid['SendersUsername'];
-                final sendersUserId = userid['pendingUserId'];
-                final senderAvatar = userid['SendersAvatar'];
-                final notificationCard = Container(
-                  color: Colors.grey[50],
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 5,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          showProfile(context, profileId: sendersUserId);
-                        },
-                        child: ListTile(
-                          leading: CircleAvatar(
-                              backgroundColor: Colors.white,
-                              radius: 32,
-                              backgroundImage: senderAvatar == '' || senderAvatar == null ?
-                                  AssetImage('assets/images/profile-user.png')
-                                  : CachedNetworkImageProvider(senderAvatar)),
-                          title: Text(
-                              sendersUsername +
-                                  ' sent you friend request tap to accept or reject',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 14,
-                                  fontFamily: 'Monstserrat')),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Divider(
-                        color: Colors.grey[500],
-                        height: 2.0,
-                      )
-                    ],
-                  ),
-                );
-                notificationWidget.add(notificationCard);
-                notificationWidget.reversed;
-              }
-              return ListView(
-                              children: [Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: notificationWidget,
-                ),]
-              );
-            } else {
-              return Column(
-                children: [
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: ListTile(
-                      leading: SkeletonAnimation(
-                        child: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          radius: 32,
-                        ),
-                      ),
-                      title: SkeletonAnimation(
-                        child: Text('                             ',
-                            style: TextStyle(
-                                backgroundColor: Colors.grey[200],
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Divider(
-                    color: Colors.grey[500],
-                    height: 2.0,
-                  )
-                ],
-              );
+              notificationWidget.add(notificationCard);
+              notificationWidget.reversed;
             }
-         
+            return ListView(children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: notificationWidget,
+              ),
+            ]);
+          } else {
+            return Column(
+              children: [
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: ListTile(
+                    leading: SkeletonAnimation(
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey[200],
+                        radius: 32,
+                      ),
+                    ),
+                    title: SkeletonAnimation(
+                      child: Text('                             ',
+                          style: TextStyle(
+                              backgroundColor: Colors.grey[200],
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontFamily: 'Monstserrat')),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                )
+              ],
+            );
+          }
         });
   }
-
-  
 
   @override
   Widget build(BuildContext context) {

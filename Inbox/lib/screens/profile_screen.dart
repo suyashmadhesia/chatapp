@@ -64,13 +64,12 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       builder: (context, snapshot){
         if(!snapshot.hasData){
           return SizedBox(
-            height: 500,
+           
             child: Center(
               child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            SizedBox(height: 150.0),
           SkeletonAnimation(
                           child: CircleAvatar(
                 radius: 50.0,
