@@ -42,6 +42,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 //const
   final _formKey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final _firestore = FirebaseFirestore.instance.collection('users');
   final _auth = FirebaseAuth.instance;
@@ -73,6 +74,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       DeviceOrientation.portraitUp,
     ]);
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
         color: Colors.grey[300],
@@ -189,8 +191,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 });
                               } catch (e) {
                                 print(e);
+                                 setState(() {
+                                    showSpinner = false;
+                                  });
+                                  SnackBar snackBar = SnackBar(
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: Duration(seconds: 5),
+                                    backgroundColor: Colors.redAccent,
+                                    content: Text('Username already register try using different username !!',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        )),
+                                  );
+                                  _scaffoldKey.currentState
+                                      .showSnackBar(snackBar);
+                                }
                               }
-                            }
+                            
                           }),
                       //Already user
                       SizedBox(height: 20),

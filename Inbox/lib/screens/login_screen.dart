@@ -38,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showSnipper = false;
 
   final _auth = FirebaseAuth.instance;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final passwordValidator = MultiValidator([
     RequiredValidator(errorText: 'Password is required'),
@@ -61,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
       DeviceOrientation.portraitUp,
     ]);
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
         color: Colors.grey[300],
@@ -155,6 +157,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() {
                                     showSnipper = false;
                                   });
+                                  SnackBar snackBar = SnackBar(
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: Duration(seconds: 5),
+                                    backgroundColor: Colors.redAccent,
+                                    content: Text('Username or password is wrong',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        )),
+                                  );
+                                  _scaffoldKey.currentState
+                                      .showSnackBar(snackBar);
                                 }
                               }
                             }),
