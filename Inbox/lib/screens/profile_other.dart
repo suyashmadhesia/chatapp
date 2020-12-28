@@ -316,7 +316,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                 // 
+                 await Future.delayed(Duration(milliseconds: 700));
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -347,7 +347,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                  
+                  await Future.delayed(Duration(milliseconds: 700));
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -383,7 +383,7 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          
+          await Future.delayed(Duration(milliseconds: 700));
           Navigator.pop(context);
         },
         shape: RoundedRectangleBorder(
@@ -415,7 +415,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            
+            await Future.delayed(Duration(milliseconds: 700));
             Navigator.pop(context);
           } else if (!isSentRequest) {
             await sendFriendRequest();
@@ -429,7 +429,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            
+            await Future.delayed(Duration(milliseconds: 700));
             Navigator.pop(context);
           }
         },
@@ -458,7 +458,7 @@ class _OthersProfileState extends State<OthersProfile>
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              SizedBox(height: 150.0),
+              //SizedBox(height: 150.0),
               SkeletonAnimation(
                 child: CircleAvatar(
                   radius: 50.0,

@@ -1,6 +1,7 @@
 //import 'package:firebase_core/firebase_core.dart';
+import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
-import 'package:Inbox/screens/search_screen.dart';
+//import 'package:Inbox/screens/search_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -30,14 +31,21 @@ class _ChatScreenState extends State<ChatScreen> {
   final sendersMessageRefs = FirebaseFirestore.instance;
   final receiverMessageRefs = FirebaseFirestore.instance;
   final DateTime timeStamp = DateTime.now();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String username;
   String profileLink;
   bool isBlocked = false;
   bool isLoaded = false;
   bool isSending = false;
+  bool isReceiverBlocked = false;
 
   getUserData() async {
+    final senderMessageRefs = await FirebaseFirestore.instance
+        .collection('users/' + user.uid + '/friends')
+        .doc(widget.userId)
+        .get();
+    final receiverBlocked = senderMessageRefs['isBlocked'];
     final receiverAccountRefs = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.userId)
@@ -58,6 +66,11 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       isLoaded = true;
     });
+    setState(() {
+      if (receiverBlocked) {
+        isReceiverBlocked = true;
+      }
+    });
   }
 
   AppBar buildNocontentBar() {
@@ -69,7 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.only(right: 14),
               child: SkeletonAnimation(
                 child: CircleAvatar(
-                  backgroundColor: Colors.grey[500],
+                  backgroundColor: Colors.grey[800],
                   radius: 20,
                 ),
               )),
@@ -77,7 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Text(
               '                       ',
               style: TextStyle(
-                backgroundColor: Colors.grey[500],
+                backgroundColor: Colors.grey[800],
                 color: Colors.white,
                 fontFamily: 'Montserrat',
                 fontSize: 20.0,
@@ -153,202 +166,311 @@ class _ChatScreenState extends State<ChatScreen> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          messageStream(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              isSending
-                  ? Text(
-                      'Sending...',
-                      style: TextStyle(
-                          fontSize: 10.0,
-                          color: Colors.grey[400],
-                          fontFamily: 'Montserrat'),
-                    )
-                  : Text(''),
-            ],
-          ),
-          isBlocked
-              ? Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                      'You can not send message ! $username has blocked you'),
-                )
-              : Padding(
-                  padding: const EdgeInsets.only(
-                      left: 8.0, right: 8.0, bottom: 4, top: 12),
-                  child: TextField(
-                    controller: messageTextController,
-                    keyboardType: TextInputType.multiline,
-                    minLines: 1,
-                    maxLines: 50,
-                    onChanged: (value) {
-                      message = value;
-                    },
-                    cursorColor: Colors.grey[100],
-                    autofocus: false,
-                    style: TextStyle(
-                        height: 1,
-                        fontSize: 14.0,
-                        color: Colors.grey[100],
-                        fontFamily: 'Montserrat'),
-                    decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        splashRadius: 8,
-                        icon: Icon(
-                          Icons.send,
-                          color: Colors.green[400],
-                        ),
-                        onPressed: () async {
-                          if (message != null || message != '') {
-                            messageTextController.clear();
-                            if (isBlocked == false) {
-                              setState(() {
-                                isSending = true;
-                              });
-//Sender Collections
-                              final senderMessageCollection =
-                                  await sendersMessageRefs
-                                      .collection('users/' +
-                                          widget.userId +
-                                          '/friends/' +
-                                          user.uid +
-                                          '/messages')
-                                      .add({
-                                'sender': user.uid,
-                                'message': message,
-                                'timestamp': DateTime.now(),
-                                'id': '',
-                                'anotherId': '',
-                              });
-                              final String docid = senderMessageCollection.id;
-
-                              await sendersMessageRefs
-                                  .collection(
-                                      'users/' + widget.userId + '/friends')
-                                  .doc(user.uid)
-                                  .update({
-                                'messageAt': DateTime.now(),
-                              });
-//Receiver Collections
-                              final receieverMessageCollection =
-                                  await sendersMessageRefs
-                                      .collection('users/' +
-                                          user.uid +
-                                          '/friends/' +
-                                          widget.userId +
-                                          '/messages')
-                                      .add({
-                                'sender': user.uid,
-                                'message': message,
-                                'timestamp': DateTime.now(),
-                                'id': '',
-                                'anotherId': '',
-                              });
-                              final String docId =
-                                  receieverMessageCollection.id;
-
-                              await sendersMessageRefs
-                                  .collection('users/' + user.uid + '/friends')
-                                  .doc(widget.userId)
-                                  .update({
-                                'messageAt': DateTime.now(),
-                              });
-                              //userCollection of message id
-                              await sendersMessageRefs
-                                  .collection('users/' +
-                                      widget.userId +
-                                      '/friends/' +
-                                      user.uid +
-                                      '/messages')
-                                  .doc(docid)
-                                  .update({
-                                'id': docid,
-                                'anotherId': docId,
-                              });
-                              await sendersMessageRefs
-                                  .collection('users/' +
-                                      user.uid +
-                                      '/friends/' +
-                                      widget.userId +
-                                      '/messages')
-                                  .doc(docId)
-                                  .update({
-                                'id': docId,
-                                'anotherId': docid,
-                              });
-                              setState(() {
-                                isSending = false;
-                              });
-                            }
-                          }
-                        },
-                      ),
-                      focusColor: Colors.grey[900],
-                      filled: true,
-                      fillColor: Colors.grey[900],
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide.none),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide.none),
-                      hintText: ' Send Message...',
-                      hintStyle: TextStyle(
-                          color: Colors.grey[100],
-                          fontSize: 16.0,
-                          fontFamily: 'Montserrat'),
-                    ),
-                  ),
+      child: isReceiverBlocked
+          ? Center(
+              child: Text('Unblock the user to send messages..'),
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                messageStream(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    isSending
+                        ? Text(
+                            'Sending...',
+                            style: TextStyle(
+                                fontSize: 10.0,
+                                color: Colors.grey[400],
+                                fontFamily: 'Montserrat'),
+                          )
+                        : Text(''),
+                  ],
                 ),
-        ],
-      ),
+                isBlocked
+                    ? Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                            'You cannot send message ! $username has blocked you'),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.only(
+                            left: 8.0, right: 8.0, bottom: 4, top: 12),
+                        child: TextField(
+                          controller: messageTextController,
+                          keyboardType: TextInputType.multiline,
+                          minLines: 1,
+                          maxLines: 50,
+                          onChanged: (value) {
+                            message = value;
+                          },
+                          cursorColor: Colors.grey[100],
+                          autofocus: false,
+                          style: TextStyle(
+                              height: 1,
+                              fontSize: 14.0,
+                              color: Colors.grey[100],
+                              fontFamily: 'Montserrat'),
+                          decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              splashRadius: 8,
+                              icon: Icon(
+                                Icons.send,
+                                color: Colors.green[400],
+                              ),
+                              onPressed: () async {
+                                if (message != null || message != '') {
+                                  messageTextController.clear();
+                                  if (isBlocked == false &&
+                                      isReceiverBlocked == false) {
+                                    setState(() {
+                                      isSending = true;
+                                    });
+//Sender Collections
+                                    final senderMessageCollection =
+                                        await sendersMessageRefs
+                                            .collection('users/' +
+                                                widget.userId +
+                                                '/friends/' +
+                                                user.uid +
+                                                '/messages')
+                                            .add({
+                                      'sender': user.uid,
+                                      'message': message,
+                                      'timestamp': DateTime.now(),
+                                      'id': '',
+                                      'anotherId': '',
+                                    });
+                                    final String docid =
+                                        senderMessageCollection.id;
+
+                                    await sendersMessageRefs
+                                        .collection('users/' +
+                                            widget.userId +
+                                            '/friends')
+                                        .doc(user.uid)
+                                        .update({
+                                      'messageAt': DateTime.now(),
+                                    });
+//Receiver Collections
+                                    final receieverMessageCollection =
+                                        await sendersMessageRefs
+                                            .collection('users/' +
+                                                user.uid +
+                                                '/friends/' +
+                                                widget.userId +
+                                                '/messages')
+                                            .add({
+                                      'sender': user.uid,
+                                      'message': message,
+                                      'timestamp': DateTime.now(),
+                                      'id': '',
+                                      'anotherId': '',
+                                    });
+                                    final String docId =
+                                        receieverMessageCollection.id;
+
+                                    await sendersMessageRefs
+                                        .collection(
+                                            'users/' + user.uid + '/friends')
+                                        .doc(widget.userId)
+                                        .update({
+                                      'messageAt': DateTime.now(),
+                                    });
+                                    //userCollection of message id
+                                    await sendersMessageRefs
+                                        .collection('users/' +
+                                            widget.userId +
+                                            '/friends/' +
+                                            user.uid +
+                                            '/messages')
+                                        .doc(docid)
+                                        .update({
+                                      'id': docid,
+                                      'anotherId': docId,
+                                    });
+                                    await sendersMessageRefs
+                                        .collection('users/' +
+                                            user.uid +
+                                            '/friends/' +
+                                            widget.userId +
+                                            '/messages')
+                                        .doc(docId)
+                                        .update({
+                                      'id': docId,
+                                      'anotherId': docid,
+                                    });
+                                    setState(() {
+                                      isSending = false;
+                                    });
+                                  }
+                                }
+                              },
+                            ),
+                            focusColor: Colors.grey[900],
+                            filled: true,
+                            fillColor: Colors.grey[900],
+                            focusedBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(12)),
+                                borderSide: BorderSide.none),
+                            border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(12)),
+                                borderSide: BorderSide.none),
+                            hintText: ' Send Message...',
+                            hintStyle: TextStyle(
+                                color: Colors.grey[100],
+                                fontSize: 16.0,
+                                fontFamily: 'Montserrat'),
+                          ),
+                        ),
+                      ),
+              ],
+            ),
     );
   }
 
-  appbarActionButton(){
-    
+  void choiceAction(String choice) {
+    if (choice == DropDownMenu.clearChat) {
+      print('clear chat');
+      clearChat();
+    } else if (choice == DropDownMenu.block) {
+      blockUser();
+    } else if (choice == DropDownMenu.unBlock) {
+      unBlockUser();
+    }
+  }
+
+  blockUser() async {
+    await FirebaseFirestore.instance
+        .collection('users/' + user.uid + '/friends')
+        .doc(widget.userId)
+        .update({
+      'isBlocked': true,
+    });
+    final senderMessageRefs = await FirebaseFirestore.instance
+        .collection('users/' + user.uid + '/friends')
+        .doc(widget.userId)
+        .get();
+    final receiverBlocked = senderMessageRefs['isBlocked'];
+    setState(() {
+      if (receiverBlocked) {
+        isReceiverBlocked = true;
+      }
+    });
+    SnackBar snackBar = SnackBar(
+      behavior: SnackBarBehavior.floating,
+      duration: Duration(seconds: 2),
+      backgroundColor: Colors.redAccent,
+      content: Text('User is blocked',
+          style: TextStyle(
+            color: Colors.white,
+          )),
+    );
+    _scaffoldKey.currentState.showSnackBar(snackBar);
+  }
+
+  unBlockUser() async {
+    final receiverMessageRefs = await FirebaseFirestore.instance
+        .collection('users/' + user.uid + '/friends')
+        .doc(widget.userId)
+        .update({
+      'isBlocked': false,
+    });
+    final senderMessageRefs = await FirebaseFirestore.instance
+        .collection('users/' + user.uid + '/friends')
+        .doc(widget.userId)
+        .get();
+    final receiverBlocked = senderMessageRefs['isBlocked'];
+    setState(() {
+      if (!receiverBlocked) {
+        isReceiverBlocked = false;
+      }
+    });
+    SnackBar snackBar = SnackBar(
+      behavior: SnackBarBehavior.floating,
+      duration: Duration(seconds: 2),
+      backgroundColor: Colors.redAccent,
+      content: Text('User is unblocked',
+          style: TextStyle(
+            color: Colors.white,
+          )),
+    );
+    _scaffoldKey.currentState.showSnackBar(snackBar);
+  }
+
+  clearChat() async {
+    await FirebaseFirestore.instance
+        .collection(
+            'users/' + user.uid + '/friends/' + widget.userId + '/messages')
+        .get()
+        .then((snapshot) {
+      for (DocumentSnapshot ds in snapshot.docs) {
+        ds.reference.delete();
+      }
+    });
+  }
+
+  appbarActionButton() {
+    return <Widget>[
+      PopupMenuButton<String>(
+        onSelected: choiceAction,
+        itemBuilder: (BuildContext context) {
+          return isReceiverBlocked
+              ? DropDownMenu.blockedChoice.map((String choice) {
+                  return PopupMenuItem(value: choice, child: Text(choice));
+                }).toList()
+              : DropDownMenu.choices.map((String choice) {
+                  return PopupMenuItem(value: choice, child: Text(choice));
+                }).toList();
+        },
+      )
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xff484848),
-      appBar: isLoaded
-          ? AppBar(
-              backgroundColor: Colors.grey[900],
-              title: GestureDetector(
-                onTap: () => showProfile(context, profileId: widget.userId),
-                child: Row(
-                  children: [
-                    Padding(
-                        padding: const EdgeInsets.only(right: 14),
-                        child: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            radius: 20,
-                            backgroundImage: profileLink == '' ||
-                                    profileLink == null
-                                ? AssetImage('assets/images/profile-user.png')
-                                : CachedNetworkImageProvider(profileLink))),
-                    Text(
-                      username,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Montserrat',
-                        fontSize: 20.0,
+        key: _scaffoldKey,
+        backgroundColor: Color(0xff484848),
+        appBar: isLoaded
+            ? AppBar(
+                backgroundColor: Colors.grey[900],
+                actions: appbarActionButton(),
+                title: GestureDetector(
+                  onTap: () => showProfile(context, profileId: widget.userId),
+                  child: Row(
+                    children: [
+                      Padding(
+                          padding: const EdgeInsets.only(right: 14),
+                          child: CircleAvatar(
+                              backgroundColor: Colors.white,
+                              radius: 20,
+                              backgroundImage: profileLink == '' ||
+                                      profileLink == null
+                                  ? AssetImage('assets/images/profile-user.png')
+                                  : CachedNetworkImageProvider(profileLink))),
+                      Text(
+                        username,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Montserrat',
+                          fontSize: 20.0,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            )
-          : buildNocontentBar(),
-      body: bodyToBuild(),
-    );
+              )
+            : buildNocontentBar(),
+        body: isLoaded
+            ? bodyToBuild()
+            : Center(
+                child: CircularProgressIndicator(),
+              ));
   }
 }
 
@@ -477,8 +599,6 @@ class MessageBubble extends StatelessWidget {
     );
   }
 }
-
-
 
 showProfile(BuildContext context, {String profileId}) {
   Navigator.push(
