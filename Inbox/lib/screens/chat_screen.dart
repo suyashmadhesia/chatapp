@@ -23,6 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     getUserData();
+    setIsSeen();
   }
 
   final messageTextController = TextEditingController();
@@ -39,6 +40,13 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isLoaded = false;
   bool isSending = false;
   bool isReceiverBlocked = false;
+  
+  setIsSeen() async {
+	  final senderMessageRefs = await FirebaseFirestore.instance.collection('users/$userid/friends').doc(widget.userId).update({
+	  'isSeen' : true,
+	});
+
+  }
 
   getUserData() async {
     final senderMessageRefs = await FirebaseFirestore.instance
@@ -168,7 +176,7 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: isReceiverBlocked
           ? Center(
-              child: Text('Unblock the user to send messages..'),
+              child: Text('Unblock the user to send messages..',style: TextStyle(color : Colors.white)),
             )
           : Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -180,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     isSending
                         ? Text(
-                            'Sending...',
+                            'Sending  ',
                             style: TextStyle(
                                 fontSize: 10.0,
                                 color: Colors.grey[400],
@@ -255,7 +263,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'messageAt': DateTime.now(),
                                     });
 //Receiver Collections
-                                    final receieverMessageCollection =
+                                    await FirebaseFirestore.instance.collection('users/'+widget.userId+'/friends').doc(user.uid).update({
+				    'isSeen' : false,
+				    });
+				    final receieverMessageCollection =
                                         await sendersMessageRefs
                                             .collection('users/' +
                                                 user.uid +

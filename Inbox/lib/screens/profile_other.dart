@@ -57,7 +57,7 @@ class _OthersProfileState extends State<OthersProfile>
   String username;
   String avatar;
   String rUsername;
-
+  bool isSeen = false;
 
   checkingAccept() async {
     final userAccountRefs =
@@ -90,7 +90,6 @@ class _OthersProfileState extends State<OthersProfile>
     receiverRequestList = receiverAccountRefs['requestList'];
     receiverFriendsList = receiverAccountRefs['friendsList'];
     rUsername = receiverAccountRefs['username'];
-
   }
 
   isRequestSent() async {
@@ -143,8 +142,8 @@ class _OthersProfileState extends State<OthersProfile>
             .collection('users/' + widget.profileId + '/pendingRequests');
         receiverCollectionRef.doc(user).set({
           'pendingUserId': user,
-          'SendersUsername' : username,
-          'SendersAvatar' : avatar,
+          'SendersUsername': username,
+          'SendersAvatar': avatar,
         });
       }
     }
@@ -208,20 +207,21 @@ class _OthersProfileState extends State<OthersProfile>
         senderCollectionRef.doc(widget.profileId).set({
           'isFriend': true,
           'isBlocked': false,
-          'userId' : widget.profileId,
-           'username' : rUsername,
-           'friendsAt' : DateTime.now(),
-           'messageAt' : DateTime.now(),
+          'userId': widget.profileId,
+          'username': rUsername,
+          'friendsAt': DateTime.now(),
+          'messageAt': DateTime.now(),
+          'isSeen': isSeen,
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
         receiverCollectionRef.doc(user).set({
           'isFriend': true,
           'isBlocked': false,
-          'userId' : user,
-           'username' : username,
-           'friendsAt' : DateTime.now(),
-           'messageAt' : DateTime.now(),
+          'userId': user,
+          'username': username,
+          'friendsAt': DateTime.now(),
+          'messageAt': DateTime.now(),
         });
         // final receiverCollectionsRefs = FirebaseFirestore.instance
         //     .collection('users/' + widget.profileId + '/pendingRequests');
@@ -238,9 +238,24 @@ class _OthersProfileState extends State<OthersProfile>
     });
   }
 
-  unfriending() async{
+  unfriending() async {
     if (userFriendsList.contains(widget.profileId) &&
         receiverFriendsList.contains(user)) {
+      final senderMessageCollectionRef = FirebaseFirestore.instance
+          .collection('users/$user/friends/' + widget.profileId + '/messages');
+      await senderMessageCollectionRef.get().then((snapshot){
+	for(DocumentSnapshot ds in snapshot.documents){
+		ds.reference.delete(); 
+	}
+      });
+      final receiverMessageCollectionRef = FirebaseFirestore.instance
+          .collection('users/' + widget.profileId + '/friends/$user/messages');
+      await receiverMessageCollectionRef.get().then((snapshot){
+      for(DocumentSnapshot ds in snapshot.documents){
+      	ds.reference.delete();
+      }
+      });
+
       final senderCollectionRef =
           FirebaseFirestore.instance.collection('users/$user/friends');
       await senderCollectionRef.doc(widget.profileId).delete();
@@ -253,12 +268,6 @@ class _OthersProfileState extends State<OthersProfile>
       userRefs.doc(widget.profileId).update({
         'friendsList': FieldValue.arrayRemove([user]),
       });
-      final senderMessageCollectionRef =
-          FirebaseFirestore.instance.collection('users/$user/friends/'+widget.profileId+'/messages');
-      await senderCollectionRef.doc().delete();
-      final receiverMessageCollectionRef = FirebaseFirestore.instance
-          .collection('users/' + widget.profileId + '/friends/$user/messages');
-      await receiverCollectionRef.doc().delete();
     }
   }
 
@@ -316,7 +325,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                 await Future.delayed(Duration(milliseconds: 700));
+                  await Future.delayed(Duration(milliseconds: 700));
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -385,6 +394,7 @@ class _OthersProfileState extends State<OthersProfile>
           _scaffoldKey.currentState.showSnackBar(snackBar);
           await Future.delayed(Duration(milliseconds: 700));
           Navigator.pop(context);
+	 Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -431,6 +441,7 @@ class _OthersProfileState extends State<OthersProfile>
             _scaffoldKey.currentState.showSnackBar(snackBar);
             await Future.delayed(Duration(milliseconds: 700));
             Navigator.pop(context);
+	    
           }
         },
         shape: RoundedRectangleBorder(
@@ -463,8 +474,7 @@ class _OthersProfileState extends State<OthersProfile>
                 child: CircleAvatar(
                   radius: 50.0,
                   backgroundColor: animation.value,
-                  backgroundImage:
-                      AssetImage('assets/images/profile-user.png'),
+                  backgroundImage: AssetImage('assets/images/profile-user.png'),
                 ),
               ),
               Padding(
@@ -522,7 +532,6 @@ class _OthersProfileState extends State<OthersProfile>
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-           
             CircleAvatar(
               radius: 50.0,
               backgroundColor: Colors.grey[100],

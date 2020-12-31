@@ -51,6 +51,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       // });
     }
   }
+  
 
   buildNoContentScreen() {
     return Container(
@@ -96,8 +97,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
             for (var userid in userIds) {
               final sendersUsername = userid['username'];
               final sendersUserId = userid['userId'];
-
-              final notificationCard = Container(
+	      final isSeen = userid['isSeen'];
+              final frndWidget = Container(
                 color: Colors.grey[50],
                 child: Column(
                   children: [
@@ -109,10 +110,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         showChatScreen(context, profileId: sendersUserId);
                       },
                       child: ListTile(
+			trailing: !isSeen ? Icon(Icons.fiber_manual_record, color: Colors.green,size: 12,):Icon(Icons.fiber_manual_record,color:Colors.grey[50]),
                         title: Text(sendersUsername,
                             style: TextStyle(
                                 color: Colors.black,
-                                fontSize: 14,
+                                fontSize: 18,
                                 fontFamily: 'Monstserrat')),
                       ),
                     ),
@@ -126,10 +128,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ],
                 ),
               );
-              friendsWidget.add(notificationCard);
+              friendsWidget.add(frndWidget);
               friendsWidget.reversed;
             }
-            return ListView(children: [
+            return ListView(
+			    physics: BouncingScrollPhysics(),
+			    children: [
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: friendsWidget,
