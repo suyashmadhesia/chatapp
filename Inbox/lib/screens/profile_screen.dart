@@ -289,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               'email');
               Navigator.popUntil(context, ModalRoute.withName('login_screen'));
               Firebase.initializeApp().whenComplete(() {
-              print('initialization Complete');
+             // print('initialization Complete');
               setState(() {});
             });
               Navigator.push(context, MaterialPageRoute(builder: (context) => WelcomeScreen()));

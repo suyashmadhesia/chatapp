@@ -18,7 +18,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void initState() {
     super.initState();
     Firebase.initializeApp().whenComplete(() {
-      print('initialization Complete');
+      // print('initialization Complete');
       setState(() {});
     });
   }
@@ -46,7 +46,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 onPressed: () {
                   //push to Login Screen
                    Firebase.initializeApp().whenComplete(() {
-      print('initialization Complete');
+      // print('initialization Complete');
       setState(() {});
     });
                   Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
@@ -74,7 +74,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 splashColor: Colors.grey[400],
                 onPressed: () {
                    Firebase.initializeApp().whenComplete(() {
-                    print('initialization Complete');
+                    // print('initialization Complete');
                     setState(() {});
     });
                   //  navigate to Register

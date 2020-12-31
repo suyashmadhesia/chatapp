@@ -191,7 +191,7 @@ class _OthersProfileState extends State<OthersProfile>
         userRefs.doc(user).update({
           'pendingList': FieldValue.arrayRemove(userIdOfReceiver),
         });
-        print(userIdOfSender);
+        //print(userIdOfSender);
         userRefs.doc(user).update({
           'friendsList': FieldValue.arrayUnion([widget.profileId]),
         });

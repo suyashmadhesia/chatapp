@@ -48,6 +48,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   }
 
+  Future<bool> _onWillPop() async{
+    await FirebaseFirestore.instance.collection('users/$userid/friends').doc(widget.userId).update({
+	  'isSeen' : true,
+	});
+  return true;
+  }
+
   getUserData() async {
     final senderMessageRefs = await FirebaseFirestore.instance
         .collection('users/' + user.uid + '/friends')
@@ -346,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void choiceAction(String choice) {
     if (choice == DropDownMenu.clearChat) {
-      print('clear chat');
+//print('clear chat');
       clearChat();
     } else if (choice == DropDownMenu.block) {
       blockUser();
@@ -444,44 +451,47 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: Color(0xff484848),
-        appBar: isLoaded
-            ? AppBar(
-                backgroundColor: Colors.grey[900],
-                actions: appbarActionButton(),
-                title: GestureDetector(
-                  onTap: () => showProfile(context, profileId: widget.userId),
-                  child: Row(
-                    children: [
-                      Padding(
-                          padding: const EdgeInsets.only(right: 14),
-                          child: CircleAvatar(
-                              backgroundColor: Colors.white,
-                              radius: 20,
-                              backgroundImage: profileLink == '' ||
-                                      profileLink == null
-                                  ? AssetImage('assets/images/profile-user.png')
-                                  : CachedNetworkImageProvider(profileLink))),
-                      Text(
-                        username,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Montserrat',
-                          fontSize: 20.0,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+          child: Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: Color(0xff484848),
+          appBar: isLoaded
+              ? AppBar(
+                  backgroundColor: Colors.grey[900],
+                  actions: appbarActionButton(),
+                  title: GestureDetector(
+                    onTap: () => showProfile(context, profileId: widget.userId),
+                    child: Row(
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.only(right: 14),
+                            child: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                radius: 20,
+                                backgroundImage: profileLink == '' ||
+                                        profileLink == null
+                                    ? AssetImage('assets/images/profile-user.png')
+                                    : CachedNetworkImageProvider(profileLink))),
+                        Text(
+                          username,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Montserrat',
+                            fontSize: 20.0,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              )
-            : buildNocontentBar(),
-        body: isLoaded
-            ? bodyToBuild()
-            : Center(
-                child: CircularProgressIndicator(),
-              ));
+                )
+              : buildNocontentBar(),
+          body: isLoaded
+              ? bodyToBuild()
+              : Center(
+                  child: CircularProgressIndicator(),
+                )),
+    );
   }
 }
 

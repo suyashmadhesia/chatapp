@@ -28,10 +28,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     Firebase.initializeApp().whenComplete(() {
-      print('initialization Complete');
+      //print('initialization Complete');
       setState(() {});
     });
-    // getUserInfo();
+    getUserData();
     pageController = PageController();
   }
 
@@ -58,6 +58,28 @@ class _HomeScreenState extends State<HomeScreen> {
     pageController.jumpToPage(
       pageIndex,
     );
+    getUserData();
+  }
+
+  List userPendingList;
+  bool showNotification = false;
+
+  getUserData() async {
+    final userAccountRefs = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    userPendingList = userAccountRefs['pendingList'];
+    if(userPendingList.isNotEmpty){
+      setState(() {
+        showNotification = true;
+      });
+    }
+    else{
+      setState(() {
+        showNotification = false;
+      });
+    }
   }
 
   Scaffold buildAuthScreen() {
@@ -69,13 +91,12 @@ class _HomeScreenState extends State<HomeScreen> {
           SearchScreen(),
           NotificationScreen(),
           ProfileScreen(profileId: user?.uid),
-          
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
       ),
       bottomNavigationBar: CurvedNavigationBar(
-        animationDuration: Duration(milliseconds : 400),
+        animationDuration: Duration(milliseconds: 400),
         color: Colors.grey[900],
         backgroundColor: Colors.white,
         height: 50,
@@ -90,10 +111,27 @@ class _HomeScreenState extends State<HomeScreen> {
             size: 20,
             color: Colors.white,
           ),
-          Icon(
-            Icons.notifications,
-            size: 20,
-            color: Colors.white,
+          Stack(
+            children: [
+              Icon(
+                Icons.notifications,
+                size: 20,
+                color: Colors.white,
+              ),
+              showNotification ?
+              Container(
+                width: 6,
+                height: 6,
+                 decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.redAccent,
+              border: Border.all(color: Colors.redAccent, width: 1))
+              ) : Container(
+                width : 4,
+                height : 4,
+                color : Colors.grey[900]
+              ),
+            ],
           ),
           Icon(
             Icons.person,

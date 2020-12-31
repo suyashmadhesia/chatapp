@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs.setString('email', username);
     Navigator.pop(context);
     Firebase.initializeApp().whenComplete(() {
-      print('initialization Complete');
+      // print('initialization Complete');
       setState(() {});
     });
     Navigator.popUntil(context, ModalRoute.withName('login_screen'));
@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     showSnipper = false;
                                   });
                                 } catch (e) {
-                                  print(e);
+                                  // print(e);
                                   setState(() {
                                     showSnipper = false;
                                   });

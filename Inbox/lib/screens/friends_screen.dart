@@ -147,7 +147,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ChatApp', style: TextStyle(fontFamily: 'Montserrat')),
+        title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.grey[900],
       ),

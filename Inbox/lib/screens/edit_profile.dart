@@ -98,8 +98,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           .split('?')[0];
       await storageRefs
           .child(deletingImgPath)
-          .delete()
-          .then((value) => print('deleted'));
+          .delete();
+          
       await userRefs.doc(user.uid).update({
         'avtar': '',
       });
@@ -142,8 +142,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             .split('?')[0];
         await storageRefs
             .child(deletingImgPath)
-            .delete()
-            .then((value) => print('deleted'));
+            .delete();
+            // .then((value) => print('deleted'));
         await userRefs.doc(user.uid).update({
           'avtar': '',
         });

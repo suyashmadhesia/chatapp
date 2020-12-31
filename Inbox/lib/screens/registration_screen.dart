@@ -176,7 +176,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     Navigator.popUntil(context, ModalRoute.withName('login_screen'));
                                     Navigator.popUntil(context, ModalRoute.withName('registration_screen'));
                                     Firebase.initializeApp().whenComplete(() {
-                                      print('initialization Complete');
+                                      //print('initialization Complete');
                                       setState(() {});
                                     });
                                     Navigator.push(
@@ -190,7 +190,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   showSpinner = false;
                                 });
                               } catch (e) {
-                                print(e);
+                                // print(e);
                                  setState(() {
                                     showSpinner = false;
                                   });

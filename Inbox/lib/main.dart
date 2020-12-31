@@ -23,7 +23,7 @@ class _ChatAppState extends State<ChatApp> {
   void initState() {
     super.initState();
     Firebase.initializeApp().whenComplete(() {
-      print('initialization Complete');
+      //print('initialization Complete');
       setState(() {});
     });
   }
