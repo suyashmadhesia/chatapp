@@ -1,8 +1,8 @@
-import 'package:Inbox/reusable/components.dart';
+//import 'package:Inbox/reusable/components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:Inbox/models/user.dart';
+//import 'package:Inbox/models/user.dart';
 // import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/profile_other.dart';
 // import 'package:Inbox/screens/profile_screen.dart';
@@ -12,7 +12,7 @@ import 'package:Inbox/screens/profile_other.dart';
 // import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:skeleton_text/skeleton_text.dart';
+// import 'package:skeleton_text/skeleton_text.dart';
 //import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -71,154 +71,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Column(
-              children: [
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                )
-              ],
+            return Center(
+              child: LinearProgressIndicator(),
             );
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
@@ -275,154 +129,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ),
             ]);
           } else {
-            return Column(
-              children: [
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: ListTile(
-                    leading: SkeletonAnimation(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[200],
-                        radius: 32,
-                      ),
-                    ),
-                    title: SkeletonAnimation(
-                      child: Text('                             ',
-                          style: TextStyle(
-                              backgroundColor: Colors.grey[200],
-                              color: Colors.black,
-                              fontSize: 14,
-                              fontFamily: 'Monstserrat')),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Divider(
-                  color: Colors.grey[500],
-                  height: 2.0,
-                )
-              ],
+            return Center(
+              child: CircularProgressIndicator(),
             );
           }
         });

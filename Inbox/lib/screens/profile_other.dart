@@ -1,14 +1,14 @@
 import 'package:Inbox/models/user.dart';
-import 'package:Inbox/reusable/components.dart';
+//import 'package:Inbox/reusable/components.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+//import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:skeleton_text/skeleton_text.dart';
+//import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:skeleton_text/skeleton_text.dart';
 import 'home.dart';
-import 'search_screen.dart';
+//import 'search_screen.dart';
 
 class OthersProfile extends StatefulWidget {
   @override
@@ -244,14 +244,14 @@ class _OthersProfileState extends State<OthersProfile>
       final senderMessageCollectionRef = FirebaseFirestore.instance
           .collection('users/$user/friends/' + widget.profileId + '/messages');
       await senderMessageCollectionRef.get().then((snapshot){
-	for(DocumentSnapshot ds in snapshot.documents){
+	for(DocumentSnapshot ds in snapshot.docs){
 		ds.reference.delete(); 
 	}
       });
       final receiverMessageCollectionRef = FirebaseFirestore.instance
           .collection('users/' + widget.profileId + '/friends/$user/messages');
       await receiverMessageCollectionRef.get().then((snapshot){
-      for(DocumentSnapshot ds in snapshot.documents){
+      for(DocumentSnapshot ds in snapshot.docs){
       	ds.reference.delete();
       }
       });
@@ -325,7 +325,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                  await Future.delayed(Duration(milliseconds: 700));
+                  await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -356,7 +356,7 @@ class _OthersProfileState extends State<OthersProfile>
                         )),
                   );
                   _scaffoldKey.currentState.showSnackBar(snackBar);
-                  await Future.delayed(Duration(milliseconds: 700));
+                  await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
                 },
                 shape: RoundedRectangleBorder(
@@ -392,7 +392,7 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(milliseconds: 700));
+          await Future.delayed(Duration(seconds: 1));
           Navigator.pop(context);
 	 Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
         },
@@ -425,7 +425,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(milliseconds: 700));
+            await Future.delayed(Duration(seconds: 1));
             Navigator.pop(context);
           } else if (!isSentRequest) {
             await sendFriendRequest();
@@ -439,7 +439,7 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(milliseconds: 700));
+            await Future.delayed(Duration(seconds: 1));
             Navigator.pop(context);
 	    
           }
@@ -465,67 +465,8 @@ class _OthersProfileState extends State<OthersProfile>
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              //SizedBox(height: 150.0),
-              SkeletonAnimation(
-                child: CircleAvatar(
-                  radius: 50.0,
-                  backgroundColor: animation.value,
-                  backgroundImage: AssetImage('assets/images/profile-user.png'),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: SkeletonAnimation(
-                  child: Text(
-                    '                       ',
-                    style: TextStyle(
-                      backgroundColor: animation.value,
-                      color: Colors.black,
-                      fontSize: 24.0,
-                      fontFamily: 'Montserrat',
-                    ),
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  FlatButton(
-                    color: animation.value,
-                    splashColor: Colors.grey[400],
-                    onPressed: () {},
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4.0),
-                      side: BorderSide(color: Colors.grey[50], width: 2),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-                      child: Text(
-                        "                         ",
-                        style: TextStyle(
-                            color: Colors.grey, fontFamily: 'Montserrat'),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20.0),
-              SkeletonAnimation(
-                child: Text(
-                  '                                      ',
-                  style: TextStyle(
-                      backgroundColor: animation.value,
-                      color: Colors.grey,
-                      fontFamily: 'Mulish',
-                      fontSize: 16.0),
-                ),
-              ),
-            ],
-          ));
+              child: CircularProgressIndicator()
+              );
         }
         Account user = Account.fromDocument(snapshot.data);
         return Column(

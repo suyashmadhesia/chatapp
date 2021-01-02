@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:Inbox/reusable/components.dart';
+//import 'package:Inbox/reusable/components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/screens/friends_screen.dart';
@@ -153,9 +153,3 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Widget build(BuildContext context){
-//   return Scaffold(
-//     backgroundColor: Colors.red,
-//   );
-//   }
-// }

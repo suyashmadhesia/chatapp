@@ -1,5 +1,5 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:Inbox/screens/friends_screen.dart';
+// import 'package:Inbox/screens/friends_screen.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -6,8 +6,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:focused_menu/modals.dart';
-import 'package:skeleton_text/skeleton_text.dart';
+// import 'package:skeleton_text/skeleton_text.dart';
 import 'package:focused_menu/focused_menu.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -40,22 +41,36 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isLoaded = false;
   bool isSending = false;
   bool isReceiverBlocked = false;
-  
-  setIsSeen() async {
-	  final senderMessageRefs = await FirebaseFirestore.instance.collection('users/$userid/friends').doc(widget.userId).update({
-	  'isSeen' : true,
-	});
+  List friendsList;
 
+  setIsSeen() async {
+    final senderMessageRefs = await FirebaseFirestore.instance
+        .collection('users/$userid/friends')
+        .doc(widget.userId)
+        .update({
+      'isSeen': true,
+    });
   }
 
-  Future<bool> _onWillPop() async{
-    await FirebaseFirestore.instance.collection('users/$userid/friends').doc(widget.userId).update({
-	  'isSeen' : true,
-	});
-  return true;
+  Future<bool> _onWillPop() async {
+    if (isLoaded) {
+      if (friendsList.contains(widget.userId)) {
+        FirebaseFirestore.instance
+            .collection('users/$userid/friends')
+            .doc(widget.userId)
+            .update({
+          'isSeen': true,
+        });
+        return true;
+      }
+    }
+    return true;
   }
 
   getUserData() async {
+    final senderCollectionRef =
+        await FirebaseFirestore.instance.collection('users').doc(userid).get();
+    friendsList = senderCollectionRef['friendsList'];
     final senderMessageRefs = await FirebaseFirestore.instance
         .collection('users/' + user.uid + '/friends')
         .doc(widget.userId)
@@ -95,21 +110,17 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Padding(
               padding: const EdgeInsets.only(right: 14),
-              child: SkeletonAnimation(
-                child: CircleAvatar(
-                  backgroundColor: Colors.grey[800],
-                  radius: 20,
-                ),
-              )),
-          SkeletonAnimation(
-            child: Text(
-              '                       ',
-              style: TextStyle(
+              child: CircleAvatar(
                 backgroundColor: Colors.grey[800],
-                color: Colors.white,
-                fontFamily: 'Montserrat',
-                fontSize: 20.0,
-              ),
+                radius: 20,
+              )),
+          Text(
+            '                       ',
+            style: TextStyle(
+              backgroundColor: Colors.grey[800],
+              color: Colors.white,
+              fontFamily: 'Montserrat',
+              fontSize: 20.0,
             ),
           ),
         ],
@@ -153,6 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
             }
 
             final messageBubble = MessageBubble(
+              timestamp: d,
               senderId: user.uid,
               receiverId: widget.userId,
               myMessageId: myMessageId,
@@ -183,7 +195,8 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: isReceiverBlocked
           ? Center(
-              child: Text('Unblock the user to send messages..',style: TextStyle(color : Colors.white)),
+              child: Text('Unblock the user to send messages..',
+                  style: TextStyle(color: Colors.white)),
             )
           : Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -193,15 +206,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    isSending
-                        ? Text(
-                            'Sending  ',
-                            style: TextStyle(
-                                fontSize: 10.0,
-                                color: Colors.grey[400],
-                                fontFamily: 'Montserrat'),
-                          )
-                        : Text(''),
+                    if (isSending)
+                      Text(
+                        'Sending',
+                        style: TextStyle(
+                            fontSize: 10.0,
+                            color: Colors.grey[400],
+                            fontFamily: 'Montserrat'),
+                      )
                   ],
                 ),
                 isBlocked
@@ -212,14 +224,19 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                     : Padding(
                         padding: const EdgeInsets.only(
-                            left: 8.0, right: 8.0, bottom: 4, top: 12),
+                            left: 8.0, right: 8.0, bottom: 4, top: 4),
                         child: TextField(
+                        
                           controller: messageTextController,
                           keyboardType: TextInputType.multiline,
                           minLines: 1,
                           maxLines: 50,
                           onChanged: (value) {
-                            message = value;
+                            
+                            String trimLeft = value.trimLeft();
+                            String trimRight = trimLeft.trimRight();
+                            message = trimRight;
+
                           },
                           cursorColor: Colors.grey[100],
                           autofocus: false,
@@ -236,14 +253,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: Colors.green[400],
                               ),
                               onPressed: () async {
-                                if (message != null || message != '') {
-                                  messageTextController.clear();
+                                setState(() {
+                                  isSending = true;
+                                });
+                                if (message != null && message != '') {
+                                  await getUserData();
                                   if (isBlocked == false &&
                                       isReceiverBlocked == false) {
-                                    setState(() {
-                                      isSending = true;
-                                    });
 //Sender Collections
+                                    messageTextController.clear();
                                     final senderMessageCollection =
                                         await sendersMessageRefs
                                             .collection('users/' +
@@ -258,6 +276,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'id': '',
                                       'anotherId': '',
                                     });
+                                    
                                     final String docid =
                                         senderMessageCollection.id;
 
@@ -269,11 +288,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .update({
                                       'messageAt': DateTime.now(),
                                     });
+                                    
+
 //Receiver Collections
-                                    await FirebaseFirestore.instance.collection('users/'+widget.userId+'/friends').doc(user.uid).update({
-				    'isSeen' : false,
-				    });
-				    final receieverMessageCollection =
+                                    await FirebaseFirestore.instance
+                                        .collection('users/' +
+                                            widget.userId +
+                                            '/friends')
+                                        .doc(user.uid)
+                                        .update({
+                                      'isSeen': false,
+                                    });
+                                    final receieverMessageCollection =
                                         await sendersMessageRefs
                                             .collection('users/' +
                                                 user.uid +
@@ -320,10 +346,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'id': docId,
                                       'anotherId': docid,
                                     });
+                                    message = '';
                                     setState(() {
                                       isSending = false;
                                     });
                                   }
+                                }
+                                else{
+                                  setState(() {
+                                    isSending = false;
+                                  });
                                 }
                               },
                             ),
@@ -453,7 +485,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
-          child: Scaffold(
+      child: Scaffold(
           key: _scaffoldKey,
           backgroundColor: Color(0xff484848),
           appBar: isLoaded
@@ -471,7 +503,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 radius: 20,
                                 backgroundImage: profileLink == '' ||
                                         profileLink == null
-                                    ? AssetImage('assets/images/profile-user.png')
+                                    ? AssetImage(
+                                        'assets/images/profile-user.png')
                                     : CachedNetworkImageProvider(profileLink))),
                         Text(
                           username,
@@ -503,6 +536,7 @@ class MessageBubble extends StatelessWidget {
   final String ontherId;
   final String senderId;
   final String receiverId;
+  final DateTime timestamp;
 
   MessageBubble({
     this.message,
@@ -512,9 +546,52 @@ class MessageBubble extends StatelessWidget {
     this.ontherId,
     this.senderId,
     this.receiverId,
+    this.timestamp,
   });
 
+  Duration min;
+  Duration compare;
+
+  compareTime(){
+    final dateTimeNow = DateTime.now();
+    compare = dateTimeNow.difference(timestamp);
+    min = Duration(minutes: 5);
+    
+  }
+
   //Function
+
+  _showDialog(parentContext) async{
+    // flutter defined function
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: Text("Error",style: TextStyle(
+                      color: Colors.red, fontFamily: 'Mulish'),),
+          content: Text("Unable to delete message after 5 minutes",style: TextStyle(
+                      color: Colors.grey[700], fontFamily: 'Mulish',fontSize: 14),),
+       
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            FlatButton(
+              child: new Text("OK",style: TextStyle(
+                  color: Colors.grey[800], fontFamily: 'Mulish'),),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },),
+             
+              
+          ],
+        );
+      },
+    );
+  }
+
+
+
+
   unsendMessage() async {
     final receiverCollectionRef = FirebaseFirestore.instance
         .collection('users/' + receiverId + '/friends/$senderId/messages');
@@ -526,7 +603,7 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
+    // final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     return Padding(
       padding: const EdgeInsets.only(right: 8, top: 12, bottom: 4, left: 8),
@@ -560,19 +637,20 @@ class MessageBubble extends StatelessWidget {
                       bottomRight: Radius.circular(32),
                     ),
               color: sender
-                  ? Colors.purple[800]
-                  : Colors.grey[500], //Color(0xff5ddef4),
+                  ? Colors.indigoAccent
+                  : Colors.grey[400], //Color(0xff5ddef4),
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: sender
                     ? FocusedMenuHolder(
+                      duration: Duration(milliseconds : 100),
                         menuItemExtent:
                             MediaQuery.of(context).size.height * 0.06,
                         blurBackgroundColor: Colors.grey[600],
                         blurSize: 0,
                         menuWidth: MediaQuery.of(context).size.width * 0.3,
-                        duration: Duration(milliseconds: 50),
+                        // duration: Duration(milliseconds: 50),
                         onPressed: () {},
                         menuItems: <FocusedMenuItem>[
                           FocusedMenuItem(
@@ -581,7 +659,14 @@ class MessageBubble extends StatelessWidget {
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () async {
-                                await unsendMessage();
+                                compareTime();
+                                if(compare < min){
+                                  await unsendMessage();
+                                }
+                                else{
+                                  _showDialog(context);
+                                }
+                                
                               },
                               backgroundColor: Colors.redAccent,
                               trailingIcon: Icon(

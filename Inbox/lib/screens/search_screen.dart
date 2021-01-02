@@ -1,12 +1,12 @@
 // import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/models/user.dart';
-import 'package:Inbox/screens/home.dart';
+// import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:Inbox/screens/friends_screen.dart';
+// import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -41,21 +41,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  // String image_field;
-  // String bio_field;
-  // String email_field;
-  // String userid;
-
-  // getUserData() async{
-  //   DocumentSnapshot doc = await usersRef.doc(currentUser.uid).get();
-  //   Account userData = Account.fromDocument(doc);
-  //   image_field = userData.avtar;
-  //   bio_field = userData.bio;
-  //   email_field = userData.email;
-  //   userid = userData.userId;
-  //   //print(userid);
-  //   print(currentUser.uid);
-  // }
+ 
 
   AppBar buildSearchField() {
     return AppBar(
