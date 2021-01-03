@@ -4,6 +4,7 @@ import 'package:Inbox/screens/profile_other.dart';
 //import 'package:Inbox/screens/search_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +24,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    checkInternet();
     getUserData();
     setIsSeen();
   }
@@ -44,16 +46,38 @@ class _ChatScreenState extends State<ChatScreen> {
   List friendsList;
 
   setIsSeen() async {
-    final senderMessageRefs = await FirebaseFirestore.instance
-        .collection('users/$userid/friends')
-        .doc(widget.userId)
-        .update({
-      'isSeen': true,
-    });
+    if (isInternet) {
+      final senderMessageRefs = await FirebaseFirestore.instance
+          .collection('users/$userid/friends')
+          .doc(widget.userId)
+          .update({
+        'isSeen': true,
+      });
+    }
+  }
+
+  bool isInternet = true;
+
+  checkInternet() async {
+    bool result = await DataConnectionChecker().hasConnection;
+    if (result == true) {
+      setState(() {
+        isInternet = true;
+      });
+      // setState(() {
+      //   isLoading = false;
+      // });
+      debugPrint('internet hai ');
+    } else {
+      setState(() {
+        isInternet = false;
+      });
+      debugPrint('internet nhi hai');
+    }
   }
 
   Future<bool> _onWillPop() async {
-    if (isLoaded) {
+    if (isLoaded && isInternet) {
       if (friendsList.contains(widget.userId)) {
         FirebaseFirestore.instance
             .collection('users/$userid/friends')
@@ -226,17 +250,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         padding: const EdgeInsets.only(
                             left: 8.0, right: 8.0, bottom: 4, top: 4),
                         child: TextField(
-                        
                           controller: messageTextController,
                           keyboardType: TextInputType.multiline,
                           minLines: 1,
                           maxLines: 50,
                           onChanged: (value) {
-                            
                             String trimLeft = value.trimLeft();
                             String trimRight = trimLeft.trimRight();
                             message = trimRight;
-
                           },
                           cursorColor: Colors.grey[100],
                           autofocus: false,
@@ -276,7 +297,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'id': '',
                                       'anotherId': '',
                                     });
-                                    
+
                                     final String docid =
                                         senderMessageCollection.id;
 
@@ -288,7 +309,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .update({
                                       'messageAt': DateTime.now(),
                                     });
-                                    
 
 //Receiver Collections
                                     await FirebaseFirestore.instance
@@ -351,8 +371,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       isSending = false;
                                     });
                                   }
-                                }
-                                else{
+                                } else {
                                   setState(() {
                                     isSending = false;
                                   });
@@ -549,48 +568,40 @@ class MessageBubble extends StatelessWidget {
     this.timestamp,
   });
 
-  Duration min;
-  Duration compare;
-
-  compareTime(){
-    final dateTimeNow = DateTime.now();
-    compare = dateTimeNow.difference(timestamp);
-    min = Duration(minutes: 5);
-    
-  }
-
   //Function
 
-  _showDialog(parentContext) async{
+  _showDialog(parentContext) async {
     // flutter defined function
     return showDialog(
       context: parentContext,
       builder: (context) {
         // return object of type Dialog
         return AlertDialog(
-          title: Text("Error",style: TextStyle(
-                      color: Colors.red, fontFamily: 'Mulish'),),
-          content: Text("Unable to delete message after 5 minutes",style: TextStyle(
-                      color: Colors.grey[700], fontFamily: 'Mulish',fontSize: 14),),
-       
+          title: Text(
+            "Error",
+            style: TextStyle(color: Colors.red, fontFamily: 'Mulish'),
+          ),
+          content: Text(
+            "Unable to delete message after 5 minutes",
+            style: TextStyle(
+                color: Colors.grey[700], fontFamily: 'Mulish', fontSize: 14),
+          ),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             FlatButton(
-              child: new Text("OK",style: TextStyle(
-                  color: Colors.grey[800], fontFamily: 'Mulish'),),
+              child: new Text(
+                "OK",
+                style: TextStyle(color: Colors.grey[800], fontFamily: 'Mulish'),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
-              },),
-             
-              
+              },
+            ),
           ],
         );
       },
     );
   }
-
-
-
 
   unsendMessage() async {
     final receiverCollectionRef = FirebaseFirestore.instance
@@ -644,7 +655,7 @@ class MessageBubble extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: sender
                     ? FocusedMenuHolder(
-                      duration: Duration(milliseconds : 100),
+                        duration: Duration(milliseconds: 100),
                         menuItemExtent:
                             MediaQuery.of(context).size.height * 0.06,
                         blurBackgroundColor: Colors.grey[600],
@@ -659,14 +670,17 @@ class MessageBubble extends StatelessWidget {
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () async {
-                                compareTime();
-                                if(compare < min){
+                                Duration min;
+                                Duration compare;
+                                final dateTimeNow = DateTime.now();
+                                compare = dateTimeNow.difference(timestamp);
+                                min = Duration(minutes: 5);
+
+                                if (compare < min) {
                                   await unsendMessage();
-                                }
-                                else{
+                                } else {
                                   _showDialog(context);
                                 }
-                                
                               },
                               backgroundColor: Colors.redAccent,
                               trailingIcon: Icon(

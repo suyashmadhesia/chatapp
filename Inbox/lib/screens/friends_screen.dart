@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+//import 'package:data_connection_checker/data_connection_checker.dart';
 //import 'package:flutter_svg/flutter_svg.dart';
 // import 'package:Inbox/reusable/components.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
@@ -24,7 +25,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   initState() {
     super.initState();
+    //checkInternet();
     getUsersFriendData();
+    
   }
 
   final _collectionRefs = FirebaseFirestore.instance;
@@ -33,6 +36,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   bool isDataLoaded = true;
   bool isEmpty = false;
+  //bool isInternet = true;
 
   getUsersFriendData() async {
     final userAccountRefs =
@@ -51,7 +55,19 @@ class _FriendsScreenState extends State<FriendsScreen> {
       // });
     }
   }
-  
+
+  // checkInternet() async {
+  //   bool result = await DataConnectionChecker().hasConnection;
+  //   if (result == true) {
+  //     setState(() {
+  //       isInternet = true;
+  //     });
+  //   } else {
+  //     setState(() {
+  //       isInternet = false;
+  //     });
+  //   }
+  // }
 
   buildNoContentScreen() {
     return Container(
@@ -86,7 +102,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     return StreamBuilder(
         stream: _collectionRefs
             .collection('users/$_userId/friends')
-            .orderBy('messageAt',descending: true)
+            .orderBy('messageAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -97,7 +113,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             for (var userid in userIds) {
               final sendersUsername = userid['username'];
               final sendersUserId = userid['userId'];
-	      final isSeen = userid['isSeen'];
+              final isSeen = userid['isSeen'];
               final frndWidget = Container(
                 color: Colors.grey[50],
                 child: Column(
@@ -110,7 +126,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         showChatScreen(context, profileId: sendersUserId);
                       },
                       child: ListTile(
-			trailing: !isSeen ? Icon(Icons.fiber_manual_record, color: Colors.green,size: 12,):Icon(Icons.fiber_manual_record,color:Colors.grey[50]),
+                        trailing: !isSeen
+                            ? Icon(
+                                Icons.fiber_manual_record,
+                                color: Colors.green,
+                                size: 12,
+                              )
+                            : Icon(Icons.fiber_manual_record,
+                                color: Colors.grey[50]),
                         title: Text(sendersUsername,
                             style: TextStyle(
                                 color: Colors.black,
@@ -131,9 +154,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               friendsWidget.add(frndWidget);
               friendsWidget.reversed;
             }
-            return ListView(
-			    physics: BouncingScrollPhysics(),
-			    children: [
+            return ListView(physics: BouncingScrollPhysics(), children: [
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: friendsWidget,
@@ -145,15 +166,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
-      ),
-      backgroundColor: Colors.white,
-      body: isDataLoaded ? buildNoContentScreen() : friendsListStream(),
-    );
+    return 
+        Scaffold(
+            appBar: AppBar(
+              title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
+              automaticallyImplyLeading: false,
+              backgroundColor: Colors.grey[900],
+            ),
+            backgroundColor: Colors.white,
+            body: isDataLoaded ? buildNoContentScreen() : friendsListStream(),
+          );
+        
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:Inbox/models/user.dart';
 //import 'package:Inbox/reusable/components.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class OthersProfile extends StatefulWidget {
 
 class _OthersProfileState extends State<OthersProfile>
     with TickerProviderStateMixin {
-  final _auth = FirebaseAuth.instance;
+  // final _auth = FirebaseAuth.instance;
   String user = FirebaseAuth.instance.currentUser.uid;
   final userRefs = FirebaseFirestore.instance.collection('users');
   Animation animation;
@@ -29,6 +30,7 @@ class _OthersProfileState extends State<OthersProfile>
   @override
   void initState() {
     super.initState();
+    checkInternet();
     controller =
         AnimationController(duration: Duration(microseconds: 200), vsync: this);
 
@@ -58,6 +60,20 @@ class _OthersProfileState extends State<OthersProfile>
   String avatar;
   String rUsername;
   bool isSeen = false;
+  bool isInternet = true;
+
+  checkInternet() async {
+    bool result = await DataConnectionChecker().hasConnection;
+    if (result == true) {
+      setState(() {
+        isInternet = true;
+      });
+    } else {
+      setState(() {
+        isInternet = false;
+      });
+    }
+  }
 
   checkingAccept() async {
     final userAccountRefs =
@@ -514,7 +530,7 @@ class _OthersProfileState extends State<OthersProfile>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return isInternet ? Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -525,6 +541,28 @@ class _OthersProfileState extends State<OthersProfile>
       body: SafeArea(
         child: buildProfileHeader(),
       ),
-    );
+    ) : Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('No internet :(',
+                    style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                        fontFamily: 'Mulish')),
+                FlatButton(
+                  padding: EdgeInsets.all(8.0),
+                  color: Colors.greenAccent[700],
+                    onPressed: () => checkInternet(),
+                    child: Text('Retry',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontFamily: 'Mulish')))
+              ],
+            )),
+          );
   }
 }

@@ -44,7 +44,7 @@ dependencies:
   path_provider: ^1.6.24
   firebase_storage: ^5.2.0
   
-  
+  data_connection_checker: ^0.3.4
   focused_menu: ^1.0.2 
 
 dev_dependencies:

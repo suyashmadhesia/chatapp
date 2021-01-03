@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 //import 'package:Inbox/reusable/components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,6 +34,27 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     getUserData();
     pageController = PageController();
+    checkInternet();
+  }
+  bool isInternet = true;
+  bool isLoading = false;
+  checkInternet() async {
+    
+    bool result = await DataConnectionChecker().hasConnection;
+    if (result == true) {
+      setState(() {
+        isInternet = true;
+      });
+      setState(() {
+        isLoading = false;
+      });
+      // debugPrint('internet hai ');
+    } else {
+      setState(() {
+        isInternet = false;
+      });
+      // debugPrint('internet nhi hai');
+    }
   }
 
   User user = FirebaseAuth.instance.currentUser;
@@ -59,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
       pageIndex,
     );
     getUserData();
+    checkInternet();
   }
 
   List userPendingList;
@@ -149,7 +172,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return buildAuthScreen();
+    return isInternet ? buildAuthScreen() : Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if(isLoading)
+                CircularProgressIndicator(),
+                Text('No internet :(',
+                    style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                        fontFamily: 'Mulish')),
+                FlatButton(
+                  padding: EdgeInsets.all(8.0),
+                  color: Colors.greenAccent[700],
+                    onPressed: () {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      checkInternet();
+                    
+                    },
+                    child: Text('Retry',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontFamily: 'Mulish')))
+              ],
+            )),
+          );
   }
 }
 
