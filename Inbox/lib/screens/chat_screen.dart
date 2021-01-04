@@ -254,11 +254,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           keyboardType: TextInputType.multiline,
                           minLines: 1,
                           maxLines: 50,
-                          onChanged: (value) {
-                            String trimLeft = value.trimLeft();
-                            String trimRight = trimLeft.trimRight();
-                            message = trimRight;
-                          },
+                          // onChanged: (value) {
+                          //   String trimLeft = value.trimLeft();
+                          //   String trimRight = trimLeft.trimRight();
+                          //   message = trimRight;
+                          // },
                           cursorColor: Colors.grey[100],
                           autofocus: false,
                           style: TextStyle(
@@ -274,11 +274,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: Colors.green[400],
                               ),
                               onPressed: () async {
+                                String trimLeft = messageTextController.text.trimLeft();
+                                String trimRight = trimLeft.trimRight();
+                                message = trimRight;
                                 setState(() {
                                   isSending = true;
                                 });
                                 if (message != null && message != '') {
-                                  await getUserData();
+                                   getUserData();
                                   if (isBlocked == false &&
                                       isReceiverBlocked == false) {
 //Sender Collections
@@ -301,7 +304,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     final String docid =
                                         senderMessageCollection.id;
 
-                                    await sendersMessageRefs
+                                    sendersMessageRefs
                                         .collection('users/' +
                                             widget.userId +
                                             '/friends')
@@ -311,7 +314,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     });
 
 //Receiver Collections
-                                    await FirebaseFirestore.instance
+                                     FirebaseFirestore.instance
                                         .collection('users/' +
                                             widget.userId +
                                             '/friends')
@@ -336,7 +339,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     final String docId =
                                         receieverMessageCollection.id;
 
-                                    await sendersMessageRefs
+                                     sendersMessageRefs
                                         .collection(
                                             'users/' + user.uid + '/friends')
                                         .doc(widget.userId)
@@ -344,7 +347,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'messageAt': DateTime.now(),
                                     });
                                     //userCollection of message id
-                                    await sendersMessageRefs
+                                     sendersMessageRefs
                                         .collection('users/' +
                                             widget.userId +
                                             '/friends/' +
@@ -355,7 +358,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'id': docid,
                                       'anotherId': docId,
                                     });
-                                    await sendersMessageRefs
+                                     sendersMessageRefs
                                         .collection('users/' +
                                             user.uid +
                                             '/friends/' +
