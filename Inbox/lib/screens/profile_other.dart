@@ -238,6 +238,7 @@ class _OthersProfileState extends State<OthersProfile>
           'username': username,
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
+          'isSeen' : isSeen,
         });
         // final receiverCollectionsRefs = FirebaseFirestore.instance
         //     .collection('users/' + widget.profileId + '/pendingRequests');

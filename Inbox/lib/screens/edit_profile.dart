@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:Inbox/models/user.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image/image.dart' as Im;
@@ -23,6 +24,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
+    checkInternet();
   }
 
 //Constant
@@ -70,36 +72,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return downloadUrl;
   }
 
-  String image_field;
-  String bio_field;
-  String email_field;
+  String imageField;
+  String bioField;
+  String emailField;
 
   String deletingImgPath;
 
   getUserData() async {
     DocumentSnapshot doc = await userRefs.doc(user.uid).get();
     Account userData = Account.fromDocument(doc);
-    image_field = userData.avtar;
-    bio_field = userData.bio;
-    email_field = userData.email;
+    imageField = userData.avtar;
+    bioField = userData.bio;
+    emailField = userData.email;
   }
 
   removeProfile() async {
     await getUserData();
-    if (image_field != '') {
+    if (imageField != '') {
       setState(() {
         isUploading = true;
       });
-      deletingImgPath = image_field
+      deletingImgPath = imageField
           .replaceAll(
               new RegExp(
                   r'https://firebasestorage.googleapis.com/v0/b/unme-37a26.appspot.com/o/'),
               '')
           .split('?')[0];
-      await storageRefs
-          .child(deletingImgPath)
-          .delete();
-          
+      await storageRefs.child(deletingImgPath).delete();
+
       await userRefs.doc(user.uid).update({
         'avtar': '',
       });
@@ -123,57 +123,80 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  handleSubmit() async {
-    setState(() {
-      isUploading = true;
-    });
-    await getUserData();
+  bool isLoading = false;
 
-    if (_image != null) {
-      await compressImage();
-      String mediaUrl = await uploadImage(_image);
+  bool isInternet = true;
+
+  checkInternet() async {
+    bool result = await DataConnectionChecker().hasConnection;
+    if (result == true) {
+      setState(() {
+        isInternet = true;
+      });
+      setState(() {
+        isLoading = false;
+      });
+      // debugPrint('internet hai ');
+    } else {
+      setState(() {
+        isInternet = false;
+      });
+      // debugPrint('internet nhi hai');
+    }
+  }
+
+  handleSubmit() async {
+    await checkInternet();
+    if (isInternet) {
+      setState(() {
+        isUploading = true;
+      });
+      await getUserData();
+
+      if (_image != null) {
+        await compressImage();
+        String mediaUrl = await uploadImage(_image);
 //deleting old image profile
-      if (image_field != '') {
-        deletingImgPath = image_field
-            .replaceAll(
-                new RegExp(
-                    r'https://firebasestorage.googleapis.com/v0/b/unme-37a26.appspot.com/o/'),
-                '')
-            .split('?')[0];
-        await storageRefs
-            .child(deletingImgPath)
-            .delete();
-            // .then((value) => print('deleted'));
-        await userRefs.doc(user.uid).update({
-          'avtar': '',
+        if (imageField != '') {
+          deletingImgPath = imageField
+              .replaceAll(
+                  new RegExp(
+                      r'https://firebasestorage.googleapis.com/v0/b/unme-37a26.appspot.com/o/'),
+                  '')
+              .split('?')[0];
+          await storageRefs.child(deletingImgPath).delete();
+          // .then((value) => print('deleted'));
+          await userRefs.doc(user.uid).update({
+            'avtar': '',
+          });
+        }
+        userRefs.doc(user.uid).update({
+          'avtar': mediaUrl,
+          'bio': bio == null || bio == '' ? bioField : bio,
+          'email': email == null || email == '' ? emailField : email,
         });
       }
-      userRefs.doc(user.uid).update({
-        'avtar': mediaUrl,
-        'bio': bio == null || bio == '' ? bio_field : bio,
-        'email': email == null || email == '' ? email_field : email,
+      if (_image == null) {
+        userRefs.doc(user.uid).update({
+          'bio': bio == null || bio == '' ? bioField : bio,
+          'email': email == null || email == '' ? emailField : email,
+        });
+      }
+      setState(() {
+        isUploading = false;
       });
+      SnackBar snackBar = SnackBar(
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green[700],
+        content: Text('Profile Updated!'),
+      );
+      _scaffoldKey.currentState.showSnackBar(snackBar);
+      await Future.delayed(Duration(seconds: 2));
+      Navigator.pop(context);
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
     }
-    if (_image == null) {
-      userRefs.doc(user.uid).update({
-        'bio': bio == null || bio == '' ? bio_field : bio,
-        'email': email == null || email == '' ? email_field : email,
-      });
-    }
-    setState(() {
-      isUploading = false;
-    });
-    SnackBar snackBar = SnackBar(
-      behavior: SnackBarBehavior.floating,
-      duration: Duration(seconds: 2),
-      backgroundColor: Colors.green[700],
-      content: Text('Profile Updated!'),
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
-    await Future.delayed(Duration(seconds: 2));
-    Navigator.pop(context);
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => HomeScreen()));
   }
 
   selectImage(parentContext) {
@@ -228,169 +251,199 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: IconButton(
-              onPressed: isUploading ? null : () => handleSubmit(),
-              icon: Icon(
-                Icons.done,
-                color: Colors.white,
+    return isInternet
+        ? Scaffold(
+            key: _scaffoldKey,
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: IconButton(
+                    onPressed: isUploading ? null : () => handleSubmit(),
+                    icon: Icon(
+                      Icons.done,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              ],
+              leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  if (_image != null) {
+                    clearImage();
+                  }
+                },
+                icon: Icon(Icons.close, color: Colors.white),
+              ),
+              backgroundColor: Colors.grey[900],
+              title: Text(
+                'Edit Profile',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Montserrat',
+                  fontSize: 20.0,
+                ),
               ),
             ),
-          )
-        ],
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-            if (_image != null) {
-              clearImage();
-            }
-          },
-          icon: Icon(Icons.close, color: Colors.white),
-        ),
-        backgroundColor: Colors.grey[900],
-        title: Text(
-          'Edit Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Montserrat',
-            fontSize: 20.0,
-          ),
-        ),
-      ),
-      body: Center(
-        child: ListView(
-          physics: BouncingScrollPhysics(),
-          children: [
-            isUploading ? LinearProgressIndicator() : Text(''),
-            Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  SizedBox(
-                    height: 150,
-                  ),
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey[600],
-                    child: IconButton(
-                      splashColor: Colors.grey[900],
-                      splashRadius: 50.0,
-                      onPressed: () => selectImage(context),
-                      icon: Icon(
-                        Icons.file_upload,
-                        color: Colors.white,
-                        size: 30.0,
-                      ),
+            body: Center(
+              child: ListView(
+                physics: BouncingScrollPhysics(),
+                children: [
+                  isUploading ? LinearProgressIndicator() : Text(''),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        SizedBox(
+                          height: 150,
+                        ),
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.grey[600],
+                          child: IconButton(
+                            splashColor: Colors.grey[900],
+                            splashRadius: 50.0,
+                            onPressed: () => selectImage(context),
+                            icon: Icon(
+                              Icons.file_upload,
+                              color: Colors.white,
+                              size: 30.0,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          _image == null
+                              ? 'No Image Selected, Select one !'
+                              : 'Image Selected tap to change selected image',
+                          style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 12.0,
+                              fontFamily: 'Montserrat'),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextField(
+                            onChanged: (value) {
+                              bio = value;
+                            },
+                            maxLength: 100,
+                            maxLines: 4,
+                            minLines: 1,
+                            cursorColor: Colors.grey,
+                            autofocus: false,
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey,
+                                fontFamily: 'Montserrat'),
+                            decoration: InputDecoration(
+                              enabledBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              hintText: 'Bio',
+                              hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16.0,
+                                  fontFamily: 'Montserrat'),
+                              helperText: 'Write something about you....',
+                              helperStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12.0,
+                                  fontFamily: 'Montserrat'),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextFormField(
+                            onChanged: (value) {
+                              email = value;
+                            },
+                            //validator: emailValidator,
+                            cursorColor: Colors.grey,
+                            autofocus: false,
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey,
+                                fontFamily: 'Montserrat'),
+                            decoration: InputDecoration(
+                              enabledBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              hintText: 'Email',
+                              hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16.0,
+                                  fontFamily: 'Montserrat'),
+                              helperText: 'In case you forget your password',
+                              helperStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12.0,
+                                  fontFamily: 'Montserrat'),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                  SizedBox(height: 20),
-                  Text(
-                    _image == null
-                        ? 'No Image Selected, Select one !'
-                        : 'Image Selected tap to change selected image',
-                    style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 12.0,
-                        fontFamily: 'Montserrat'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextField(
-                      onChanged: (value) {
-                        bio = value;
-                      },
-                      maxLength: 100,
-                      maxLines: 4,
-                      minLines: 1,
-                      cursorColor: Colors.grey,
-                      autofocus: false,
-                      style: TextStyle(
-                          fontSize: 18.0,
-                          color: Colors.grey,
-                          fontFamily: 'Montserrat'),
-                      decoration: InputDecoration(
-                        enabledBorder: UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.grey, width: 2)),
-                        focusedBorder: UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.grey, width: 2)),
-                        hintText: 'Bio',
-                        hintStyle: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 16.0,
-                            fontFamily: 'Montserrat'),
-                        helperText: 'Write something about you....',
-                        helperStyle: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12.0,
-                            fontFamily: 'Montserrat'),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      onChanged: (value) {
-                        email = value;
-                      },
-                      //validator: emailValidator,
-                      cursorColor: Colors.grey,
-                      autofocus: false,
-                      style: TextStyle(
-                          fontSize: 18.0,
-                          color: Colors.grey,
-                          fontFamily: 'Montserrat'),
-                      decoration: InputDecoration(
-                        enabledBorder: UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.grey, width: 2)),
-                        focusedBorder: UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.grey, width: 2)),
-                        hintText: 'Email',
-                        hintStyle: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 16.0,
-                            fontFamily: 'Montserrat'),
-                        helperText: 'In case you forget your password',
-                        helperStyle: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12.0,
-                            fontFamily: 'Montserrat'),
-                      ),
-                    ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: FlatButton(
+                            color: Colors.red,
+                            onPressed: removeProfile,
+                            child: Text('Remove Profile Image',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 10))),
+                      )
+                    ],
                   )
                 ],
               ),
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
+          )
+        : Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: FlatButton(
-                      color: Colors.red,
-                      onPressed: removeProfile,
-                      child: Text('Remove Profile Image',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Montserrat',
-                              fontSize: 10))),
-                )
+                if (isLoading) CircularProgressIndicator(),
+                Text('No internet :(',
+                    style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                        fontFamily: 'Mulish')),
+                FlatButton(
+                    padding: EdgeInsets.all(8.0),
+                    color: Colors.greenAccent[700],
+                    onPressed: () {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      checkInternet();
+                    },
+                    child: Text('Retry',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontFamily: 'Mulish')))
               ],
-            )
-          ],
-        ),
-      ),
-    );
+            )),
+          );
   }
 }

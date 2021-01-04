@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:Inbox/screens/friends_screen.dart';
+// import 'package:Inbox/screens/friends_screen.dart';
 // import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/registration_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -159,9 +159,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   });
                                   SnackBar snackBar = SnackBar(
                                     behavior: SnackBarBehavior.floating,
-                                    duration: Duration(seconds: 5),
+                                    duration: Duration(seconds: 3),
                                     backgroundColor: Colors.redAccent,
-                                    content: Text('Username or password is wrong',
+                                    content: Text('Username or password is wrong !!!',
                                         style: TextStyle(
                                           color: Colors.white,
                                         )),

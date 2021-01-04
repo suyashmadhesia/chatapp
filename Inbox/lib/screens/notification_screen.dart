@@ -23,7 +23,7 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   final _collectionRefs = FirebaseFirestore.instance;
   final _userId = FirebaseAuth.instance.currentUser.uid;
-  List pendingList = [];
+  List pendingList;
 
   @override
   initState() {

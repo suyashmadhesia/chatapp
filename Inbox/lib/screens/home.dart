@@ -36,8 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
     pageController = PageController();
     checkInternet();
   }
-  bool isInternet = true;
+
   bool isLoading = false;
+
+  bool isInternet = true;
+  
   checkInternet() async {
     
     bool result = await DataConnectionChecker().hasConnection;

@@ -32,9 +32,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   final _collectionRefs = FirebaseFirestore.instance;
   final _userId = FirebaseAuth.instance.currentUser.uid;
-  List friendsList = [];
+  List friendsList;
 
-  bool isDataLoaded = true;
+  bool isDataLoaded = false;
   bool isEmpty = false;
   //bool isInternet = true;
 
@@ -42,9 +42,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     friendsList = userAccountRefs['friendsList'];
+    setState(() {
+      isDataLoaded = true;
+    });
     if (friendsList.isNotEmpty) {
       setState(() {
-        isDataLoaded = false;
+        isEmpty = false;
       });
     } else if (friendsList.isEmpty) {
       setState(() {
@@ -106,7 +109,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return CircularProgressIndicator();
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
             List<Widget> friendsWidget = [];
@@ -174,7 +177,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               backgroundColor: Colors.grey[900],
             ),
             backgroundColor: Colors.white,
-            body: isDataLoaded ? buildNoContentScreen() : friendsListStream(),
+            body: isDataLoaded && !isEmpty ? friendsListStream() : buildNoContentScreen(),
           );
         
   }
