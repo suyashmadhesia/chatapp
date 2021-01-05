@@ -3,6 +3,7 @@ import 'package:Inbox/models/user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -72,6 +73,69 @@ class _OthersProfileState extends State<OthersProfile>
       setState(() {
         isInternet = false;
       });
+    }
+  }
+
+  Future<List> getToken(userId) async {
+    final db = FirebaseFirestore.instance;
+
+    var token;
+    List listofTokens = [];
+    await db.collection('users/' + userId + '/tokens').get().then((snapshot) {
+      snapshot.docs.forEach((doc) {
+        token = doc.id;
+        listofTokens.add(token);
+      });
+    });
+
+    return listofTokens;
+  }
+
+  Future<void> sendNotification(receiver, username, head,receiversUserId) async {
+    var token = await getToken(receiver);
+    // debugPrint('token : $token');
+
+    final data = {
+      "notification": {
+        "body": username,
+        "title": head,
+      },
+      "priority": "high",
+      "data": {
+        "click_action": "FLUTTER_NOTIFICATION_CLICK",
+        "id": "1",
+        "status": "done",
+        "type": "Profile",
+        "userId" : receiversUserId,
+      },
+      'registration_ids': token,
+      "collapse_key" : "$receiversUserId profile",
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization':
+          'key=AAAAdFdVbjo:APA91bGYkVTkUUKVcOk5O5jz2WZAwm8d1losRaJVEYKF5yspBahEWf-2oMhrnyWhi5pOumnSB0k8Lkb24ibUyawsYhD-P2H6gDUMOgflpQonYMKx9Ov6JmqbtY2uylIo2Moo4-9XbzfV'
+    };
+
+    BaseOptions options = new BaseOptions(
+      connectTimeout: 5000,
+      receiveTimeout: 3000,
+      headers: headers,
+    );
+
+    final postUrl = 'https://fcm.googleapis.com/fcm/send';
+    try {
+      final response = await Dio(options).post(postUrl, data: data);
+
+      if (response.statusCode == 200) {
+        // debugPrint('message sent');
+      } else {
+        // debugPrint('notification sending failed');
+        // on failure do sth
+      }
+    } catch (e) {
+      // debugPrint('exception $e');
     }
   }
 
@@ -161,6 +225,7 @@ class _OthersProfileState extends State<OthersProfile>
           'SendersUsername': username,
           'SendersAvatar': avatar,
         });
+        sendNotification(widget.profileId, '$username has sent you request !!', 'Friend Request', user);
       }
     }
     setState(() {
@@ -238,7 +303,7 @@ class _OthersProfileState extends State<OthersProfile>
           'username': username,
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
-          'isSeen' : isSeen,
+          'isSeen': isSeen,
         });
         // final receiverCollectionsRefs = FirebaseFirestore.instance
         //     .collection('users/' + widget.profileId + '/pendingRequests');
@@ -253,6 +318,7 @@ class _OthersProfileState extends State<OthersProfile>
     setState(() {
       showAccepted = false;
     });
+    sendNotification(widget.profileId, '$username has accepted your request !!', 'Request Accepted', user);
   }
 
   unfriending() async {
@@ -260,17 +326,17 @@ class _OthersProfileState extends State<OthersProfile>
         receiverFriendsList.contains(user)) {
       final senderMessageCollectionRef = FirebaseFirestore.instance
           .collection('users/$user/friends/' + widget.profileId + '/messages');
-      await senderMessageCollectionRef.get().then((snapshot){
-	for(DocumentSnapshot ds in snapshot.docs){
-		ds.reference.delete(); 
-	}
+      await senderMessageCollectionRef.get().then((snapshot) {
+        for (DocumentSnapshot ds in snapshot.docs) {
+          ds.reference.delete();
+        }
       });
       final receiverMessageCollectionRef = FirebaseFirestore.instance
           .collection('users/' + widget.profileId + '/friends/$user/messages');
-      await receiverMessageCollectionRef.get().then((snapshot){
-      for(DocumentSnapshot ds in snapshot.docs){
-      	ds.reference.delete();
-      }
+      await receiverMessageCollectionRef.get().then((snapshot) {
+        for (DocumentSnapshot ds in snapshot.docs) {
+          ds.reference.delete();
+        }
       });
 
       final senderCollectionRef =
@@ -411,7 +477,8 @@ class _OthersProfileState extends State<OthersProfile>
           _scaffoldKey.currentState.showSnackBar(snackBar);
           await Future.delayed(Duration(seconds: 1));
           Navigator.pop(context);
-	 Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => HomeScreen()));
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -458,7 +525,6 @@ class _OthersProfileState extends State<OthersProfile>
             _scaffoldKey.currentState.showSnackBar(snackBar);
             await Future.delayed(Duration(seconds: 1));
             Navigator.pop(context);
-	    
           }
         },
         shape: RoundedRectangleBorder(
@@ -481,9 +547,7 @@ class _OthersProfileState extends State<OthersProfile>
       future: userRefs.doc(widget.profileId).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(
-              child: CircularProgressIndicator()
-              );
+          return Center(child: CircularProgressIndicator());
         }
         Account user = Account.fromDocument(snapshot.data);
         return Column(
@@ -531,22 +595,25 @@ class _OthersProfileState extends State<OthersProfile>
 
   @override
   Widget build(BuildContext context) {
-    return isInternet ? Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
-        automaticallyImplyLeading: true,
-        backgroundColor: Colors.grey[900],
-      ),
-      body: SafeArea(
-        child: buildProfileHeader(),
-      ),
-    ) : Scaffold(
+    return isInternet
+        ? Scaffold(
+            key: _scaffoldKey,
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              title:
+                  Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
+              automaticallyImplyLeading: true,
+              backgroundColor: Colors.grey[900],
+            ),
+            body: SafeArea(
+              child: buildProfileHeader(),
+            ),
+          )
+        : Scaffold(
             backgroundColor: Colors.white,
             body: Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('No internet :(',
                     style: TextStyle(
@@ -554,8 +621,8 @@ class _OthersProfileState extends State<OthersProfile>
                         fontSize: 16,
                         fontFamily: 'Mulish')),
                 FlatButton(
-                  padding: EdgeInsets.all(8.0),
-                  color: Colors.greenAccent[700],
+                    padding: EdgeInsets.all(8.0),
+                    color: Colors.greenAccent[700],
                     onPressed: () => checkInternet(),
                     child: Text('Retry',
                         style: TextStyle(

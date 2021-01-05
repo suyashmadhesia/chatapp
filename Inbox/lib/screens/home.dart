@@ -8,7 +8,11 @@ import 'package:Inbox/screens/friends_screen.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:Inbox/screens/search_screen.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import 'chat_screen.dart';
 import 'notification_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 // final StorageReference storageRef = FirebaseStorage.instance.ref();
 final usersRef = FirebaseFirestore.instance.collection('users');
@@ -25,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
   PageController pageController;
   int pageIndex = 0;
 
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  var flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
@@ -32,17 +39,89 @@ class _HomeScreenState extends State<HomeScreen> {
       //print('initialization Complete');
       setState(() {});
     });
+    var initializationSettingsAndroid =
+        new AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    var initializationSettings = new InitializationSettings(
+        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
+
+    var flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
+    _fcm.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        // print("onMessage: $message");
+        if (message['data']['type'] == 'Message') {
+          shownotification(1234, message['notification']['title'],
+              message['notification']['body'], message['data']['userId']);
+          return;
+        } else if (message['data']['type'] == 'Profile' && message['notification']['title'] == 'Request Accepted') {
+          shownotification(1234, message['notification']['title'],
+              message['notification']['body'], message['data']['userId']);
+          return;
+        }
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        
+      },
+      onResume: (Map<String, dynamic> message) async {
+        // print("onResume: $message");
+      },
+    );
     getUserData();
-    pageController = PageController();
     checkInternet();
+    pageController = PageController();
   }
 
   bool isLoading = false;
 
   bool isInternet = true;
-  
-  checkInternet() async {
+
+  Future<dynamic> onSelectNotification(String payload) async {
+    //do something,
+    showChatScreen(context, profileId: payload);
+    debugPrint(payload);
+  }
+
+  Future<void> shownotification(
+    int notificationId,
+    String notificationTitle,
+    String notificationContent,
+    String payload, {
+    String channelId = '1234',
+    String channelTitle = 'Android Channel',
+    String channelDescription = 'Default Android Channel for notifications',
+    Priority notificationPriority = Priority.high,
+    Importance notificationImportance = Importance.max,
+  }) async {
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+      channelId,
+      channelTitle,
+      channelDescription,
+      playSound: true,
+      importance: notificationImportance,
+      priority: notificationPriority,
+    );
+    var iOSPlatformChannelSpecifics =
+        new IOSNotificationDetails(presentSound: false);
+    var platformChannelSpecifics = new NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      notificationId,
+      notificationTitle,
+      notificationContent,
+      platformChannelSpecifics,
+      payload: payload,
+    );
+  }
+
+
+ 
     
+
+
+  checkInternet() async {
     bool result = await DataConnectionChecker().hasConnection;
     if (result == true) {
       setState(() {
@@ -62,10 +141,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   User user = FirebaseAuth.instance.currentUser;
 
-  // getUserInfo() async {
-  //   DocumentSnapshot doc = await usersRef.doc(user.uid).get();
-  //   currentUser = User.fromDocument(doc);
-  // }
 
   @override
   void dispose() {
@@ -96,12 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
         .doc(user.uid)
         .get();
     userPendingList = userAccountRefs['pendingList'];
-    if(userPendingList.isNotEmpty){
+    if (userPendingList.isNotEmpty) {
       setState(() {
         showNotification = true;
       });
-    }
-    else{
+    } else {
       setState(() {
         showNotification = false;
       });
@@ -144,19 +218,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 size: 20,
                 color: Colors.white,
               ),
-              showNotification ?
-              Container(
-                width: 6,
-                height: 6,
-                 decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.redAccent,
-              border: Border.all(color: Colors.redAccent, width: 1))
-              ) : Container(
-                width : 4,
-                height : 4,
-                color : Colors.grey[900]
-              ),
+              showNotification
+                  ? Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.redAccent,
+                          border:
+                              Border.all(color: Colors.redAccent, width: 1)))
+                  : Container(width: 4, height: 4, color: Colors.grey[900]),
             ],
           ),
           Icon(
@@ -175,28 +246,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return isInternet ? buildAuthScreen() : Scaffold(
+    return isInternet
+        ? buildAuthScreen()
+        : Scaffold(
             backgroundColor: Colors.white,
             body: Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if(isLoading)
-                CircularProgressIndicator(),
+                if (isLoading) CircularProgressIndicator(),
                 Text('No internet :(',
                     style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 16,
                         fontFamily: 'Mulish')),
                 FlatButton(
-                  padding: EdgeInsets.all(8.0),
-                  color: Colors.greenAccent[700],
+                    padding: EdgeInsets.all(8.0),
+                    color: Colors.greenAccent[700],
                     onPressed: () {
                       setState(() {
                         isLoading = true;
                       });
                       checkInternet();
-                    
                     },
                     child: Text('Retry',
                         style: TextStyle(
@@ -209,3 +280,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+
+showChatScreen(BuildContext context, {String profileId}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ChatScreen(
+        userId: profileId,
+      ),
+    ),
+  );
+}

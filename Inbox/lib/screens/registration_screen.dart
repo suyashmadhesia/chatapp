@@ -1,9 +1,12 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:Inbox/screens/friends_screen.dart';
+import 'dart:io';
+
 import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -21,7 +24,6 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-
   @override
   void initState() {
     getValidationData().whenComplete(() async {
@@ -40,14 +42,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       finalEmail = obtainedEmail;
     });
   }
+
+  saveDeviceToken(uid) async {
+    // Get the token for this device
+    String fcmToken = await _fcm.getToken();
+
+    // Save it to Firestore
+    if (fcmToken != null) {
+      final tokens = FirebaseFirestore.instance
+          .collection('users/'+uid+'/tokens');
+	 tokens.doc(fcmToken).set({
+	  'tokenId': fcmToken,
+	  });
+    }
+  }
+
 //const
+  final FirebaseMessaging _fcm = FirebaseMessaging();
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final _firestore = FirebaseFirestore.instance.collection('users');
   final _auth = FirebaseAuth.instance;
   final DateTime timeStamp = DateTime.now();
-  
+
 //end
   final passwordValidator = MultiValidator([
     RequiredValidator(errorText: 'Password is required'),
@@ -151,9 +169,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 final newUser =
                                     await _auth.createUserWithEmailAndPassword(
                                         email: username, password: password);
-//Saving data to firestore 
+//Saving data to firestore
                                 if (newUser != null) {
                                   User user = FirebaseAuth.instance.currentUser;
+                                 await saveDeviceToken(user.uid);
                                   _firestore.doc(user.uid).set({
                                     'username': name,
                                     'bio': '',
@@ -161,20 +180,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     'gender': '',
                                     'userId': user.uid,
                                     'password': password,
-                                    'timeStamp' : timeStamp,
-                                    'email' : '',
-                                    'securityQuestion' : '',
-                                    'securityAnswer' :'',
-                                    'requestList' : <String>[],
-                                    'friendsList' : <String>[],
-                                    'pendingList' : <String>[],
-                                    
+                                    'timeStamp': timeStamp,
+                                    'email': '',
+                                    'securityQuestion': '',
+                                    'securityAnswer': '',
+                                    'requestList': <String>[],
+                                    'friendsList': <String>[],
+                                    'pendingList': <String>[],
                                   }).then((value) async {
                                     SharedPreferences prefs =
                                         await SharedPreferences.getInstance();
                                     prefs.setString('email', username);
-                                    Navigator.popUntil(context, ModalRoute.withName('login_screen'));
-                                    Navigator.popUntil(context, ModalRoute.withName('registration_screen'));
+                                    Navigator.popUntil(context,
+                                        ModalRoute.withName('login_screen'));
+                                    Navigator.popUntil(
+                                        context,
+                                        ModalRoute.withName(
+                                            'registration_screen'));
                                     Firebase.initializeApp().whenComplete(() {
                                       //print('initialization Complete');
                                       setState(() {});
@@ -186,28 +208,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                                 HomeScreen()));
                                   });
                                 }
-                                setState(()  {                                 
+                                setState(() {
                                   showSpinner = false;
                                 });
                               } catch (e) {
                                 // print(e);
-                                 setState(() {
-                                    showSpinner = false;
-                                  });
-                                  SnackBar snackBar = SnackBar(
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: Duration(seconds: 5),
-                                    backgroundColor: Colors.redAccent,
-                                    content: Text('Username already register try using different username !!',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                        )),
-                                  );
-                                  _scaffoldKey.currentState
-                                      .showSnackBar(snackBar);
-                                }
+                                setState(() {
+                                  showSpinner = false;
+                                });
+                                SnackBar snackBar = SnackBar(
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: Duration(seconds: 5),
+                                  backgroundColor: Colors.redAccent,
+                                  content: Text(
+                                      'Username already register try using different username !!',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      )),
+                                );
+                                _scaffoldKey.currentState
+                                    .showSnackBar(snackBar);
                               }
-                            
+                            }
                           }),
                       //Already user
                       SizedBox(height: 20),

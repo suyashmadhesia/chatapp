@@ -1,4 +1,5 @@
 //import 'package:firebase_core/firebase_core.dart';
+import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
 //import 'package:Inbox/screens/search_screen.dart';
@@ -38,7 +39,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String username;
+  String rUsername;
   String profileLink;
+  String receiversUserId;
   bool isBlocked = false;
   bool isLoaded = false;
   bool isSending = false;
@@ -56,6 +59,67 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<List> getToken(userId) async {
+    final db = FirebaseFirestore.instance;
+
+    var token;
+    List listofTokens = [];
+    await db.collection('users/' + userId + '/tokens').get().then((snapshot) {
+      snapshot.docs.forEach((doc) {
+        token = doc.id;
+        listofTokens.add(token);
+      });
+    });
+
+    return listofTokens;
+  }
+
+  Future<void> sendNotification(
+      receiver, message, username, receiversUserId) async {
+    var token = await getToken(receiver);
+    // debugPrint('token : $token');
+
+    final data = {
+      "notification": {"body": "$message", "title": "$username"},
+      "priority": "high",
+      "data": {
+        "click_action": "FLUTTER_NOTIFICATION_CLICK",
+        "id": "1",
+        "status": "done",
+	      "type": "Message",
+        "userId" : receiversUserId,
+      },
+      'registration_ids': token,
+      "collapse_key" : "$receiversUserId message",
+    };
+
+    final headers = {
+      'content-type': 'application/json',
+      'Authorization':
+          'key=AAAAdFdVbjo:APA91bGYkVTkUUKVcOk5O5jz2WZAwm8d1losRaJVEYKF5yspBahEWf-2oMhrnyWhi5pOumnSB0k8Lkb24ibUyawsYhD-P2H6gDUMOgflpQonYMKx9Ov6JmqbtY2uylIo2Moo4-9XbzfV'
+    };
+
+    BaseOptions options = new BaseOptions(
+      connectTimeout: 5000,
+      receiveTimeout: 3000,
+      headers: headers,
+    );
+
+    final postUrl = 'https://fcm.googleapis.com/fcm/send';
+    try {
+      final response = await Dio(options).post(postUrl, data: data);
+
+      if (response.statusCode == 200) {
+        // debugPrint('message sent');
+      } else {
+        // debugPrint('notification sending failed');
+        // on failure do sth
+      }
+    } catch (e) {
+      // debugPrint('exception $e');
+    }
+  }
+
   bool isInternet = true;
 
   checkInternet() async {
@@ -67,12 +131,12 @@ class _ChatScreenState extends State<ChatScreen> {
       // setState(() {
       //   isLoading = false;
       // });
-      debugPrint('internet hai ');
+      // debugPrint('internet hai ');
     } else {
       setState(() {
         isInternet = false;
       });
-      debugPrint('internet nhi hai');
+      // debugPrint('internet nhi hai');
     }
   }
 
@@ -106,12 +170,14 @@ class _ChatScreenState extends State<ChatScreen> {
         .get();
     username = receiverAccountRefs['username'];
     profileLink = receiverAccountRefs['avtar'];
+    receiversUserId = receiverAccountRefs['userId'];
     // if user is not blocked
     final receiverMessageRefs = await FirebaseFirestore.instance
         .collection('users/' + widget.userId + '/friends')
         .doc(user.uid)
         .get();
     final block = receiverMessageRefs['isBlocked'];
+    rUsername = receiverMessageRefs['username'];
     if (block) {
       setState(() {
         isBlocked = true;
@@ -274,17 +340,20 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: Colors.green[400],
                               ),
                               onPressed: () async {
-                                String trimLeft = messageTextController.text.trimLeft();
+                                String trimLeft =
+                                    messageTextController.text.trimLeft();
                                 String trimRight = trimLeft.trimRight();
                                 message = trimRight;
                                 setState(() {
                                   isSending = true;
                                 });
                                 if (message != null && message != '') {
-                                   getUserData();
+                                  getUserData();
                                   if (isBlocked == false &&
                                       isReceiverBlocked == false) {
 //Sender Collections
+                                    sendNotification(widget.userId, message,
+                                        rUsername, user.uid);
                                     messageTextController.clear();
                                     final senderMessageCollection =
                                         await sendersMessageRefs
@@ -314,7 +383,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     });
 
 //Receiver Collections
-                                     FirebaseFirestore.instance
+                                    FirebaseFirestore.instance
                                         .collection('users/' +
                                             widget.userId +
                                             '/friends')
@@ -339,7 +408,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     final String docId =
                                         receieverMessageCollection.id;
 
-                                     sendersMessageRefs
+                                    sendersMessageRefs
                                         .collection(
                                             'users/' + user.uid + '/friends')
                                         .doc(widget.userId)
@@ -347,7 +416,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'messageAt': DateTime.now(),
                                     });
                                     //userCollection of message id
-                                     sendersMessageRefs
+                                    sendersMessageRefs
                                         .collection('users/' +
                                             widget.userId +
                                             '/friends/' +
@@ -358,7 +427,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'id': docid,
                                       'anotherId': docId,
                                     });
-                                     sendersMessageRefs
+                                    sendersMessageRefs
                                         .collection('users/' +
                                             user.uid +
                                             '/friends/' +

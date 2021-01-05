@@ -43,9 +43,10 @@ dependencies:
   image: ^2.1.19
   path_provider: ^1.6.24
   firebase_storage: ^5.2.0
-  
+  dio: ^3.0.10
   data_connection_checker: ^0.3.4
-  focused_menu: ^1.0.2 
+  focused_menu: ^1.0.2
+  flutter_local_notifications: ^3.0.2
 
 dev_dependencies:
   flutter_test:

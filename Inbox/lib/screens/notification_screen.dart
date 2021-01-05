@@ -71,9 +71,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(
-              child: LinearProgressIndicator(),
-            );
+            return 
+               LinearProgressIndicator();
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
             List<Widget> notificationWidget = [];

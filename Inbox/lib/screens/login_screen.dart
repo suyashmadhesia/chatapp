@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 // import 'package:Inbox/screens/friends_screen.dart';
 // import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/registration_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
 import 'package:flutter/services.dart';
@@ -39,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _auth = FirebaseAuth.instance;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final FirebaseMessaging _fcm = FirebaseMessaging();
 
   final passwordValidator = MultiValidator([
     RequiredValidator(errorText: 'Password is required'),
@@ -55,6 +59,24 @@ class _LoginScreenState extends State<LoginScreen> {
   String userUid;
 
   final _formKey = GlobalKey<FormState>();
+
+  //Functions
+
+  saveDeviceToken(uid) async {
+    
+
+    // Get the token for this device
+    String fcmToken = await _fcm.getToken();
+
+    // Save it to Firestore
+    if (fcmToken != null) {
+      final tokens = FirebaseFirestore.instance
+          .collection('users/'+uid+'/tokens');
+      tokens.doc(fcmToken).set({
+	      'tokenId' : fcmToken,
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +169,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                       await _auth.signInWithEmailAndPassword(
                                           email: username, password: password);
                                   if (user != null) {
+                                    final currentUserId = _auth.currentUser.uid;
+                                   
                                     isAuth();
+				    await saveDeviceToken(currentUserId);
+				    
                                   }
                                   setState(() {
                                     showSnipper = false;
@@ -161,7 +187,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     behavior: SnackBarBehavior.floating,
                                     duration: Duration(seconds: 3),
                                     backgroundColor: Colors.redAccent,
-                                    content: Text('Username or password is wrong !!!',
+                                    content: Text(
+                                        'Username or password is wrong !!!',
                                         style: TextStyle(
                                           color: Colors.white,
                                         )),
