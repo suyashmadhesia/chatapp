@@ -116,7 +116,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
               final sendersUsername = userid['username'];
               final sendersUserId = userid['userId'];
               final isSeen = userid['isSeen'];
-              final lastMessage = userid['lastMessage'];
+              final message = userid['lastMessage'];
+              String lastMessage = '';
+              for(int i = 0;i <= 35; i++){
+                lastMessage = lastMessage + message[i];
+              }
               final frndWidget = Container(
                 color: Colors.grey[50],
                 child: Column(
