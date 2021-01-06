@@ -27,7 +27,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
     super.initState();
     //checkInternet();
     getUsersFriendData();
-    
   }
 
   final _collectionRefs = FirebaseFirestore.instance;
@@ -117,6 +116,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               final sendersUsername = userid['username'];
               final sendersUserId = userid['userId'];
               final isSeen = userid['isSeen'];
+              final lastMessage = userid['lastMessage'];
               final frndWidget = Container(
                 color: Colors.grey[50],
                 child: Column(
@@ -132,7 +132,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         trailing: !isSeen
                             ? Icon(
                                 Icons.fiber_manual_record,
-                                color: Colors.green,
+                                color: Colors.blue[900],
                                 size: 12,
                               )
                             : Icon(Icons.fiber_manual_record,
@@ -142,6 +142,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 color: Colors.black,
                                 fontSize: 18,
                                 fontFamily: 'Monstserrat')),
+                        subtitle: Text(lastMessage,
+                            style: !isSeen
+                                ? TextStyle(
+                                    color: Colors.grey[800],
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  )
+                                : TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 12,
+                                    )),
                       ),
                     ),
                     SizedBox(
@@ -169,17 +180,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return 
-        Scaffold(
-            appBar: AppBar(
-              title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
-              automaticallyImplyLeading: false,
-              backgroundColor: Colors.grey[900],
-            ),
-            backgroundColor: Colors.white,
-            body: isDataLoaded && !isEmpty ? friendsListStream() : buildNoContentScreen(),
-          );
-        
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.grey[900],
+      ),
+      backgroundColor: Colors.white,
+      body: isDataLoaded && !isEmpty
+          ? friendsListStream()
+          : buildNoContentScreen(),
+    );
   }
 }
 

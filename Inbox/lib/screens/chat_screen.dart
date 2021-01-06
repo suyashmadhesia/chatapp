@@ -380,6 +380,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .doc(user.uid)
                                         .update({
                                       'messageAt': DateTime.now(),
+                                      'lastMessage' : message,
                                     });
 
 //Receiver Collections
@@ -390,6 +391,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .doc(user.uid)
                                         .update({
                                       'isSeen': false,
+                                      
                                     });
                                     final receieverMessageCollection =
                                         await sendersMessageRefs
@@ -414,6 +416,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .doc(widget.userId)
                                         .update({
                                       'messageAt': DateTime.now(),
+                                      'lastMessage' : message,
                                     });
                                     //userCollection of message id
                                     sendersMessageRefs

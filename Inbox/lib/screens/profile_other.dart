@@ -293,6 +293,7 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
+          'lastMessage' : 'Say hi to $rUsername'
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -304,6 +305,7 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
+          'lastMessage' : 'Say hi to $username'
         });
         // final receiverCollectionsRefs = FirebaseFirestore.instance
         //     .collection('users/' + widget.profileId + '/pendingRequests');
