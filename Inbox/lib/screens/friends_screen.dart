@@ -118,9 +118,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
               final isSeen = userid['isSeen'];
               final message = userid['lastMessage'];
               String lastMessage = '';
-              for(int i = 0;i <= 35; i++){
-                lastMessage = lastMessage + message[i];
+              if (message.length < 35) {
+                for (int i = 0; i <= 35; i++) {
+                  lastMessage = lastMessage + message[i];
+                }
               }
+              else{
+                lastMessage = message;
+              }
+
               final frndWidget = Container(
                 color: Colors.grey[50],
                 child: Column(
@@ -156,7 +162,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 : TextStyle(
                                     color: Colors.grey[400],
                                     fontSize: 12,
-                                    )),
+                                  )),
                       ),
                     ),
                     SizedBox(
