@@ -25,8 +25,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    checkInternet();
+
     getUserData();
+    checkInternet();
+   
     setIsSeen();
   }
 
@@ -380,7 +382,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   isSending = true;
                                 });
                                 if (message != null && message != '') {
-                                  await getUserData();
+                                  getUserData();
                                   if (isBlocked == false &&
                                       isReceiverBlocked == false &&
                                       friendsList.contains(widget.userId)) {
