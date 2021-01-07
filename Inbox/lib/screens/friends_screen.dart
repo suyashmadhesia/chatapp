@@ -1,5 +1,6 @@
 // import 'package:Inbox/models/user.dart';
 import 'package:Inbox/screens/chat_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 // import 'package:Inbox/screens/home.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -111,70 +112,26 @@ class _FriendsScreenState extends State<FriendsScreen> {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
-            List<Widget> friendsWidget = [];
+            List<FriendsTile> friendsWidget = [];
             for (var userid in userIds) {
               final sendersUsername = userid['username'];
               final sendersUserId = userid['userId'];
               final isSeen = userid['isSeen'];
               final message = userid['lastMessage'];
               String lastMessage = '';
-              if (message.length < 35) {
-                for (int i = 0; i <= 35; i++) {
+              if (message.length > 50) {
+                for (int i = 0; i <= 50; i++) {
                   lastMessage = lastMessage + message[i];
                 }
-              }
-              else{
+              } else {
                 lastMessage = message;
               }
 
-              final frndWidget = Container(
-                color: Colors.grey[50],
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 5,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        showChatScreen(context, profileId: sendersUserId);
-                      },
-                      child: ListTile(
-                        trailing: !isSeen
-                            ? Icon(
-                                Icons.fiber_manual_record,
-                                color: Colors.blue[900],
-                                size: 12,
-                              )
-                            : Icon(Icons.fiber_manual_record,
-                                color: Colors.grey[50]),
-                        title: Text(sendersUsername,
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 18,
-                                fontFamily: 'Monstserrat')),
-                        subtitle: Text(lastMessage,
-                            style: !isSeen
-                                ? TextStyle(
-                                    color: Colors.grey[800],
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  )
-                                : TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 12,
-                                  )),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Divider(
-                      color: Colors.grey[500],
-                      height: 2.0,
-                    )
-                  ],
-                ),
-              );
+              final frndWidget = FriendsTile(
+                  sendersUserId: sendersUserId,
+                  sendersUsername: sendersUsername,
+                  isSeen: isSeen,
+                  lastMessage: lastMessage);
               friendsWidget.add(frndWidget);
               friendsWidget.reversed;
             }
@@ -200,6 +157,114 @@ class _FriendsScreenState extends State<FriendsScreen> {
       body: isDataLoaded && !isEmpty
           ? friendsListStream()
           : buildNoContentScreen(),
+    );
+  }
+}
+
+class FriendsTile extends StatefulWidget {
+  final String sendersUserId;
+  final bool isSeen;
+  final String sendersUsername;
+  final String lastMessage;
+
+  FriendsTile(
+      {this.sendersUsername,
+      this.isSeen,
+      this.sendersUserId,
+      this.lastMessage});
+
+  @override
+  _FriendsTileState createState() => _FriendsTileState();
+}
+
+class _FriendsTileState extends State<FriendsTile> {
+
+
+  @override
+  initState(){
+  super.initState();
+  getUserAvatr();
+  }
+
+
+  bool isDataLoaded = false;
+  String avatar;
+
+
+
+  getUserAvatr() async {
+    final _data = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.sendersUserId)
+        .get();
+    avatar = _data['avtar'];
+    setState(() {
+      isDataLoaded = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey[50],
+      child: Column(
+        children: [
+          SizedBox(
+            height: 5,
+          ),
+          GestureDetector(
+            onTap: () {
+              showChatScreen(context, profileId: widget.sendersUserId);
+            },
+            child: ListTile(
+              leading: isDataLoaded
+                  ? CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 32,
+                      backgroundImage: avatar == null || avatar == ''
+                          ? AssetImage('assets/images/profile-user.png')
+                          : CachedNetworkImageProvider(avatar),
+                    )
+                  : CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 32,
+                      backgroundImage:
+                          AssetImage('assets/images/profile-user.png'),
+                    ),
+              trailing: !widget.isSeen
+                  ? Icon(
+                      Icons.fiber_manual_record,
+                      color: Colors.blue[900],
+                      size: 12,
+                    )
+                  : Icon(Icons.fiber_manual_record, color: Colors.grey[50]),
+              title: Text(widget.sendersUsername,
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontFamily: 'Monstserrat')),
+              subtitle: Text(widget.lastMessage,
+                  style: !widget.isSeen
+                      ? TextStyle(
+                          color: Colors.grey[800],
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        )
+                      : TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                        )),
+            ),
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Divider(
+            color: Colors.grey[500],
+            height: 2.0,
+          )
+        ],
+      ),
     );
   }
 }

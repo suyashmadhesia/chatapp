@@ -46,7 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isLoaded = false;
   bool isSending = false;
   bool isReceiverBlocked = false;
-  List friendsList;
+  List friendsList = [];
 
   setIsSeen() async {
     if (isInternet) {
@@ -86,11 +86,11 @@ class _ChatScreenState extends State<ChatScreen> {
         "click_action": "FLUTTER_NOTIFICATION_CLICK",
         "id": "1",
         "status": "done",
-	      "type": "Message",
-        "userId" : receiversUserId,
+        "type": "Message",
+        "userId": receiversUserId,
       },
       'registration_ids': token,
-      "collapse_key" : "$receiversUserId message",
+      "collapse_key": "$receiversUserId message",
     };
 
     final headers = {
@@ -191,6 +191,38 @@ class _ChatScreenState extends State<ChatScreen> {
         isReceiverBlocked = true;
       }
     });
+  }
+
+  showdialog(parentContext) async {
+    // flutter defined function
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: Text(
+            "Error",
+            style: TextStyle(color: Colors.red, fontFamily: 'Mulish'),
+          ),
+          content: Text(
+            "Unable to send Message may you are blocked or not friends anymore !!",
+            style: TextStyle(
+                color: Colors.grey[700], fontFamily: 'Mulish', fontSize: 14),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: new Text(
+                "OK",
+                style: TextStyle(color: Colors.grey[800], fontFamily: 'Mulish'),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   AppBar buildNocontentBar() {
@@ -348,9 +380,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   isSending = true;
                                 });
                                 if (message != null && message != '') {
-                                  getUserData();
+                                  await getUserData();
                                   if (isBlocked == false &&
-                                      isReceiverBlocked == false) {
+                                      isReceiverBlocked == false &&
+                                      friendsList.contains(widget.userId)) {
 //Sender Collections
                                     sendNotification(widget.userId, message,
                                         rUsername, user.uid);
@@ -380,7 +413,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .doc(user.uid)
                                         .update({
                                       'messageAt': DateTime.now(),
-                                      'lastMessage' : message,
+                                      'lastMessage': message,
                                     });
 
 //Receiver Collections
@@ -391,7 +424,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .doc(user.uid)
                                         .update({
                                       'isSeen': false,
-                                      
                                     });
                                     final receieverMessageCollection =
                                         await sendersMessageRefs
@@ -416,7 +448,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .doc(widget.userId)
                                         .update({
                                       'messageAt': DateTime.now(),
-                                      'lastMessage' : message,
+                                      'lastMessage': message,
                                     });
                                     //userCollection of message id
                                     sendersMessageRefs
@@ -445,6 +477,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                     setState(() {
                                       isSending = false;
                                     });
+                                  }
+                                  //ashfkjdshksngldmgldfmgladnklgnkasldnglkan
+                                  else {
+                                    showdialog(context);
                                   }
                                 } else {
                                   setState(() {
@@ -724,7 +760,7 @@ class MessageBubble extends StatelessWidget {
                     ),
               color: sender
                   ? Colors.indigoAccent
-                  : Colors.grey[400], //Color(0xff5ddef4),
+                  : Colors.black87, //Color(0xff5ddef4),
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
