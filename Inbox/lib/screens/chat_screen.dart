@@ -2,16 +2,17 @@
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
-//import 'package:Inbox/screens/search_screen.dart';
+import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:focused_menu/modals.dart';
+//import 'package:focused_menu/modals.dart';
 // import 'package:skeleton_text/skeleton_text.dart';
-import 'package:focused_menu/focused_menu.dart';
+//import 'package:focused_menu/focused_menu.dart';
+import 'package:Inbox/components/message_bubble.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -141,7 +142,6 @@ class _ChatScreenState extends State<ChatScreen> {
       // debugPrint('internet nhi hai');
     }
   }
-
   Future<bool> _onWillPop() async {
     if (isLoaded && isInternet) {
       if (friendsList.contains(widget.userId)) {
@@ -151,6 +151,7 @@ class _ChatScreenState extends State<ChatScreen> {
             .update({
           'isSeen': true,
         });
+
         return true;
       }
     }
@@ -660,178 +661,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-class MessageBubble extends StatelessWidget {
-  final String message;
-  final bool sender;
-  final String time;
-  final String myMessageId;
-  final String ontherId;
-  final String senderId;
-  final String receiverId;
-  final DateTime timestamp;
 
-  MessageBubble({
-    this.message,
-    this.sender,
-    this.time,
-    this.myMessageId,
-    this.ontherId,
-    this.senderId,
-    this.receiverId,
-    this.timestamp,
-  });
-
-  //Function
-
-  _showDialog(parentContext) async {
-    // flutter defined function
-    return showDialog(
-      context: parentContext,
-      builder: (context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: Text(
-            "Error",
-            style: TextStyle(color: Colors.red, fontFamily: 'Mulish'),
-          ),
-          content: Text(
-            "Unable to delete message after 5 minutes",
-            style: TextStyle(
-                color: Colors.grey[700], fontFamily: 'Mulish', fontSize: 14),
-          ),
-          actions: <Widget>[
-            // usually buttons at the bottom of the dialog
-            FlatButton(
-              child: new Text(
-                "OK",
-                style: TextStyle(color: Colors.grey[800], fontFamily: 'Mulish'),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  unsendMessage() async {
-    final receiverCollectionRef = FirebaseFirestore.instance
-        .collection('users/' + receiverId + '/friends/$senderId/messages');
-    await receiverCollectionRef.doc(ontherId).delete();
-    final senderCollectionRef = FirebaseFirestore.instance
-        .collection('users/$senderId/friends/$receiverId/messages');
-    await senderCollectionRef.doc(myMessageId).delete();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8, top: 12, bottom: 4, left: 8),
-      child: Column(
-        crossAxisAlignment:
-            sender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          if (!sender)
-            Text(
-              time,
-              style: TextStyle(
-                  color: Colors.grey[300],
-                  fontSize: 8,
-                  fontFamily: 'Montserrat'),
-            ),
-          Padding(
-            padding: sender
-                ? EdgeInsets.only(left: screenWidth * 0.2)
-                : EdgeInsets.only(right: screenWidth * 0.2),
-            child: Material(
-              elevation: 5,
-              borderRadius: sender
-                  ? BorderRadius.only(
-                      bottomLeft: Radius.circular(32),
-                      topLeft: Radius.circular(32),
-                      topRight: Radius.circular(32),
-                    )
-                  : BorderRadius.only(
-                      topRight: Radius.circular(32),
-                      bottomLeft: Radius.circular(32),
-                      bottomRight: Radius.circular(32),
-                    ),
-              color: sender
-                  ? Colors.blue[700]
-                  : Colors.black54, //Color(0xff5ddef4),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: sender
-                    ? FocusedMenuHolder(
-                        duration: Duration(milliseconds: 100),
-                        menuItemExtent:
-                            MediaQuery.of(context).size.height * 0.06,
-                        blurBackgroundColor: Colors.grey[600],
-                        blurSize: 0,
-                        menuWidth: MediaQuery.of(context).size.width * 0.3,
-                        // duration: Duration(milliseconds: 50),
-                        onPressed: () {},
-                        menuItems: <FocusedMenuItem>[
-                          FocusedMenuItem(
-                              title: Text(
-                                'Unsend',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () async {
-                                Duration min;
-                                Duration compare;
-                                final dateTimeNow = DateTime.now();
-                                compare = dateTimeNow.difference(timestamp);
-                                min = Duration(minutes: 5);
-
-                                if (compare < min) {
-                                  await unsendMessage();
-                                } else {
-                                  _showDialog(context);
-                                }
-                              },
-                              backgroundColor: Colors.redAccent,
-                              trailingIcon: Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                              ))
-                        ],
-                        child: Text(
-                          message,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontFamily: 'Montserrat'),
-                        ),
-                      )
-                    : Text(
-                        message,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontFamily: 'Montserrat'),
-                      ),
-              ),
-            ),
-          ),
-          if (sender)
-            Text(
-              time,
-              style: TextStyle(
-                  color: Colors.grey[300],
-                  fontSize: 8,
-                  fontFamily: 'Montserrat'),
-            )
-        ],
-      ),
-    );
-  }
-}
 
 showProfile(BuildContext context, {String profileId}) {
   Navigator.push(

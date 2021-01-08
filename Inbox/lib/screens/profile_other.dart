@@ -62,6 +62,7 @@ class _OthersProfileState extends State<OthersProfile>
   String rUsername;
   bool isSeen = false;
   bool isInternet = true;
+	bool isLoading = false;
 
   checkInternet() async {
     bool result = await DataConnectionChecker().hasConnection;
@@ -412,6 +413,7 @@ class _OthersProfileState extends State<OthersProfile>
                   _scaffoldKey.currentState.showSnackBar(snackBar);
                   await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
+									Navigator.pushNamed(context,'chat_screen');
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -477,10 +479,8 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(seconds: 1));
-          Navigator.pop(context);
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => HomeScreen()));
+					Navigator.pop(context);
+					Navigator.pushNamed(context,'home_screen');
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -488,10 +488,10 @@ class _OthersProfileState extends State<OthersProfile>
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-          child: Text(
+          child: !isLoading ? Text(
             "Unfriend",
             style: TextStyle(color: Colors.blue[900], fontFamily: 'Montserrat'),
-          ),
+          ) : Center(child: CircularProgressIndicator(),),
         ),
       );
     } else {
@@ -500,7 +500,16 @@ class _OthersProfileState extends State<OthersProfile>
         splashColor: Colors.blue[600],
         onPressed: () async {
           if (isSentRequest) {
+						setState((){
+							isLoading = true;	
+						});
             await cancelFriendRequest();
+						await getUsersFriendData();
+						await isRequestSent();
+						setState((){
+							isLoading = false;
+							isSentRequest = false;
+						});
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 2),
@@ -511,10 +520,17 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
-            Navigator.pop(context);
           } else if (!isSentRequest) {
+						setState(() {
+												  isLoading = true;
+												});
             await sendFriendRequest();
+						await getUsersFriendData();
+						await isRequestSent();
+						setState((){
+							isLoading = false;
+							isSentRequest = true;
+						});
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 1),
@@ -525,8 +541,6 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
-            Navigator.pop(context);
           }
         },
         shape: RoundedRectangleBorder(
@@ -534,11 +548,15 @@ class _OthersProfileState extends State<OthersProfile>
           side: BorderSide(color: Colors.blue[900], width: 2),
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-          child: Text(
+          padding: !isLoading ? const EdgeInsets.fromLTRB(16, 16, 16, 16) : const EdgeInsets.fromLTRB(32,16,32,16),
+          child: !isLoading ?  Text(
             isSentRequest ? 'Cancel Request' : 'Add Friend',
             style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
-          ),
+          ):SizedBox(
+					height: 16,
+					width: 16,
+					child: CircularProgressIndicator(),
+					),
         ),
       );
     }
