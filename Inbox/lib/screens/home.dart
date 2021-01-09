@@ -62,22 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return;
         }
       },
-<<<<<<< HEAD
       onLaunch: (Map<String, dynamic> message) async {},
-=======
-      onLaunch: (Map<String, dynamic> message) async {
-        if (message['data']['type'] == 'Message') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        } else if (message['data']['type'] == 'Profile' &&
-            message['notification']['title'] == 'Request Accepted') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        }
-      },
->>>>>>> piyush
       onResume: (Map<String, dynamic> message) async {
         // print("onResume: $message");
         if (message['data']['type'] == 'Message') {

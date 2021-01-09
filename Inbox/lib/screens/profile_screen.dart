@@ -54,11 +54,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   Animation animation;
   AnimationController controller;
 
-<<<<<<< HEAD
 	double screenHeight;
 	double screenWidth;
-=======
->>>>>>> piyush
 //Functions
 
   _showDialog(parentContext) async {
@@ -147,12 +144,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
             ),
-<<<<<<< HEAD
            
             SizedBox(height: screenHeight * 26.66),
-=======
-            SizedBox(height: 20.0),
->>>>>>> piyush
             Text(
               user.email == '' ? 'Email: Add your email....' : user.email,
               style: TextStyle(

@@ -59,9 +59,9 @@ class _OthersProfileState extends State<OthersProfile>
   String rUsername;
   bool isSeen = false;
   bool isInternet = true;
-	bool isLoading = false;
-	double screenHeight;
-	double screenWidth;
+  bool isLoading = false;
+  double screenHeight;
+  double screenWidth;
 
   checkInternet() async {
     bool result = await DataConnectionChecker().hasConnection;
@@ -91,7 +91,8 @@ class _OthersProfileState extends State<OthersProfile>
     return listofTokens;
   }
 
-  Future<void> sendNotification(receiver, username, head,receiversUserId) async {
+  Future<void> sendNotification(
+      receiver, username, head, receiversUserId) async {
     var token = await getToken(receiver);
     // debugPrint('token : $token');
 
@@ -106,10 +107,10 @@ class _OthersProfileState extends State<OthersProfile>
         "id": "1",
         "status": "done",
         "type": "Profile",
-        "userId" : receiversUserId,
+        "userId": receiversUserId,
       },
       'registration_ids': token,
-      "collapse_key" : "$receiversUserId profile",
+      "collapse_key": "$receiversUserId profile",
     };
 
     final headers = {
@@ -225,7 +226,8 @@ class _OthersProfileState extends State<OthersProfile>
           'SendersUsername': username,
           'SendersAvatar': avatar,
         });
-        sendNotification(widget.profileId, '$username has sent you request !!', 'Friend Request', user);
+        sendNotification(widget.profileId, '$username has sent you request !!',
+            'Friend Request', user);
       }
     }
     setState(() {
@@ -293,7 +295,7 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage' : 'Say hi to $rUsername'
+          'lastMessage': 'Say hi to $rUsername'
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -305,7 +307,7 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage' : 'Say hi to $username'
+          'lastMessage': 'Say hi to $username'
         });
         // final receiverCollectionsRefs = FirebaseFirestore.instance
         //     .collection('users/' + widget.profileId + '/pendingRequests');
@@ -320,7 +322,8 @@ class _OthersProfileState extends State<OthersProfile>
     setState(() {
       showAccepted = false;
     });
-    sendNotification(widget.profileId, '$username has accepted your request !!', 'Request Accepted', user);
+    sendNotification(widget.profileId, '$username has accepted your request !!',
+        'Request Accepted', user);
   }
 
   unfriending() async {
@@ -412,7 +415,7 @@ class _OthersProfileState extends State<OthersProfile>
                   _scaffoldKey.currentState.showSnackBar(snackBar);
                   await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
-									Navigator.pushNamed(context,'chat_screen');
+                  //Navigator.pushNamed(context,'chat_screen');
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -467,6 +470,7 @@ class _OthersProfileState extends State<OthersProfile>
         color: Colors.white,
         splashColor: Colors.blue[200],
         onPressed: () async {
+          if(!isLoading)
           await unfriending();
           SnackBar snackBar = SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -478,8 +482,8 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-					Navigator.pop(context);
-					Navigator.pushNamed(context,'home_screen');
+          Navigator.pop(context);
+          Navigator.pushNamed(context, 'home_screen');
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -487,10 +491,15 @@ class _OthersProfileState extends State<OthersProfile>
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-          child: !isLoading ? Text(
-            "Unfriend",
-            style: TextStyle(color: Colors.blue[900], fontFamily: 'Montserrat'),
-          ) : Center(child: CircularProgressIndicator(),),
+          child: !isLoading
+              ? Text(
+                  "Unfriend",
+                  style: TextStyle(
+                      color: Colors.blue[900], fontFamily: 'Montserrat'),
+                )
+              : Center(
+                  child: CircularProgressIndicator(),
+                ),
         ),
       );
     } else {
@@ -499,16 +508,17 @@ class _OthersProfileState extends State<OthersProfile>
         splashColor: Colors.blue[600],
         onPressed: () async {
           if (isSentRequest) {
-						setState((){
-							isLoading = true;	
-						});
+            if (!isLoading)
+              setState(() {
+                isLoading = true;
+              });
             await cancelFriendRequest();
-						await getUsersFriendData();
-						await isRequestSent();
-						setState((){
-							isLoading = false;
-							isSentRequest = false;
-						});
+            await getUsersFriendData();
+            await isRequestSent();
+            setState(() {
+              isLoading = false;
+              isSentRequest = false;
+            });
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 2),
@@ -520,16 +530,17 @@ class _OthersProfileState extends State<OthersProfile>
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
           } else if (!isSentRequest) {
-						setState(() {
-												  isLoading = true;
-												});
+            if(!isLoading)
+            setState(() {
+              isLoading = true;
+            });
             await sendFriendRequest();
-						await getUsersFriendData();
-						await isRequestSent();
-						setState((){
-							isLoading = false;
-							isSentRequest = true;
-						});
+            await getUsersFriendData();
+            await isRequestSent();
+            setState(() {
+              isLoading = false;
+              isSentRequest = true;
+            });
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 1),
@@ -547,15 +558,20 @@ class _OthersProfileState extends State<OthersProfile>
           side: BorderSide(color: Colors.blue[900], width: 2),
         ),
         child: Padding(
-          padding: !isLoading ? const EdgeInsets.fromLTRB(16, 16, 16, 16) : const EdgeInsets.fromLTRB(32,16,32,16),
-          child: !isLoading ?  Text(
-            isSentRequest ? 'Cancel Request' : 'Add Friend',
-            style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
-          ):SizedBox(
-					height: 16,
-					width: 16,
-					child: CircularProgressIndicator(),
-					),
+          padding: !isLoading
+              ? const EdgeInsets.fromLTRB(16, 16, 16, 16)
+              : const EdgeInsets.fromLTRB(32, 16, 32, 16),
+          child: !isLoading
+              ? Text(
+                  isSentRequest ? 'Cancel Request' : 'Add Friend',
+                  style:
+                      TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+                )
+              : SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(),
+                ),
         ),
       );
     }
@@ -614,11 +630,11 @@ class _OthersProfileState extends State<OthersProfile>
 
   @override
   Widget build(BuildContext context) {
-		double screenH = MediaQuery.of(context).size.height;
-		double screenW = MediaQuery.of(context).size.width;
-		ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
-		screenHeight = screenSize.dividingHeight();
-		screenWidth = screenSize.dividingWidth();
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return isInternet
         ? Scaffold(
             key: _scaffoldKey,

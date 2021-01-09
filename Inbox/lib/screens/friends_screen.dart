@@ -1,21 +1,7 @@
-// import 'package:Inbox/models/user.dart';
-import 'package:Inbox/screens/chat_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-// import 'package:Inbox/screens/home.dart';
-// import 'package:cached_network_image/cached_network_image.dart';
+import 'package:Inbox/components/friends_tile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:firebase_core/firebase_core.dart';
-// import 'package:Inbox/screens/notification_screen.dart';
-// import 'package:Inbox/screens/profile_screen.dart';
-// import 'package:Inbox/screens/welcome_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:data_connection_checker/data_connection_checker.dart';
-//import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:Inbox/reusable/components.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
 
 class FriendsScreen extends StatefulWidget {
   @override
@@ -32,11 +18,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   final _collectionRefs = FirebaseFirestore.instance;
   final _userId = FirebaseAuth.instance.currentUser.uid;
-  List friendsList;
+  List friendsList = [];
+  List groupList = [];
 
   bool isDataLoaded = false;
-  bool isEmpty = false;
-  //bool isInternet = true;
+  bool isEmptyFriendList = false;
+  bool isEmptyGroupList = false;
 
   getUsersFriendData() async {
     final userAccountRefs =
@@ -47,44 +34,29 @@ class _FriendsScreenState extends State<FriendsScreen> {
     });
     if (friendsList.isNotEmpty) {
       setState(() {
-        isEmpty = false;
+        isEmptyFriendList = false;
       });
     } else if (friendsList.isEmpty) {
       setState(() {
-        isEmpty = true;
+        isEmptyFriendList = true;
       });
-      // setState(() {
-      //   isDataLoaded = false;
-      // });
     }
   }
 
-  // checkInternet() async {
-  //   bool result = await DataConnectionChecker().hasConnection;
-  //   if (result == true) {
-  //     setState(() {
-  //       isInternet = true;
-  //     });
-  //   } else {
-  //     setState(() {
-  //       isInternet = false;
-  //     });
-  //   }
-  // }
 
-  buildNoContentScreen() {
+  buildNocontentForChats() {
     return Container(
       color: Colors.white,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            isEmpty ? Text('') : CircularProgressIndicator(),
+            isEmptyFriendList ? Text('') : CircularProgressIndicator(),
             SizedBox(
               height: 10,
             ),
             Center(
-                child: isEmpty
+                child: isEmptyFriendList
                     ? Text('No friends to show....',
                         style: TextStyle(
                             color: Colors.grey,
@@ -97,6 +69,19 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             fontFamily: 'Mulish'))),
           ],
         ),
+      ),
+    );
+  }
+
+  buildNoContentScreenForGroups(){
+    return Center(
+      child: Column(
+        mainAxisAlignment : MainAxisAlignment.center,
+        children : [
+          Container(
+            color : Colors.black,
+            child: Icon(Icons.add,color: Colors.white))
+        ]
       ),
     );
   }
@@ -146,134 +131,43 @@ class _FriendsScreenState extends State<FriendsScreen> {
         });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
-      ),
-      backgroundColor: Colors.white,
-      body: isDataLoaded && !isEmpty
-          ? friendsListStream()
-          : buildNoContentScreen(),
-    );
-  }
-}
-
-class FriendsTile extends StatefulWidget {
-  final String sendersUserId;
-  final bool isSeen;
-  final String sendersUsername;
-  final String lastMessage;
-  final Key key;
-
-  FriendsTile(
-      {this.sendersUsername,
-      this.isSeen,
-      this.key,
-      this.sendersUserId,
-      this.lastMessage});
-
-  @override
-  _FriendsTileState createState() => _FriendsTileState();
-}
-
-class _FriendsTileState extends State<FriendsTile> {
-  @override
-  initState() {
-    super.initState();
-    getUserAvatr();
-  }
-
-  bool isDataLoaded = false;
-  String avatar;
-
-  getUserAvatr() async {
-    final _data = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.sendersUserId)
-        .get();
-    avatar = _data['avtar'];
-    setState(() {
-      isDataLoaded = true;
-    });
+  groupListStream() {
+    return Center(child: Text('Groups are shown here'),);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey[50],
-      child: Column(
-        children: [
-          SizedBox(
-            height: 5,
+    return DefaultTabController(
+      length: 2,
+          child: Scaffold(
+        appBar: AppBar(
+          title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.grey[900],
+          bottom: TabBar(
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(
+                child: Text('Chats',style: TextStyle(fontFamily: 'Mulish',fontSize: 15)),
+              ),
+              Tab(child: Text('Groups',style: TextStyle(fontFamily: 'Mulish',fontSize: 15)),)
+            ],
           ),
-          GestureDetector(
-            onTap: () {
-              showChatScreen(context, profileId: widget.sendersUserId);
-            },
-            child: ListTile(
-              leading: isDataLoaded
-                  ? CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 32,
-                      backgroundImage: avatar == null || avatar == ''
-                          ? AssetImage('assets/images/profile-user.png')
-                          : CachedNetworkImageProvider(avatar),
-                    )
-                  : CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 32,
-                      backgroundImage:
-                          AssetImage('assets/images/profile-user.png'),
-                    ),
-              trailing: !widget.isSeen
-                  ? Icon(
-                      Icons.fiber_manual_record,
-                      color: Colors.blue[900],
-                      size: 12,
-                    )
-                  : Icon(Icons.fiber_manual_record, color: Colors.grey[50]),
-              title: Text(widget.sendersUsername,
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontFamily: 'Monstserrat')),
-              subtitle: Text(widget.lastMessage,
-                  style: !widget.isSeen
-                      ? TextStyle(
-                          color: Colors.grey[800],
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        )
-                      : TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        )),
-            ),
-          ),
-          SizedBox(
-            height: 5,
-          ),
-          Divider(
-            color: Colors.grey[500],
-            height: 2.0,
-          )
-        ],
+        ),
+        backgroundColor: Colors.white,
+        body : TabBarView(
+          physics: BouncingScrollPhysics(),
+          children: [
+          isDataLoaded && !isEmptyFriendList
+            ? friendsListStream()
+            : buildNocontentForChats(),
+            buildNoContentScreenForGroups(),
+          //  isDataLoaded && !isEmptyGroupList
+          //   ? groupListStream()
+          //   : buildNoContentScreenForGroups(),
+          
+        ],)
       ),
     );
   }
-}
-
-showChatScreen(BuildContext context, {String profileId}) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ChatScreen(
-        userId: profileId,
-      ),
-    ),
-  );
 }

@@ -10,11 +10,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:Inbox/components/screen_size.dart';
-=======
 import 'package:shared_preferences/shared_preferences.dart';
->>>>>>> piyush
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -138,24 +135,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
-<<<<<<< HEAD
                       height: screenHeight * 230, width: screenWidth * 48),
                       SizedBox(height: screenHeight * 20),
                       Text('No user found', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
-=======
-                      height: 200, width: 200),
-                  SizedBox(height: 10),
-                  Text('No user found',
-                      style: TextStyle(
-                          color: Colors.black, fontFamily: 'Montserrat'))
->>>>>>> piyush
                 ],
               ),
             );
           }
         } else {
           return Center(
-<<<<<<< HEAD
               child: Column(
                  mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -166,20 +154,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 ],
               ),
             );
-=======
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
-                    height: 200, width: 200),
-                SizedBox(height: 10),
-                Text('Something went wrong Please try again',
-                    style: TextStyle(
-                        color: Colors.black, fontFamily: 'Montserrat'))
-              ],
-            ),
-          );
->>>>>>> piyush
         }
       },
     );

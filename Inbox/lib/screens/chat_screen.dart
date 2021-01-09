@@ -3,7 +3,7 @@ import 'package:Inbox/components/message_bubble.dart';
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
-import 'package:Inbox/screens/friends_screen.dart';
+//import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
@@ -12,13 +12,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 //import 'package:focused_menu/modals.dart';
 // import 'package:skeleton_text/skeleton_text.dart';
-<<<<<<< HEAD
 //import 'package:focused_menu/focused_menu.dart';
-import 'package:Inbox/components/message_bubble.dart';
-=======
-import 'package:focused_menu/focused_menu.dart';
+//import 'package:Inbox/components/message_bubble.dart';
 import 'package:shared_preferences/shared_preferences.dart';
->>>>>>> piyush
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -154,6 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
       // debugPrint('internet nhi hai');
     }
   }
+
   Future<bool> _onWillPop() async {
     if (isLoaded && isInternet) {
       if (friendsList.contains(widget.userId)) {
@@ -349,7 +346,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     if (isSending)
                       Text(
-                        'Sending',
+                        'Sending ...',
                         style: TextStyle(
                             fontSize: 10.0,
                             color: Colors.grey[400],
@@ -365,7 +362,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                     : Padding(
                         padding: const EdgeInsets.only(
-                            left: 8.0, right: 8.0, bottom: 25, top: 10),
+                            left: 8.0, right: 8.0, bottom: 10, top: 10),
                         child: TextField(
                           controller: messageTextController,
                           keyboardType: TextInputType.multiline,
@@ -385,6 +382,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               fontFamily: 'Montserrat'),
                           decoration: InputDecoration(
                             prefixIcon: IconButton(
+                              splashRadius: 8,
                               icon: Icon(Icons.add),
                               onPressed: () {
                                 onAddAssetClick();
@@ -523,7 +521,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 borderSide: BorderSide.none),
                             border: OutlineInputBorder(
                                 borderRadius:
-                                    BorderRadius.all(Radius.circular(12)),
+                                    BorderRadius.all(Radius.circular(50)),
                                 borderSide: BorderSide.none),
                             hintText: 'Send Message',
                             hintStyle: TextStyle(
@@ -683,11 +681,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> piyush
 showProfile(BuildContext context, {String profileId}) {
   Navigator.push(
     context,

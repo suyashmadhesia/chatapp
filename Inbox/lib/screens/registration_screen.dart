@@ -10,7 +10,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
+import 'package:Inbox/components/reusable.dart'; //first read this file to understand all classes
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -194,6 +194,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     'requestList': <String>[],
                                     'friendsList': <String>[],
                                     'pendingList': <String>[],
+                                    'groupsList' : <String>[],
                                   }).then((value) async {
                                     SharedPreferences prefs =
                                         await SharedPreferences.getInstance();
