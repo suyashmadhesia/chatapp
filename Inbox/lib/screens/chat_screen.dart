@@ -1,4 +1,5 @@
 //import 'package:firebase_core/firebase_core.dart';
+import 'package:Inbox/components/message_bubble.dart';
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
@@ -11,8 +12,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 //import 'package:focused_menu/modals.dart';
 // import 'package:skeleton_text/skeleton_text.dart';
+<<<<<<< HEAD
 //import 'package:focused_menu/focused_menu.dart';
 import 'package:Inbox/components/message_bubble.dart';
+=======
+import 'package:focused_menu/focused_menu.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+>>>>>>> piyush
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -22,6 +28,12 @@ class ChatScreen extends StatefulWidget {
   ChatScreen({this.userId});
 }
 
+setCurrentChatScreen(String username) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('path', 'chat_screen');
+  prefs.setString("current_user_on_screen", username);
+}
+
 class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
@@ -29,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     getUserData();
     checkInternet();
-   
+
     setIsSeen();
   }
 
@@ -171,7 +183,8 @@ class _ChatScreenState extends State<ChatScreen> {
         .collection('users')
         .doc(widget.userId)
         .get();
-    username = receiverAccountRefs['username'];
+    username = receiverAccountRefs[
+        'username']; // username of other person sending message
     profileLink = receiverAccountRefs['avtar'];
     receiversUserId = receiverAccountRefs['userId'];
     // if user is not blocked
@@ -180,7 +193,8 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(user.uid)
         .get();
     final block = receiverMessageRefs['isBlocked'];
-    rUsername = receiverMessageRefs['username'];
+    rUsername = receiverMessageRefs['username']; // username of app holder
+    setCurrentChatScreen(username);
     if (block) {
       setState(() {
         isBlocked = true;
@@ -313,6 +327,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void onAddAssetClick() {}
+
   bodyToBuild() {
     return GestureDetector(
       onTap: () {
@@ -349,7 +365,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                     : Padding(
                         padding: const EdgeInsets.only(
-                            left: 8.0, right: 8.0, bottom: 4, top: 4),
+                            left: 8.0, right: 8.0, bottom: 25, top: 10),
                         child: TextField(
                           controller: messageTextController,
                           keyboardType: TextInputType.multiline,
@@ -368,6 +384,12 @@ class _ChatScreenState extends State<ChatScreen> {
                               color: Colors.grey[100],
                               fontFamily: 'Montserrat'),
                           decoration: InputDecoration(
+                            prefixIcon: IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                onAddAssetClick();
+                              },
+                            ),
                             suffixIcon: IconButton(
                               splashRadius: 8,
                               icon: Icon(
@@ -497,16 +519,16 @@ class _ChatScreenState extends State<ChatScreen> {
                             fillColor: Colors.grey[900],
                             focusedBorder: OutlineInputBorder(
                                 borderRadius:
-                                    BorderRadius.all(Radius.circular(12)),
+                                    BorderRadius.all(Radius.circular(50)),
                                 borderSide: BorderSide.none),
                             border: OutlineInputBorder(
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(12)),
                                 borderSide: BorderSide.none),
-                            hintText: ' Send Message...',
+                            hintText: 'Send Message',
                             hintStyle: TextStyle(
                                 color: Colors.grey[100],
-                                fontSize: 16.0,
+                                fontSize: 12.0,
                                 fontFamily: 'Montserrat'),
                           ),
                         ),
@@ -661,8 +683,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> piyush
 showProfile(BuildContext context, {String profileId}) {
   Navigator.push(
     context,

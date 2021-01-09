@@ -10,7 +10,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:Inbox/components/screen_size.dart';
+=======
+import 'package:shared_preferences/shared_preferences.dart';
+>>>>>>> piyush
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -19,9 +23,17 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   User currentUser = FirebaseAuth.instance.currentUser;
+
+  void setCurrentScreen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("path", "");
+    prefs.setString("current_user_on_screen", "");
+  }
+
   @override
   void initState() {
     super.initState();
+    setCurrentScreen();
     //getUserData();
   }
 
@@ -42,8 +54,6 @@ class _SearchScreenState extends State<SearchScreen> {
       searchResult = users;
     });
   }
-
- 
 
   AppBar buildSearchField() {
     return AppBar(
@@ -92,7 +102,6 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            
             Center(
                 child: Text('Search new user here......',
                     style: TextStyle(
@@ -113,32 +122,40 @@ class _SearchScreenState extends State<SearchScreen> {
           return Center(
             child: CircularProgressIndicator(),
           );
-        } else if(snapshot.hasData){
-          if(snapshot.data.documents.length > 0){
-          List<UserResult> searchResult = [];
-          snapshot.data.documents.forEach((doc) {
-            Account users = Account.fromDocument(doc);
-            UserResult userResult = UserResult(users);
-            searchResult.add(userResult);
-          });
-          return ListView(
-              physics: BouncingScrollPhysics(), children: searchResult);
-        }else{
-          return Center(
+        } else if (snapshot.hasData) {
+          if (snapshot.data.documents.length > 0) {
+            List<UserResult> searchResult = [];
+            snapshot.data.documents.forEach((doc) {
+              Account users = Account.fromDocument(doc);
+              UserResult userResult = UserResult(users);
+              searchResult.add(userResult);
+            });
+            return ListView(
+                physics: BouncingScrollPhysics(), children: searchResult);
+          } else {
+            return Center(
               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
+<<<<<<< HEAD
                       height: screenHeight * 230, width: screenWidth * 48),
                       SizedBox(height: screenHeight * 20),
                       Text('No user found', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
+=======
+                      height: 200, width: 200),
+                  SizedBox(height: 10),
+                  Text('No user found',
+                      style: TextStyle(
+                          color: Colors.black, fontFamily: 'Montserrat'))
+>>>>>>> piyush
                 ],
               ),
             );
-        }
-        }
-        else{
+          }
+        } else {
           return Center(
+<<<<<<< HEAD
               child: Column(
                  mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -149,6 +166,20 @@ class _SearchScreenState extends State<SearchScreen> {
                 ],
               ),
             );
+=======
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
+                    height: 200, width: 200),
+                SizedBox(height: 10),
+                Text('Something went wrong Please try again',
+                    style: TextStyle(
+                        color: Colors.black, fontFamily: 'Montserrat'))
+              ],
+            ),
+          );
+>>>>>>> piyush
         }
       },
     );

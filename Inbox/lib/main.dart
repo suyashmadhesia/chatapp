@@ -1,4 +1,5 @@
 import 'package:Inbox/screens/home.dart';
+import 'package:Inbox/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,20 +35,16 @@ class _ChatAppState extends State<ChatApp> {
       DeviceOrientation.portraitUp,
     ]);
     return MaterialApp(
-        home: Scaffold(
-
-          
-        ),
-
-
+        home: Scaffold(),
         theme: ThemeData.dark().copyWith(
           textTheme: TextTheme(
             bodyText1: TextStyle(color: Colors.black54),
           ),
         ),
-        initialRoute: 'home_screen',
+        initialRoute: 'splash_screen',
         routes: {
           'welcome_screen': (context) => WelcomeScreen(),
+          'splash_screen': (context) => SplashScreen(),
           'login_screen': (context) => LoginScreen(),
           'registration_screen': (context) => RegistrationScreen(),
           'chat_screen': (context) => ChatScreen(),
@@ -59,10 +56,10 @@ class _ChatAppState extends State<ChatApp> {
   }
 }
 
-Future<void> main() async{
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   var email = prefs.getString('email');
-  runApp(MaterialApp(home : email == null ? WelcomeScreen() : ChatApp()));
+  runApp(MaterialApp(home: email == null ? WelcomeScreen() : ChatApp()));
 }

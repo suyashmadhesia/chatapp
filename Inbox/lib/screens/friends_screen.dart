@@ -131,6 +131,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   sendersUserId: sendersUserId,
                   sendersUsername: sendersUsername,
                   isSeen: isSeen,
+                  key: Key(userid['userId']),
                   lastMessage: lastMessage);
               friendsWidget.add(frndWidget);
               friendsWidget.reversed;
@@ -166,10 +167,12 @@ class FriendsTile extends StatefulWidget {
   final bool isSeen;
   final String sendersUsername;
   final String lastMessage;
+  final Key key;
 
   FriendsTile(
       {this.sendersUsername,
       this.isSeen,
+      this.key,
       this.sendersUserId,
       this.lastMessage});
 
@@ -178,19 +181,14 @@ class FriendsTile extends StatefulWidget {
 }
 
 class _FriendsTileState extends State<FriendsTile> {
-
-
   @override
-  initState(){
-  super.initState();
-  getUserAvatr();
+  initState() {
+    super.initState();
+    getUserAvatr();
   }
-
 
   bool isDataLoaded = false;
   String avatar;
-
-
 
   getUserAvatr() async {
     final _data = await FirebaseFirestore.instance
