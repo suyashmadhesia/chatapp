@@ -1,5 +1,5 @@
 import 'package:Inbox/models/user.dart';
-//import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
@@ -7,9 +7,6 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:skeleton_text/skeleton_text.dart';
-import 'home.dart';
 //import 'search_screen.dart';
 
 class OthersProfile extends StatefulWidget {
@@ -63,6 +60,8 @@ class _OthersProfileState extends State<OthersProfile>
   bool isSeen = false;
   bool isInternet = true;
 	bool isLoading = false;
+	double screenHeight;
+	double screenWidth;
 
   checkInternet() async {
     bool result = await DataConnectionChecker().hasConnection;
@@ -575,14 +574,14 @@ class _OthersProfileState extends State<OthersProfile>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             CircleAvatar(
-              radius: 50.0,
+              radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
                   ? AssetImage('assets/images/profile-user.png')
                   : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(screenHeight * 21.34),
               child: Text(
                 user.username,
                 style: TextStyle(
@@ -592,9 +591,9 @@ class _OthersProfileState extends State<OthersProfile>
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: screenHeight * 26),
             buildProfileButton(),
-            SizedBox(height: 40.0),
+            SizedBox(height: screenHeight * 50),
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(left: 32, right: 32),
@@ -615,6 +614,11 @@ class _OthersProfileState extends State<OthersProfile>
 
   @override
   Widget build(BuildContext context) {
+		double screenH = MediaQuery.of(context).size.height;
+		double screenW = MediaQuery.of(context).size.width;
+		ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+		screenHeight = screenSize.dividingHeight();
+		screenWidth = screenSize.dividingWidth();
     return isInternet
         ? Scaffold(
             key: _scaffoldKey,

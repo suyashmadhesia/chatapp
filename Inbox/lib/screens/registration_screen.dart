@@ -1,7 +1,7 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:Inbox/screens/friends_screen.dart';
 import 'dart:io';
-
+import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -65,6 +65,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _firestore = FirebaseFirestore.instance.collection('users');
   final _auth = FirebaseAuth.instance;
   final DateTime timeStamp = DateTime.now();
+	double screenWidth;
+	double screenHeight;
 
 //end
   final passwordValidator = MultiValidator([
@@ -91,6 +93,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
+		double screenH = MediaQuery.of(context).size.height;
+	  double screenW = MediaQuery.of(context).size.width;
+	  ScreenSize screenSize = ScreenSize(height:screenH,width : screenW);
+		screenHeight = screenSize.dividingHeight();
+		screenWidth = screenSize.dividingWidth();
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
@@ -103,7 +110,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             child: ListView(
               physics: BouncingScrollPhysics(),
               children: <Widget>[
-                SizedBox(height: 100),
+                SizedBox(height: screenHeight * 160),
                 Form(
                   key: _formKey,
                   child: Column(
@@ -118,7 +125,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           fontSize: 36,
                         ),
                       ),
-                      SizedBox(height: 40.0),
+                      SizedBox(height: screenHeight * 60),
                       //Username
                       Padding(
                         padding: const EdgeInsets.only(left: 32, right: 32),
@@ -133,7 +140,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             icons: Icons.person_outline,
                             regExp: '[a-z_0-9]'),
                       ),
-                      SizedBox(height: 30.0),
+                      SizedBox(height: screenHeight * 45),
                       //Password
                       Padding(
                         padding: const EdgeInsets.only(left: 32, right: 32),
@@ -145,7 +152,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             hintText: 'Password',
                             iconName: Icons.lock_outline),
                       ),
-                      SizedBox(height: 30.0),
+                      SizedBox(height: screenHeight * 45),
                       //Confirm Password
                       Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
@@ -156,7 +163,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               hintText: 'Confirm Password',
                               iconName: Icons.lock_outline)),
 
-                      SizedBox(height: 40),
+                      SizedBox(height: screenHeight * 60),
                       //Sign Up button
                       Buttons(
                           buttonName: 'Sign Up',
@@ -232,7 +239,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             }
                           }),
                       //Already user
-                      SizedBox(height: 20),
+                      SizedBox(height: screenHeight * 30),
                       Padding(
                         padding: const EdgeInsets.only(left: 32),
                         child: Row(

@@ -10,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:Inbox/components/screen_size.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -29,7 +30,8 @@ class _SearchScreenState extends State<SearchScreen> {
   final database = FirebaseFirestore.instance;
   Future<QuerySnapshot> searchResult;
   final usersRef = FirebaseFirestore.instance.collection('users');
-  //User currentUser = FirebaseAuth.instance.currentUser;
+  double screenWidth;
+	double screenHeight;
 
 //Functions
 
@@ -45,7 +47,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   AppBar buildSearchField() {
     return AppBar(
-      toolbarHeight: 75,
+      toolbarHeight: screenHeight * 100,
       backgroundColor: Colors.grey[900],
       automaticallyImplyLeading: false,
       title: TextFormField(
@@ -127,8 +129,8 @@ class _SearchScreenState extends State<SearchScreen> {
                  mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
-                      height: 200, width: 200),
-                      SizedBox(height: 10),
+                      height: screenHeight * 230, width: screenWidth * 48),
+                      SizedBox(height: screenHeight * 20),
                       Text('No user found', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
                 ],
               ),
@@ -141,8 +143,8 @@ class _SearchScreenState extends State<SearchScreen> {
                  mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
-                      height: 200, width: 200),
-                      SizedBox(height: 10),
+                      height: screenHeight * 230, width: screenWidth * 48),
+                      SizedBox(height: screenHeight * 20,),
                       Text('Something went wrong Please try again', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
                 ],
               ),
@@ -154,6 +156,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+		double screenW = MediaQuery.of(context).size.width;
+		double screenH = MediaQuery.of(context).size.height;
+		ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+		screenHeight = screenSize.dividingHeight();
+		screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: buildSearchField(),
