@@ -12,6 +12,7 @@ import 'package:Inbox/screens/profile_other.dart';
 // import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:skeleton_text/skeleton_text.dart';
 //import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -25,10 +26,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
   final _userId = FirebaseAuth.instance.currentUser.uid;
   List pendingList;
 
+  void setCurrentScreen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("path", "");
+    prefs.setString("current_user_on_screen", "");
+  }
+
   @override
   initState() {
     super.initState();
     getUsersFriendData();
+    setCurrentScreen();
   }
 
   bool empty = true;
@@ -71,8 +79,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return 
-               LinearProgressIndicator();
+            return LinearProgressIndicator();
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
             List<Widget> notificationWidget = [];

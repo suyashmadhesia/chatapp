@@ -24,6 +24,12 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
+  void setCurrentScreen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("path", "");
+    prefs.setString("current_user_on_screen", "");
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     animation = ColorTween(begin: Colors.grey[200], end: Colors.white)
         .animate(controller);
     controller.forward();
+    setCurrentScreen();
   }
 
   @override
@@ -46,54 +53,59 @@ class _ProfileScreenState extends State<ProfileScreen>
   Animation animation;
   AnimationController controller;
 
-
 //Functions
 
-  _showDialog(parentContext) async{
+  _showDialog(parentContext) async {
     // flutter defined function
     return showDialog(
       context: parentContext,
       builder: (context) {
         // return object of type Dialog
         return AlertDialog(
-          title: Text("SignOut",style: TextStyle(
-                      color: Colors.black, fontFamily: 'Mulish'),),
-          content: Text("Do you want to Sign out ?",style: TextStyle(
-                      color: Colors.grey[700], fontFamily: 'Mulish'),),
-       
+          title: Text(
+            "SignOut",
+            style: TextStyle(color: Colors.black, fontFamily: 'Mulish'),
+          ),
+          content: Text(
+            "Do you want to Sign out ?",
+            style: TextStyle(color: Colors.grey[700], fontFamily: 'Mulish'),
+          ),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             FlatButton(
-              child: new Text("Cancel",style: TextStyle(
-                  color: Colors.grey, fontFamily: 'Mulish'),),
+              child: new Text(
+                "Cancel",
+                style: TextStyle(color: Colors.grey, fontFamily: 'Mulish'),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
-              },),
-              FlatButton(
-              child: new Text("Sign Out",style: TextStyle(
-                  color: Colors.red, fontFamily: 'Mulish'),),
-              onPressed: () async {
-              _auth.signOut();
-              final SharedPreferences sharedPreferences =
-                  await SharedPreferences.getInstance();
-              sharedPreferences.remove('email');
-              Navigator.popUntil(
-                  context, ModalRoute.withName('login_screen'));
-              Firebase.initializeApp().whenComplete(() {
-                // print('initialization Complete');
-                setState(() {});
-              });
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => WelcomeScreen()));
-            },
+              },
             ),
-              
+            FlatButton(
+              child: new Text(
+                "Sign Out",
+                style: TextStyle(color: Colors.red, fontFamily: 'Mulish'),
+              ),
+              onPressed: () async {
+                _auth.signOut();
+                final SharedPreferences sharedPreferences =
+                    await SharedPreferences.getInstance();
+                sharedPreferences.remove('email');
+                Navigator.popUntil(
+                    context, ModalRoute.withName('login_screen'));
+                Firebase.initializeApp().whenComplete(() {
+                  // print('initialization Complete');
+                  setState(() {});
+                });
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => WelcomeScreen()));
+              },
+            ),
           ],
         );
       },
     );
   }
-
 
   buildProfileHeader() {
     return FutureBuilder(
@@ -102,8 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         if (!snapshot.hasData) {
           return SizedBox(
             child: Center(
-                child: CircularProgressIndicator(),
-                ),
+              child: CircularProgressIndicator(),
+            ),
           );
         }
         Account user = Account.fromDocument(snapshot.data);
@@ -129,7 +141,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
             ),
-           
             SizedBox(height: 20.0),
             Text(
               user.email == '' ? 'Email: Add your email....' : user.email,

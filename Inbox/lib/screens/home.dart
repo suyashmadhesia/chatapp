@@ -9,6 +9,7 @@ import 'package:Inbox/screens/profile_screen.dart';
 import 'package:Inbox/screens/search_screen.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'chat_screen.dart';
 import 'notification_screen.dart';
@@ -36,7 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     Firebase.initializeApp().whenComplete(() {
-      //print('initialization Complete');
       setState(() {});
     });
     var initializationSettingsAndroid =
@@ -55,17 +55,37 @@ class _HomeScreenState extends State<HomeScreen> {
           shownotification(1234, message['notification']['title'],
               message['notification']['body'], message['data']['userId']);
           return;
-        } else if (message['data']['type'] == 'Profile' && message['notification']['title'] == 'Request Accepted') {
+        } else if (message['data']['type'] == 'Profile' &&
+            message['notification']['title'] == 'Request Accepted') {
           shownotification(1234, message['notification']['title'],
               message['notification']['body'], message['data']['userId']);
           return;
         }
       },
       onLaunch: (Map<String, dynamic> message) async {
-        
+        if (message['data']['type'] == 'Message') {
+          shownotification(1234, message['notification']['title'],
+              message['notification']['body'], message['data']['userId']);
+          return;
+        } else if (message['data']['type'] == 'Profile' &&
+            message['notification']['title'] == 'Request Accepted') {
+          shownotification(1234, message['notification']['title'],
+              message['notification']['body'], message['data']['userId']);
+          return;
+        }
       },
       onResume: (Map<String, dynamic> message) async {
         // print("onResume: $message");
+        if (message['data']['type'] == 'Message') {
+          shownotification(1234, message['notification']['title'],
+              message['notification']['body'], message['data']['userId']);
+          return;
+        } else if (message['data']['type'] == 'Profile' &&
+            message['notification']['title'] == 'Request Accepted') {
+          shownotification(1234, message['notification']['title'],
+              message['notification']['body'], message['data']['userId']);
+          return;
+        }
       },
     );
     getUserData();
@@ -94,6 +114,15 @@ class _HomeScreenState extends State<HomeScreen> {
     Priority notificationPriority = Priority.high,
     Importance notificationImportance = Importance.max,
   }) async {
+    var currentRoute = ModalRoute.of(context).settings.name;
+    if (currentRoute == "home_screen") {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      print(prefs.getString("current_user_on_screen") + '' + notificationTitle);
+      if (prefs.getString("path") == "chat_screen" &&
+          prefs.getString("current_user_on_screen") == notificationTitle) {
+        return;
+      }
+    }
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
       channelId,
       channelTitle,
@@ -116,11 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
- 
-    
-
-
   checkInternet() async {
     bool result = await DataConnectionChecker().hasConnection;
     if (result == true) {
@@ -139,8 +163,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // TODO: BUG Bigger than cock
   User user = FirebaseAuth.instance.currentUser;
-
 
   @override
   void dispose() {
@@ -279,7 +303,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
   }
 }
-
 
 showChatScreen(BuildContext context, {String profileId}) {
   Navigator.push(

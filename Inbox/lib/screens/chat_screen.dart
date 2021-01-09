@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:focused_menu/modals.dart';
 // import 'package:skeleton_text/skeleton_text.dart';
 import 'package:focused_menu/focused_menu.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -20,6 +21,12 @@ class ChatScreen extends StatefulWidget {
 
   final String userId;
   ChatScreen({this.userId});
+}
+
+setCurrentChatScreen(String username) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('path', 'chat_screen');
+  prefs.setString("current_user_on_screen", username);
 }
 
 class _ChatScreenState extends State<ChatScreen> {
@@ -171,7 +178,8 @@ class _ChatScreenState extends State<ChatScreen> {
         .collection('users')
         .doc(widget.userId)
         .get();
-    username = receiverAccountRefs['username'];
+    username = receiverAccountRefs[
+        'username']; // username of other person sending message
     profileLink = receiverAccountRefs['avtar'];
     receiversUserId = receiverAccountRefs['userId'];
     // if user is not blocked
@@ -180,7 +188,8 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(user.uid)
         .get();
     final block = receiverMessageRefs['isBlocked'];
-    rUsername = receiverMessageRefs['username'];
+    rUsername = receiverMessageRefs['username']; // username of app holder
+    setCurrentChatScreen(username);
     if (block) {
       setState(() {
         isBlocked = true;
