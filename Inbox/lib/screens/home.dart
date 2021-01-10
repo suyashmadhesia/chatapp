@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
-//import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/screens/friends_screen.dart';
@@ -62,18 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return;
         }
       },
-      onLaunch: (Map<String, dynamic> message) async {
-        if (message['data']['type'] == 'Message') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        } else if (message['data']['type'] == 'Profile' &&
-            message['notification']['title'] == 'Request Accepted') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        }
-      },
+      onLaunch: (Map<String, dynamic> message) async {},
       onResume: (Map<String, dynamic> message) async {
         // print("onResume: $message");
         if (message['data']['type'] == 'Message') {
@@ -188,7 +177,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List userPendingList;
   bool showNotification = false;
-
   getUserData() async {
     final userAccountRefs = await FirebaseFirestore.instance
         .collection('users')
@@ -205,7 +193,8 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-
+  double screenHeight;
+  double screenWidth;
   Scaffold buildAuthScreen() {
     return Scaffold(
       body: PageView(
@@ -223,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
         animationDuration: Duration(milliseconds: 400),
         color: Colors.grey[900],
         backgroundColor: Colors.white,
-        height: 50,
+        height: screenHeight * 70,
         items: <Widget>[
           Icon(
             Icons.favorite_rounded,
@@ -270,6 +259,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: height, width: width);
+
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
+    
     return isInternet
         ? buildAuthScreen()
         : Scaffold(

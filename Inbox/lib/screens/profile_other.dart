@@ -1,5 +1,5 @@
 import 'package:Inbox/models/user.dart';
-//import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
@@ -7,9 +7,6 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:skeleton_text/skeleton_text.dart';
-import 'home.dart';
 //import 'search_screen.dart';
 
 class OthersProfile extends StatefulWidget {
@@ -62,6 +59,9 @@ class _OthersProfileState extends State<OthersProfile>
   String rUsername;
   bool isSeen = false;
   bool isInternet = true;
+  bool isLoading = false;
+  double screenHeight;
+  double screenWidth;
 
   checkInternet() async {
     bool result = await DataConnectionChecker().hasConnection;
@@ -91,7 +91,8 @@ class _OthersProfileState extends State<OthersProfile>
     return listofTokens;
   }
 
-  Future<void> sendNotification(receiver, username, head,receiversUserId) async {
+  Future<void> sendNotification(
+      receiver, username, head, receiversUserId) async {
     var token = await getToken(receiver);
     // debugPrint('token : $token');
 
@@ -106,10 +107,10 @@ class _OthersProfileState extends State<OthersProfile>
         "id": "1",
         "status": "done",
         "type": "Profile",
-        "userId" : receiversUserId,
+        "userId": receiversUserId,
       },
       'registration_ids': token,
-      "collapse_key" : "$receiversUserId profile",
+      "collapse_key": "$receiversUserId profile",
     };
 
     final headers = {
@@ -225,7 +226,8 @@ class _OthersProfileState extends State<OthersProfile>
           'SendersUsername': username,
           'SendersAvatar': avatar,
         });
-        sendNotification(widget.profileId, '$username has sent you request !!', 'Friend Request', user);
+        sendNotification(widget.profileId, '$username has sent you request !!',
+            'Friend Request', user);
       }
     }
     setState(() {
@@ -293,7 +295,7 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage' : 'Say hi to $rUsername'
+          'lastMessage': 'Say hi to $rUsername'
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -305,7 +307,7 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage' : 'Say hi to $username'
+          'lastMessage': 'Say hi to $username'
         });
         // final receiverCollectionsRefs = FirebaseFirestore.instance
         //     .collection('users/' + widget.profileId + '/pendingRequests');
@@ -320,7 +322,8 @@ class _OthersProfileState extends State<OthersProfile>
     setState(() {
       showAccepted = false;
     });
-    sendNotification(widget.profileId, '$username has accepted your request !!', 'Request Accepted', user);
+    sendNotification(widget.profileId, '$username has accepted your request !!',
+        'Request Accepted', user);
   }
 
   unfriending() async {
@@ -412,6 +415,7 @@ class _OthersProfileState extends State<OthersProfile>
                   _scaffoldKey.currentState.showSnackBar(snackBar);
                   await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
+                  //Navigator.pushNamed(context,'chat_screen');
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -466,6 +470,7 @@ class _OthersProfileState extends State<OthersProfile>
         color: Colors.white,
         splashColor: Colors.blue[200],
         onPressed: () async {
+          if(!isLoading)
           await unfriending();
           SnackBar snackBar = SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -477,10 +482,8 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(seconds: 1));
           Navigator.pop(context);
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          Navigator.pushNamed(context, 'home_screen');
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -488,10 +491,15 @@ class _OthersProfileState extends State<OthersProfile>
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-          child: Text(
-            "Unfriend",
-            style: TextStyle(color: Colors.blue[900], fontFamily: 'Montserrat'),
-          ),
+          child: !isLoading
+              ? Text(
+                  "Unfriend",
+                  style: TextStyle(
+                      color: Colors.blue[900], fontFamily: 'Montserrat'),
+                )
+              : Center(
+                  child: CircularProgressIndicator(),
+                ),
         ),
       );
     } else {
@@ -500,7 +508,17 @@ class _OthersProfileState extends State<OthersProfile>
         splashColor: Colors.blue[600],
         onPressed: () async {
           if (isSentRequest) {
+            if (!isLoading)
+              setState(() {
+                isLoading = true;
+              });
             await cancelFriendRequest();
+            await getUsersFriendData();
+            await isRequestSent();
+            setState(() {
+              isLoading = false;
+              isSentRequest = false;
+            });
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 2),
@@ -511,10 +529,18 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
-            Navigator.pop(context);
           } else if (!isSentRequest) {
+            if(!isLoading)
+            setState(() {
+              isLoading = true;
+            });
             await sendFriendRequest();
+            await getUsersFriendData();
+            await isRequestSent();
+            setState(() {
+              isLoading = false;
+              isSentRequest = true;
+            });
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 1),
@@ -525,8 +551,6 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
-            Navigator.pop(context);
           }
         },
         shape: RoundedRectangleBorder(
@@ -534,11 +558,20 @@ class _OthersProfileState extends State<OthersProfile>
           side: BorderSide(color: Colors.blue[900], width: 2),
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-          child: Text(
-            isSentRequest ? 'Cancel Request' : 'Add Friend',
-            style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
-          ),
+          padding: !isLoading
+              ? const EdgeInsets.fromLTRB(16, 16, 16, 16)
+              : const EdgeInsets.fromLTRB(32, 16, 32, 16),
+          child: !isLoading
+              ? Text(
+                  isSentRequest ? 'Cancel Request' : 'Add Friend',
+                  style:
+                      TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+                )
+              : SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(),
+                ),
         ),
       );
     }
@@ -557,14 +590,14 @@ class _OthersProfileState extends State<OthersProfile>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             CircleAvatar(
-              radius: 50.0,
+              radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
                   ? AssetImage('assets/images/profile-user.png')
                   : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(screenHeight * 21.34),
               child: Text(
                 user.username,
                 style: TextStyle(
@@ -574,9 +607,9 @@ class _OthersProfileState extends State<OthersProfile>
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: screenHeight * 26),
             buildProfileButton(),
-            SizedBox(height: 40.0),
+            SizedBox(height: screenHeight * 50),
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(left: 32, right: 32),
@@ -597,6 +630,11 @@ class _OthersProfileState extends State<OthersProfile>
 
   @override
   Widget build(BuildContext context) {
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return isInternet
         ? Scaffold(
             key: _scaffoldKey,

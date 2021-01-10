@@ -1,15 +1,13 @@
-// import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/models/user.dart';
-// import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-// import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -38,7 +36,8 @@ class _SearchScreenState extends State<SearchScreen> {
   final database = FirebaseFirestore.instance;
   Future<QuerySnapshot> searchResult;
   final usersRef = FirebaseFirestore.instance.collection('users');
-  //User currentUser = FirebaseAuth.instance.currentUser;
+  double screenWidth;
+	double screenHeight;
 
 //Functions
 
@@ -52,7 +51,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   AppBar buildSearchField() {
     return AppBar(
-      toolbarHeight: 75,
+      toolbarHeight: screenHeight * 100,
       backgroundColor: Colors.grey[900],
       automaticallyImplyLeading: false,
       title: TextFormField(
@@ -122,7 +121,7 @@ class _SearchScreenState extends State<SearchScreen> {
             List<UserResult> searchResult = [];
             snapshot.data.documents.forEach((doc) {
               Account users = Account.fromDocument(doc);
-              UserResult userResult = UserResult(users);
+              UserResult userResult = UserResult(user: users);
               searchResult.add(userResult);
             });
             return ListView(
@@ -133,29 +132,25 @@ class _SearchScreenState extends State<SearchScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
-                      height: 200, width: 200),
-                  SizedBox(height: 10),
-                  Text('No user found',
-                      style: TextStyle(
-                          color: Colors.black, fontFamily: 'Montserrat'))
+                      height: screenHeight * 230, width: screenWidth * 48),
+                      SizedBox(height: screenHeight * 20),
+                      Text('No user found', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
                 ],
               ),
             );
           }
         } else {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
-                    height: 200, width: 200),
-                SizedBox(height: 10),
-                Text('Something went wrong Please try again',
-                    style: TextStyle(
-                        color: Colors.black, fontFamily: 'Montserrat'))
-              ],
-            ),
-          );
+              child: Column(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
+                      height: screenHeight * 230, width: screenWidth * 48),
+                      SizedBox(height: screenHeight * 20,),
+                      Text('Something went wrong Please try again', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
+                ],
+              ),
+            );
         }
       },
     );
@@ -163,6 +158,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+		double screenW = MediaQuery.of(context).size.width;
+		double screenH = MediaQuery.of(context).size.height;
+		ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+		screenHeight = screenSize.dividingHeight();
+		screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: buildSearchField(),
@@ -171,12 +171,16 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class UserResult extends StatelessWidget {
-  final Account user;
+class UserResult extends StatefulWidget {
+  final user;
+  UserResult({this.user});
+  @override
+  _UserResultState createState() => _UserResultState();
+}
+
+class _UserResultState extends State<UserResult> {
+ 
   String thisUserID;
-
-  UserResult(this.user);
-
   String userid = _SearchScreenState().currentUser.uid;
 
   @override
@@ -191,22 +195,22 @@ class UserResult extends StatelessWidget {
           GestureDetector(
             onTap: () {
               //await getUserData();
-              if (user.userId == userid) {
+              if (widget.user.userId == userid) {
                 currentUserProfile(context, profileId: userid);
-              } else if (user.userId != userid) {
-                thisUserID = user.userId;
-                showProfile(context, profileId: user.userId);
+              } else if (widget.user.userId != userid) {
+                thisUserID = widget.user.userId;
+                showProfile(context, profileId: widget.user.userId);
               }
             },
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.white,
                 radius: 32,
-                backgroundImage: user.avtar == null || user.avtar == ''
+                backgroundImage: widget.user.avtar == null || widget.user.avtar == ''
                     ? AssetImage('assets/images/profile-user.png')
-                    : CachedNetworkImageProvider(user.avtar),
+                    : CachedNetworkImageProvider(widget.user.avtar),
               ),
-              title: Text(user.username,
+              title: Text(widget.user.username,
                   style: TextStyle(
                       color: Colors.grey[900],
                       fontSize: 18,
@@ -224,6 +228,8 @@ class UserResult extends StatelessWidget {
       ),
     );
   }
+
+
 }
 
 showProfile(BuildContext context, {String profileId}) {

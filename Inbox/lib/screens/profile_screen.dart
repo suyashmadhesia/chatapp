@@ -1,4 +1,5 @@
 import 'package:Inbox/screens/edit_profile.dart';
+import 'package:Inbox/components/screen_size.dart';
 //import 'package:Inbox/screens/home.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -53,6 +54,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   Animation animation;
   AnimationController controller;
 
+	double screenHeight;
+	double screenWidth;
 //Functions
 
   _showDialog(parentContext) async {
@@ -124,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             CircleAvatar(
-              radius: 50.0,
+              radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
                   ? AssetImage('assets/images/profile-user.png')
@@ -141,13 +144,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+           
+            SizedBox(height: screenHeight * 26.66),
             Text(
               user.email == '' ? 'Email: Add your email....' : user.email,
               style: TextStyle(
                   color: Colors.black54, fontFamily: 'Mulish', fontSize: 16.0),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: screenHeight * 26.67),
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(left: 32, right: 32),
@@ -168,6 +172,11 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+		double screenH = MediaQuery.of(context).size.height;
+		double screenW = MediaQuery.of(context).size.width;
+		ScreenSize screenSize = ScreenSize(height: screenH,width:screenW);
+		screenHeight = screenSize.dividingHeight();
+		screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

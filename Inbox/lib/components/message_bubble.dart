@@ -1,5 +1,5 @@
 import 'package:Inbox/helpers/firestore.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:focused_menu/focused_menu.dart';
@@ -135,12 +135,12 @@ class MessageBubble extends StatelessWidget {
                   : Colors.black87, //Color(0xff5ddef4),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                 child: sender
                     ? FocusedMenuHolder(
                         duration: Duration(milliseconds: 100),
                         menuItemExtent:
-                            MediaQuery.of(context).size.height * 0.06,
+                            MediaQuery.of(context).size.height * 0.05,
                         blurBackgroundColor: Colors.grey[600],
                         blurSize: 0,
                         menuWidth: MediaQuery.of(context).size.width * 0.3,
