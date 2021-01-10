@@ -570,7 +570,7 @@ class _OthersProfileState extends State<OthersProfile>
               : SizedBox(
                   height: 16,
                   width: 16,
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(strokeWidth: 2,),
                 ),
         ),
       );
@@ -593,7 +593,7 @@ class _OthersProfileState extends State<OthersProfile>
               radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
-                  ? AssetImage('assets/images/profile-user.png')
+                  ? AssetImage('assets/images/user.png')
                   : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(

@@ -207,7 +207,7 @@ class _UserResultState extends State<UserResult> {
                 backgroundColor: Colors.white,
                 radius: 32,
                 backgroundImage: widget.user.avtar == null || widget.user.avtar == ''
-                    ? AssetImage('assets/images/profile-user.png')
+                    ? AssetImage('assets/images/user.png')
                     : CachedNetworkImageProvider(widget.user.avtar),
               ),
               title: Text(widget.user.username,

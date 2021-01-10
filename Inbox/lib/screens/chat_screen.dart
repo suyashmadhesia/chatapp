@@ -657,7 +657,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 backgroundImage: profileLink == '' ||
                                         profileLink == null
                                     ? AssetImage(
-                                        'assets/images/profile-user.png')
+                                        'assets/images/user.png')
                                     : CachedNetworkImageProvider(profileLink))),
                         Text(
                           username,
