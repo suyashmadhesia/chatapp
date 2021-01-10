@@ -81,8 +81,10 @@ class PasswordFields extends StatelessWidget {
   final IconData iconName;
   final Function onChanged;
   final Function validation;
+  final bool obsecure;
+  final TextInputType type;
  
-  PasswordFields({@required this.hintText, @required this.iconName, this.onChanged, this.validation});
+  PasswordFields({@required this.hintText, @required this.iconName, this.onChanged, this.validation,this.obsecure,this.type});
  
 
   @override
@@ -93,7 +95,8 @@ class PasswordFields extends StatelessWidget {
      //autovalidate: true,
       validator: validation,
       onChanged: onChanged,
-      obscureText: true,
+      keyboardType: type,
+      obscureText: obsecure,
       cursorColor: Colors.grey,
       autofocus: false,
       style: TextStyle(

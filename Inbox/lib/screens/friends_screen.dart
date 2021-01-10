@@ -1,21 +1,39 @@
-import 'package:Inbox/components/friends_tile.dart';
+import 'package:Inbox/components/friends_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'create_group.dart';
 
 class FriendsScreen extends StatefulWidget {
   @override
   _FriendsScreenState createState() => _FriendsScreenState();
 }
 
-class _FriendsScreenState extends State<FriendsScreen> {
+class _FriendsScreenState extends State<FriendsScreen>
+    with SingleTickerProviderStateMixin {
   @override
   initState() {
     super.initState();
-    //checkInternet();
     getUsersFriendData();
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController.addListener(handleTabIndex);
   }
 
+
+  @override
+  void dispose(){
+    _tabController.removeListener(handleTabIndex);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  //Listening wihich tab is currently open
+  void handleTabIndex() {
+    setState(() {});
+  }
+
+  //TabCOntroller for controlling tab view;
+  TabController _tabController;
   final _collectionRefs = FirebaseFirestore.instance;
   final _userId = FirebaseAuth.instance.currentUser.uid;
   List friendsList = [];
@@ -43,7 +61,21 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
+  floatingActionButton() {
+    return FloatingActionButton(
+      onPressed: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => CreateGroup()));
+      },
+      elevation : 5,
+      backgroundColor: Colors.grey[900],
+      child: Icon(
+        Icons.add,
+        color: Colors.white,
+      ),
+    );
+  }
 
+  //build no content screen for the chats tab
   buildNocontentForChats() {
     return Container(
       color: Colors.white,
@@ -72,20 +104,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
       ),
     );
   }
-
-  buildNoContentScreenForGroups(){
+  
+  // build no content screen for group tab
+  buildNoContentScreenForGroups() {
     return Center(
-      child: Column(
-        mainAxisAlignment : MainAxisAlignment.center,
-        children : [
-          Container(
-            color : Colors.black,
-            child: Icon(Icons.add,color: Colors.white))
-        ]
-      ),
+      child: Text('hello world'),
     );
   }
 
+  //friends list stream
   friendsListStream() {
     return StreamBuilder(
         stream: _collectionRefs
@@ -131,43 +158,50 @@ class _FriendsScreenState extends State<FriendsScreen> {
         });
   }
 
+  //group list stream
   groupListStream() {
-    return Center(child: Text('Groups are shown here'),);
+    return Center(
+      child: Text('Groups are shown here'),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-          child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.grey[900],
           bottom: TabBar(
+            controller: _tabController,
             indicatorColor: Colors.white,
             tabs: [
               Tab(
-                child: Text('Chats',style: TextStyle(fontFamily: 'Mulish',fontSize: 15)),
+                child: Text('Chats',
+                    style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
               ),
-              Tab(child: Text('Groups',style: TextStyle(fontFamily: 'Mulish',fontSize: 15)),)
+              Tab(
+                child: Text('Groups',
+                    style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
+              )
             ],
           ),
         ),
         backgroundColor: Colors.white,
-        body : TabBarView(
+        body: TabBarView(
+          controller: _tabController,
           physics: BouncingScrollPhysics(),
           children: [
-          isDataLoaded && !isEmptyFriendList
-            ? friendsListStream()
-            : buildNocontentForChats(),
+            isDataLoaded && !isEmptyFriendList
+                ? friendsListStream()
+                : buildNocontentForChats(),
             buildNoContentScreenForGroups(),
-          //  isDataLoaded && !isEmptyGroupList
-          //   ? groupListStream()
-          //   : buildNoContentScreenForGroups(),
-          
-        ],)
-      ),
-    );
+            //  isDataLoaded && !isEmptyGroupList
+            //   ? groupListStream()
+            //   : buildNoContentScreenForGroups(),
+          ],
+        ),
+        floatingActionButton : _tabController.index == 1 ? floatingActionButton() : null, //checking whether we are on chat tab or group tab
+        );
   }
 }

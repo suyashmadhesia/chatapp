@@ -1,12 +1,9 @@
-// import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/models/user.dart';
-// import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-// import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -124,7 +121,7 @@ class _SearchScreenState extends State<SearchScreen> {
             List<UserResult> searchResult = [];
             snapshot.data.documents.forEach((doc) {
               Account users = Account.fromDocument(doc);
-              UserResult userResult = UserResult(users);
+              UserResult userResult = UserResult(user: users);
               searchResult.add(userResult);
             });
             return ListView(
@@ -174,12 +171,16 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class UserResult extends StatelessWidget {
-  final Account user;
+class UserResult extends StatefulWidget {
+  final user;
+  UserResult({this.user});
+  @override
+  _UserResultState createState() => _UserResultState();
+}
+
+class _UserResultState extends State<UserResult> {
+ 
   String thisUserID;
-
-  UserResult(this.user);
-
   String userid = _SearchScreenState().currentUser.uid;
 
   @override
@@ -194,22 +195,22 @@ class UserResult extends StatelessWidget {
           GestureDetector(
             onTap: () {
               //await getUserData();
-              if (user.userId == userid) {
+              if (widget.user.userId == userid) {
                 currentUserProfile(context, profileId: userid);
-              } else if (user.userId != userid) {
-                thisUserID = user.userId;
-                showProfile(context, profileId: user.userId);
+              } else if (widget.user.userId != userid) {
+                thisUserID = widget.user.userId;
+                showProfile(context, profileId: widget.user.userId);
               }
             },
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.white,
                 radius: 32,
-                backgroundImage: user.avtar == null || user.avtar == ''
+                backgroundImage: widget.user.avtar == null || widget.user.avtar == ''
                     ? AssetImage('assets/images/profile-user.png')
-                    : CachedNetworkImageProvider(user.avtar),
+                    : CachedNetworkImageProvider(widget.user.avtar),
               ),
-              title: Text(user.username,
+              title: Text(widget.user.username,
                   style: TextStyle(
                       color: Colors.grey[900],
                       fontSize: 18,
@@ -227,6 +228,8 @@ class UserResult extends StatelessWidget {
       ),
     );
   }
+
+
 }
 
 showProfile(BuildContext context, {String profileId}) {

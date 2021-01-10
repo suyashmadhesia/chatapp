@@ -61,7 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   setIsSeen() async {
     if (isInternet) {
-      final senderMessageRefs = await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('users/$userid/friends')
           .doc(widget.userId)
           .update({
@@ -577,7 +577,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   unBlockUser() async {
-    final receiverMessageRefs = await FirebaseFirestore.instance
+    await FirebaseFirestore.instance
         .collection('users/' + user.uid + '/friends')
         .doc(widget.userId)
         .update({

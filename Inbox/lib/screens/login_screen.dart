@@ -131,6 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
                           child: PasswordFields(
+                            obsecure: true,
                               onChanged: (value) {
                                 password = value;
                               },

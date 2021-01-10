@@ -1,6 +1,3 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:Inbox/screens/friends_screen.dart';
-import 'dart:io';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
@@ -14,7 +11,6 @@ import 'package:Inbox/components/reusable.dart'; //first read this file to under
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:firebase_core/firebase_core.dart';
 
 String finalEmail;
 
@@ -49,11 +45,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     // Save it to Firestore
     if (fcmToken != null) {
-      final tokens = FirebaseFirestore.instance
-          .collection('users/'+uid+'/tokens');
-	 tokens.doc(fcmToken).set({
-	  'tokenId': fcmToken,
-	  });
+      final tokens =
+          FirebaseFirestore.instance.collection('users/' + uid + '/tokens');
+      tokens.doc(fcmToken).set({
+        'tokenId': fcmToken,
+      });
     }
   }
 
@@ -65,8 +61,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _firestore = FirebaseFirestore.instance.collection('users');
   final _auth = FirebaseAuth.instance;
   final DateTime timeStamp = DateTime.now();
-	double screenWidth;
-	double screenHeight;
+  double screenWidth;
+  double screenHeight;
 
 //end
   final passwordValidator = MultiValidator([
@@ -81,10 +77,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         errorText: 'Username must be less than 10 characters')
   ]);
 
+ 
+
   String username;
   String password;
   String confirmPassword;
   String name;
+  String phone;
 
   bool showSpinner = false;
 
@@ -93,11 +92,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-		double screenH = MediaQuery.of(context).size.height;
-	  double screenW = MediaQuery.of(context).size.width;
-	  ScreenSize screenSize = ScreenSize(height:screenH,width : screenW);
-		screenHeight = screenSize.dividingHeight();
-		screenWidth = screenSize.dividingWidth();
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
@@ -141,6 +140,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             regExp: '[a-z_0-9]'),
                       ),
                       SizedBox(height: screenHeight * 45),
+                      //Phone number
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32, right: 32),
+                        child: PasswordFields(
+                          obsecure: false,
+                            onChanged: (value) {
+                              phone = value.toString();
+                            },
+                            type: TextInputType.number,
+                            validation: (phone){
+                              
+                              String phoneNumber = phone.toString();
+                              if(phoneNumber == null || phoneNumber.isEmpty){
+                                return 'Phone Number must be provided';
+                              }
+                              else if(phoneNumber.length > 10 || phoneNumber.length < 10){
+                                return 'Enter valid Phone Number';
+                              }
+                            },
+                            hintText: 'Phone Number',
+                            iconName: Icons.phone),
+                      ),
+                      SizedBox(height: screenHeight * 45),
                       //Password
                       Padding(
                         padding: const EdgeInsets.only(left: 32, right: 32),
@@ -148,6 +170,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             onChanged: (value) {
                               password = value;
                             },
+                            obsecure: true,
                             validation: passwordValidator,
                             hintText: 'Password',
                             iconName: Icons.lock_outline),
@@ -157,6 +180,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
                           child: PasswordFields(
+                            obsecure: true,
                               validation: (value) => MatchValidator(
                                       errorText: 'Passwords do not match')
                                   .validateMatch(value, password),
@@ -168,6 +192,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       Buttons(
                           buttonName: 'Sign Up',
                           onPressed: () async {
+                            debugPrint(phone);
                             if (_formKey.currentState.validate()) {
                               setState(() {
                                 showSpinner = true;
@@ -179,9 +204,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 //Saving data to firestore
                                 if (newUser != null) {
                                   User user = FirebaseAuth.instance.currentUser;
-                                 await saveDeviceToken(user.uid);
+                                  await saveDeviceToken(user.uid);
                                   _firestore.doc(user.uid).set({
                                     'username': name,
+                                    'phoneNumber' : '+91'+phone,
                                     'bio': '',
                                     'avtar': '',
                                     'gender': '',
@@ -194,7 +220,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     'requestList': <String>[],
                                     'friendsList': <String>[],
                                     'pendingList': <String>[],
-                                    'groupsList' : <String>[],
+                                    'groupsList': <String>[],
                                   }).then((value) async {
                                     SharedPreferences prefs =
                                         await SharedPreferences.getInstance();
