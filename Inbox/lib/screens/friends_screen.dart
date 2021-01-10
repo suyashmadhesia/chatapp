@@ -19,9 +19,8 @@ class _FriendsScreenState extends State<FriendsScreen>
     _tabController.addListener(handleTabIndex);
   }
 
-
   @override
-  void dispose(){
+  void dispose() {
     _tabController.removeListener(handleTabIndex);
     _tabController.dispose();
     super.dispose();
@@ -63,10 +62,11 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   floatingActionButton() {
     return FloatingActionButton(
-      onPressed: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => CreateGroup()));
+      onPressed: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => CreateGroup()));
       },
-      elevation : 5,
+      elevation: 5,
       backgroundColor: Colors.grey[900],
       child: Icon(
         Icons.add,
@@ -104,7 +104,7 @@ class _FriendsScreenState extends State<FriendsScreen>
       ),
     );
   }
-  
+
   // build no content screen for group tab
   buildNoContentScreenForGroups() {
     return Center(
@@ -112,7 +112,7 @@ class _FriendsScreenState extends State<FriendsScreen>
     );
   }
 
-  //friends list stream
+  //TODO: UPDATE friends list stream
   friendsListStream() {
     return StreamBuilder(
         stream: _collectionRefs
@@ -168,40 +168,42 @@ class _FriendsScreenState extends State<FriendsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.grey[900],
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            tabs: [
-              Tab(
-                child: Text('Chats',
-                    style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
-              ),
-              Tab(
-                child: Text('Groups',
-                    style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
-              )
-            ],
-          ),
-        ),
-        backgroundColor: Colors.white,
-        body: TabBarView(
+      appBar: AppBar(
+        title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.grey[900],
+        bottom: TabBar(
           controller: _tabController,
-          physics: BouncingScrollPhysics(),
-          children: [
-            isDataLoaded && !isEmptyFriendList
-                ? friendsListStream()
-                : buildNocontentForChats(),
-            buildNoContentScreenForGroups(),
-            //  isDataLoaded && !isEmptyGroupList
-            //   ? groupListStream()
-            //   : buildNoContentScreenForGroups(),
+          indicatorColor: Colors.white,
+          tabs: [
+            Tab(
+              child: Text('Chats',
+                  style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
+            ),
+            Tab(
+              child: Text('Groups',
+                  style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
+            )
           ],
         ),
-        floatingActionButton : _tabController.index == 1 ? floatingActionButton() : null, //checking whether we are on chat tab or group tab
-        );
+      ),
+      backgroundColor: Colors.white,
+      body: TabBarView(
+        controller: _tabController,
+        physics: BouncingScrollPhysics(),
+        children: [
+          isDataLoaded && !isEmptyFriendList
+              ? friendsListStream()
+              : buildNocontentForChats(),
+          buildNoContentScreenForGroups(),
+          //  isDataLoaded && !isEmptyGroupList
+          //   ? groupListStream()
+          //   : buildNoContentScreenForGroups(),
+        ],
+      ),
+      floatingActionButton: _tabController.index == 1
+          ? floatingActionButton()
+          : null, //checking whether we are on chat tab or group tab
+    );
   }
 }
