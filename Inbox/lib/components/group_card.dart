@@ -60,7 +60,7 @@ class _GroupCardState extends State<GroupCard> {
                   fontFamily: 'Monstserrat',
                 ),
               ),
-              subtitle: Text(
+              subtitle: widget.lastMessage == "" ? null : Text(
                 widget.lastMessage,
                 style: TextStyle(
                   color: Colors.grey[400],

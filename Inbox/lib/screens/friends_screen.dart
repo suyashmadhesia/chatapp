@@ -214,13 +214,15 @@ class _FriendsScreenState extends State<FriendsScreen>
               final messageAt = groupid['messageAt'];
               final lastMessage = groupid['lastMessage'];
 
+              DateTime dateTime = messageAt.toDate();
+
               if (groupMembers.contains(_userId)) {
                 final GroupCard groupWidget = GroupCard(
                   groupName: groupName,
                   groupBanner: groupBanner,
                   groupId: groupId,
                   lastMessage: lastMessage,
-                  messageAt: messageAt,
+                  messageAt: dateTime,
                 );
                 groupsWidget.add(groupWidget);
                 groupsWidget.reversed;
