@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image/image.dart' as Im;
 import 'package:Inbox/screens/home.dart';
@@ -15,6 +16,11 @@ class CreateGroup extends StatefulWidget {
 }
 
 class _CreateGroupState extends State<CreateGroup> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
 //validators
   final groupNameValidator = MultiValidator([
     RequiredValidator(errorText: 'Group Name is required'),
@@ -36,15 +42,17 @@ class _CreateGroupState extends State<CreateGroup> {
   double screenWidth;
   String groupName;
   String description;
-  bool isLoading = false;
+  bool isUploading = false;
   bool isImageLoaded = false;
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
   File _image;
   String profileImageId = Uuid().v4();
   final collectionRefs = FirebaseFirestore.instance;
-  final storageRefs = FirebaseStorage.instance;
+  final storageRefs = FirebaseStorage.instance.ref();
+  final currentUserId = FirebaseAuth.instance.currentUser.uid;
   String groupId = Uuid().v4();
+  List groupList = [];
 
 //Functions
 
@@ -66,7 +74,81 @@ class _CreateGroupState extends State<CreateGroup> {
     });
   }
 
-  handleSubmit () async{}
+  handleSubmit() async {
+    setState(() {
+      isUploading = true;
+    });
+
+    if (_image != null) {
+      await compressImage();
+      String medialUrl = await uploadImage(_image);
+      await collectionRefs.collection('groups').doc(groupId).set({
+        'groupId': groupId,
+        'groupName': groupName,
+        'groupDescription': description,
+        'createdAt': DateTime.now(),
+        'messageAt': DateTime.now(),
+        'lastMessage': '',
+        'groupBanner': medialUrl,
+        'groupMember' : [currentUserId],
+      });
+      await collectionRefs.collection('groups/$groupId/members').doc(currentUserId).set({
+        'joinAt' : DateTime.now(),
+        'isAdmin' : true,
+        'userId' : currentUserId,
+      });
+      await collectionRefs.collection('users').doc(currentUserId).update({
+        'groupsList': FieldValue.arrayUnion([groupId]),
+      });
+      await collectionRefs
+          .collection('users/$currentUserId/groups')
+          .doc(groupId)
+          .set({
+        'joinedAt': DateTime.now(),
+        'isMuted': false,
+        'groupName': groupName,
+        'isAdmin': true,
+        'messageAt' : DateTime.now(),
+      });
+      setState(() {
+        isUploading = true;
+      });
+    } else if (_image == null) {
+      await collectionRefs.collection('groups').doc(groupId).set({
+        'groupId': groupId,
+        'groupName': groupName,
+        'groupDescription': description,
+        'createdAt': DateTime.now(),
+        'messageAt': DateTime.now(),
+        'lastMessage': '',
+        'groupBanner': '',
+      });
+      await collectionRefs.collection('users').doc(currentUserId).update({
+        'groupsList': FieldValue.arrayUnion([groupId]),
+      });
+      await collectionRefs
+          .collection('users/$currentUserId/groups')
+          .doc(groupId)
+          .set({
+        'joinedAt': DateTime.now(),
+        'isMuted': false,
+        'groupName': groupName,
+        'lastMessage': '',
+        'isAdmin': true,
+      });
+      setState(() {
+        isUploading = true;
+      });
+    }
+  }
+
+  Future<String> uploadImage(image) async {
+    UploadTask uploadTask =
+        storageRefs.child('profile_$profileImageId.jpg').putFile(image);
+    TaskSnapshot storageSnapshot = await uploadTask.whenComplete(() {});
+    String downloadUrl = await storageSnapshot.ref.getDownloadURL();
+    return downloadUrl;
+  }
 
   selectImage(parentContext) {
     return showDialog(
@@ -122,17 +204,21 @@ class _CreateGroupState extends State<CreateGroup> {
 
   floatingActionButton() {
     return FloatingActionButton(
-      onPressed: () {
-        if (_formKey.currentState.validate()) {
+      onPressed: () async {
+        if(!isUploading){
+          if (_formKey.currentState.validate()) {
+          await handleSubmit();
           debugPrint('Done !');
-          // Navigator.pop(context);
-          // Navigator.push(
-          //     context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          Navigator.pop(context);
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => HomeScreen()));
         }
+        }
+       
       },
       elevation: 5,
       backgroundColor: Colors.grey[900],
-      child: isLoading
+      child: isUploading
           ? Padding(
               padding: const EdgeInsets.all(16.0),
               child: CircularProgressIndicator(
@@ -181,18 +267,20 @@ class _CreateGroupState extends State<CreateGroup> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     IconButton(
-                      color : _image != null ? Colors.redAccent : Colors.green,
+                      color: _image != null ? Colors.redAccent : Colors.green,
                       splashRadius: 12,
                       splashColor: Colors.white,
-                      icon: _image != null ? Icon(Icons.delete) : Icon(Icons.upload_file),
+                      icon: _image != null
+                          ? Icon(Icons.delete)
+                          : Icon(Icons.upload_file),
                       onPressed: () {
-                        if(_image == null){
+                        if(!isUploading){
+                          if (_image == null) {
                           selectImage(context);
-                        }
-                        else if(_image != null){
+                        } else if (_image != null) {
                           clearImage();
                         }
-                        
+                        }
                       },
                     ),
                   ],

@@ -89,17 +89,19 @@ class _FriendsTileState extends State<FriendsTile> {
                       color: Colors.black,
                       fontSize: 18,
                       fontFamily: 'Monstserrat')),
-              subtitle: Text(widget.lastMessage,
-                  style: !widget.isSeen
-                      ? TextStyle(
-                          color: Colors.grey[800],
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        )
-                      : TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        )),
+              subtitle: Text(
+                widget.lastMessage,
+                style: !widget.isSeen
+                    ? TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      )
+                    : TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+              ),
             ),
           ),
           SizedBox(
