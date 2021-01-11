@@ -1,4 +1,5 @@
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/screens/group_chatScreen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -42,7 +43,12 @@ class _GroupCardState extends State<GroupCard> {
             height: screenWidth * 1.1,
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              showGroupChat(context,
+                  groupId: widget.groupId,
+                  groupName: widget.groupName,
+                  groupBanner: widget.groupBanner);
+            },
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.white,
@@ -60,13 +66,15 @@ class _GroupCardState extends State<GroupCard> {
                   fontFamily: 'Monstserrat',
                 ),
               ),
-              subtitle: widget.lastMessage == "" ? null : Text(
-                widget.lastMessage,
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 14,
-                ),
-              ),
+              subtitle: widget.lastMessage == ""
+                  ? null
+                  : Text(
+                      widget.lastMessage,
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                    ),
             ),
           ),
           SizedBox(
@@ -80,4 +88,18 @@ class _GroupCardState extends State<GroupCard> {
       ),
     );
   }
+}
+
+showGroupChat(BuildContext context,
+    {String groupId, String groupName, String groupBanner}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => GroupChatScreen(
+        groupId: groupId,
+        groupName: groupName,
+        groupBanner: groupBanner,
+      ),
+    ),
+  );
 }

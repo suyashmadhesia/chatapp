@@ -16,7 +16,9 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 
   final String userId;
-  ChatScreen({this.userId});
+  final String username;
+  final String avatar;
+  ChatScreen({this.userId, this.username, this.avatar});
 }
 
 setCurrentChatScreen(String username) async {
@@ -44,10 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final DateTime timeStamp = DateTime.now();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  String username;
   String rUsername;
-  String profileLink;
-  String receiversUserId;
   bool isBlocked = false;
   bool isLoaded = false;
   bool isSending = false;
@@ -171,22 +170,24 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(widget.userId)
         .get();
     final receiverBlocked = senderMessageRefs['isBlocked'];
-    final receiverAccountRefs = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .get();
-    username = receiverAccountRefs[
-        'username']; // username of other person sending message
-    profileLink = receiverAccountRefs['avtar'];
-    receiversUserId = receiverAccountRefs['userId'];
-    // if user is not blocked
+    //TODO don not delete this comment important for understanding the code
+    // final receiverAccountRefs = await FirebaseFirestore.instance
+    //     .collection('users')
+    //     .doc(widget.userId)
+    //     .get();
+    // username = receiverAccountRefs[
+    //     'username']; // username of other person sending message
+    // profileLink = receiverAccountRefs['avtar'];
+    // receiversUserId = receiverAccountRefs['userId'];
+    // // if user is not blocked
     final receiverMessageRefs = await FirebaseFirestore.instance
         .collection('users/' + widget.userId + '/friends')
         .doc(user.uid)
         .get();
     final block = receiverMessageRefs['isBlocked'];
-    rUsername = receiverMessageRefs['username']; // username of app holder
-    setCurrentChatScreen(username);
+    rUsername = receiverMessageRefs[
+        'username']; // my user name means the name of current sender
+    setCurrentChatScreen(widget.username);
     if (block) {
       setState(() {
         isBlocked = true;
@@ -231,31 +232,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         );
       },
-    );
-  }
-
-  AppBar buildNocontentBar() {
-    return AppBar(
-      backgroundColor: Colors.grey[900],
-      title: Row(
-        children: [
-          Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: CircleAvatar(
-                backgroundColor: Colors.grey[800],
-                radius: 20,
-              )),
-          Text(
-            '                       ',
-            style: TextStyle(
-              backgroundColor: Colors.grey[800],
-              color: Colors.white,
-              fontFamily: 'Montserrat',
-              fontSize: 20.0,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -352,8 +328,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 isBlocked
                     ? Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                            'You cannot send message ! $username has blocked you'),
+                        child: Text('You cannot send message ! ' +
+                            widget.username +
+                            ' has blocked you'),
                       )
                     : Padding(
                         padding: const EdgeInsets.only(
@@ -415,7 +392,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'timestamp': DateTime.now(),
                                       'sendersMessageId': '',
                                       'receiversMessageId': '',
-                                      'assets' : [],
+                                      'assets': [],
                                       // you want to make element in map:
                                       // 'assets' : [{
                                       //   'contentType' : '',
@@ -438,7 +415,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'lastMessage': message,
                                     });
 
-//Receiver Collections //TODO receiver yahan wale code se collection me save ho rha hai  
+//Receiver Collections //TODO receiver yahan wale code se collection me save ho rha hai
                                     FirebaseFirestore.instance
                                         .collection('users/' +
                                             widget.userId +
@@ -460,7 +437,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'timestamp': DateTime.now(),
                                       'sendersMessageId': '',
                                       'receiversMessageId': '',
-                                      'assets' : [],
+                                      'assets': [],
                                     });
                                     final String docId =
                                         receieverMessageCollection.id;
@@ -500,8 +477,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     setState(() {
                                       isSending = false;
                                     });
-                                  }
-                                  else {
+                                  } else {
                                     showdialog(context);
                                   }
                                 } else {
@@ -638,44 +614,42 @@ class _ChatScreenState extends State<ChatScreen> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: Color(0xff484848),
-          appBar: isLoaded
-              ? AppBar(
-                  backgroundColor: Colors.grey[900],
-                  actions: appbarActionButton(),
-                  title: GestureDetector(
-                    onTap: () => showProfile(context, profileId: widget.userId),
-                    child: Row(
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(right: 14),
-                            child: CircleAvatar(
-                                backgroundColor: Colors.white,
-                                radius: 20,
-                                backgroundImage: profileLink == '' ||
-                                        profileLink == null
-                                    ? AssetImage(
-                                        'assets/images/user.png')
-                                    : CachedNetworkImageProvider(profileLink))),
-                        Text(
-                          username,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Montserrat',
-                            fontSize: 20.0,
-                          ),
-                        ),
-                      ],
-                    ),
+        key: _scaffoldKey,
+        backgroundColor: Color(0xff484848),
+        appBar: AppBar(
+          backgroundColor: Colors.grey[900],
+          actions: appbarActionButton(),
+          title: GestureDetector(
+            onTap: () => showProfile(context, profileId: widget.userId),
+            child: Row(
+              children: [
+                Padding(
+                    padding: const EdgeInsets.only(right: 14),
+                    child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 20,
+                        backgroundImage:
+                            widget.avatar == '' || widget.avatar == null
+                                ? AssetImage('assets/images/user.png')
+                                : CachedNetworkImageProvider(widget.avatar))),
+                Text(
+                  widget.username,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Montserrat',
+                    fontSize: 20.0,
                   ),
-                )
-              : buildNocontentBar(),
-          body: isLoaded
-              ? bodyToBuild()
-              : Center(
-                  child: CircularProgressIndicator(),
-                )),
+                ),
+              ],
+            ),
+          ),
+        ),
+        body: isLoaded
+            ? bodyToBuild()
+            : Center(
+                child: CircularProgressIndicator(),
+              ),
+      ),
     );
   }
 }

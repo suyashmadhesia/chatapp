@@ -61,7 +61,7 @@ class _FriendsTileState extends State<FriendsTile> {
           ),
           GestureDetector(
             onTap: () {
-              showChatScreen(context, profileId: widget.sendersUserId);
+              showChatScreen(context, profileId: widget.sendersUserId, username: widget.sendersUsername, avatar: avatar);
             },
             child: ListTile(
               leading: isDataLoaded
@@ -117,12 +117,14 @@ class _FriendsTileState extends State<FriendsTile> {
   }
 }
 
-showChatScreen(BuildContext context, {String profileId}) {
+showChatScreen(BuildContext context, {String profileId, String username, String avatar}) {
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => ChatScreen(
         userId: profileId,
+        username: username,
+        avatar: avatar,
       ),
     ),
   );
