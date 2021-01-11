@@ -1,19 +1,14 @@
-//import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/components/message_bubble.dart';
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
-//import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-//import 'package:focused_menu/modals.dart';
-// import 'package:skeleton_text/skeleton_text.dart';
-//import 'package:focused_menu/focused_menu.dart';
-//import 'package:Inbox/components/message_bubble.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -283,8 +278,8 @@ class _ChatScreenState extends State<ChatScreen> {
             final messageText = messag['message'];
             final messageSender = messag['sender'];
             final timeStamp = messag['timestamp'];
-            final myMessageId = messag['id'];
-            final messageId = messag['anotherId'];
+            final myMessageId = messag['sendersMessageId'];
+            final messageId = messag['receiverMessageId'];
 
             String day = '';
             String time = '';
@@ -368,11 +363,6 @@ class _ChatScreenState extends State<ChatScreen> {
                           keyboardType: TextInputType.multiline,
                           minLines: 1,
                           maxLines: 50,
-                          // onChanged: (value) {
-                          //   String trimLeft = value.trimLeft();
-                          //   String trimRight = trimLeft.trimRight();
-                          //   message = trimRight;
-                          // },
                           cursorColor: Colors.grey[100],
                           autofocus: false,
                           style: TextStyle(
@@ -411,6 +401,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     sendNotification(widget.userId, message,
                                         rUsername, user.uid);
                                     messageTextController.clear();
+                                    //TODO here messege is save in senders db
                                     final senderMessageCollection =
                                         await sendersMessageRefs
                                             .collection('users/' +
@@ -422,8 +413,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'sender': user.uid,
                                       'message': message,
                                       'timestamp': DateTime.now(),
-                                      'id': '',
-                                      'anotherId': '',
+                                      'sendersMessageId': '',
+                                      'receiversMessageId': '',
+                                      'assets' : [],
+                                      // you want to make element in map:
+                                      // 'assets' : [{
+                                      //   'contentType' : '',
+                                      //   'name' : '',
+                                      //   'thumbnail' : '',
+                                      //   'url' : '',
+                                      // }],
                                     });
 
                                     final String docid =
@@ -439,7 +438,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'lastMessage': message,
                                     });
 
-//Receiver Collections
+//Receiver Collections //TODO receiver yahan wale code se collection me save ho rha hai  
                                     FirebaseFirestore.instance
                                         .collection('users/' +
                                             widget.userId +
@@ -459,8 +458,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'sender': user.uid,
                                       'message': message,
                                       'timestamp': DateTime.now(),
-                                      'id': '',
-                                      'anotherId': '',
+                                      'sendersMessageId': '',
+                                      'receiversMessageId': '',
+                                      'assets' : [],
                                     });
                                     final String docId =
                                         receieverMessageCollection.id;
@@ -482,8 +482,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                             '/messages')
                                         .doc(docid)
                                         .update({
-                                      'id': docid,
-                                      'anotherId': docId,
+                                      'sendersMessageId': docid,
+                                      'receiversMessageId': docId,
                                     });
                                     sendersMessageRefs
                                         .collection('users/' +
@@ -493,15 +493,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                             '/messages')
                                         .doc(docId)
                                         .update({
-                                      'id': docId,
-                                      'anotherId': docid,
+                                      'sendersMessageId': docId,
+                                      'receiversMessageId': docid,
                                     });
                                     message = '';
                                     setState(() {
                                       isSending = false;
                                     });
                                   }
-                                  //ashfkjdshksngldmgldfmgladnklgnkasldnglkan
                                   else {
                                     showdialog(context);
                                   }
