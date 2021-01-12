@@ -38,6 +38,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   List groupsList = [];
   bool isAbleToSendMessage = false;
   var joinedAt;
+  bool admin = false;
 
   messageStream() {
     return StreamBuilder(
@@ -90,12 +91,34 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     );
   }
 
+  appbarActions() {
+    return Container(
+      child: Row(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xff484848),
       key: _scaffoldKey,
       appBar: AppBar(
+        actions: [
+          if (admin)
+            IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                )),
+          IconButton(
+            icon: Icon(
+              Icons.more_vert,
+              color: Colors.white,
+            ),
+            onPressed: () {},
+          )
+        ],
         backgroundColor: Colors.grey[900],
         title: GestureDetector(
           onTap: () {},
@@ -241,6 +264,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       'timestamp': DateTime.now(),
       'visibility': true,
     });
+    collectionRefs.collection('groups').doc(widget.groupId).update({
+      'lastMessage': message,
+    });
     await collectionRefs
         .collection('users/$userid/groups/' + widget.groupId + '/messages')
         .doc(messageId)
@@ -255,13 +281,26 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     groupsList = userData['groupsList'];
     myUsername = userData['username'];
 
-    final groupMemberData = await collectionRefs.collection('groups'+ widget.groupId +'/members').doc(userid).get();
+    final groupMemberData = await collectionRefs
+        .collection('groups/' + widget.groupId + '/members')
+        .doc(userid)
+        .get();
     joinedAt = groupMemberData['joinAt'];
     bool isAdmin = groupMemberData['isAdmin'];
 
     if (groupsList.contains(widget.groupId)) {
       setState(() {
         isAbleToSendMessage = true;
+      });
+    }
+    if (isAdmin) {
+      setState(() {
+        admin = true;
+      });
+    }
+    if (!isAdmin) {
+      setState(() {
+        admin = false;
       });
     }
 
