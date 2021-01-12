@@ -1,4 +1,5 @@
 //import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -101,10 +102,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                             backgroundColor: Colors.white,
-                            radius: 32,
+                            radius: screenHeight * 42,
                             backgroundImage: senderAvatar == '' ||
                                     senderAvatar == null
-                                ? AssetImage('assets/images/profile-user.png')
+                                ? AssetImage('assets/images/user.png')
                                 : CachedNetworkImageProvider(senderAvatar)),
                         title: Text(
                             sendersUsername +
@@ -141,9 +142,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
           }
         });
   }
-
+  double screenHeight;
+  double screenWidth;
   @override
   Widget build(BuildContext context) {
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

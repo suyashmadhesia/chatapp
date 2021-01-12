@@ -34,25 +34,12 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    controller =
-        AnimationController(duration: Duration(microseconds: 200), vsync: this);
-
-    animation = ColorTween(begin: Colors.grey[200], end: Colors.white)
-        .animate(controller);
-    controller.forward();
     setCurrentScreen();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    controller.dispose();
-  }
 
   final _auth = FirebaseAuth.instance;
   final userRefs = FirebaseFirestore.instance.collection('users');
-  Animation animation;
-  AnimationController controller;
 
 	double screenHeight;
 	double screenWidth;
@@ -130,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
-                  ? AssetImage('assets/images/profile-user.png')
+                  ? AssetImage('assets/images/user.png')
                   : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(

@@ -215,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
         height: screenHeight * 70,
         items: <Widget>[
           Icon(
-            Icons.favorite_rounded,
+            Icons.question_answer,
             size: 20,
             color: Colors.white,
           ),

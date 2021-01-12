@@ -1,5 +1,6 @@
 import 'package:Inbox/models/user.dart';
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/screens/home.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
@@ -21,21 +22,12 @@ class _OthersProfileState extends State<OthersProfile>
   // final _auth = FirebaseAuth.instance;
   String user = FirebaseAuth.instance.currentUser.uid;
   final userRefs = FirebaseFirestore.instance.collection('users');
-  Animation animation;
-  AnimationController controller;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
     checkInternet();
-    controller =
-        AnimationController(duration: Duration(microseconds: 200), vsync: this);
-
-    animation = ColorTween(begin: Colors.grey[200], end: Colors.white)
-        .animate(controller);
-    controller.forward();
-
     getUsersFriendData();
     isRequestSent();
     checkingAccept();
@@ -62,6 +54,7 @@ class _OthersProfileState extends State<OthersProfile>
   bool isLoading = false;
   double screenHeight;
   double screenWidth;
+  bool dataLoaded = false;
 
   checkInternet() async {
     bool result = await DataConnectionChecker().hasConnection;
@@ -171,6 +164,9 @@ class _OthersProfileState extends State<OthersProfile>
     receiverRequestList = receiverAccountRefs['requestList'];
     receiverFriendsList = receiverAccountRefs['friendsList'];
     rUsername = receiverAccountRefs['username'];
+    setState(() {
+      dataLoaded = true;
+    });
   }
 
   isRequestSent() async {
@@ -226,8 +222,8 @@ class _OthersProfileState extends State<OthersProfile>
           'SendersUsername': username,
           'SendersAvatar': avatar,
         });
-        sendNotification(widget.profileId, '$username has sent you request !!',
-            'Friend Request', user);
+        // sendNotification(widget.profileId, '$username has sent you request !!',
+        //     'Friend Request', user);
       }
     }
     setState(() {
@@ -271,6 +267,12 @@ class _OthersProfileState extends State<OthersProfile>
         !receiverFriendsList.contains(user)) {
       if (userPendingList.contains(widget.profileId) &&
           receiverRequestList.contains(user)) {
+        final messageCollection =
+            await FirebaseFirestore.instance.collection('messages').add({
+          'userId1': user,
+          'userId2': widget.profileId,
+        });
+        final messageCollectionId = messageCollection.id;
         userRefs.doc(user).update({
           'pendingList': FieldValue.arrayRemove(userIdOfReceiver),
         });
@@ -295,7 +297,8 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage': 'Say hi to $rUsername'
+          'lastMessage': 'Say hi to $rUsername',
+          'messageCollectionId': messageCollectionId,
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -307,13 +310,9 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage': 'Say hi to $username'
+          'lastMessage': 'Say hi to $username',
+          'messageCollectionId': messageCollectionId,
         });
-        // final receiverCollectionsRefs = FirebaseFirestore.instance
-        //     .collection('users/' + widget.profileId + '/pendingRequests');
-        // receiverCollectionRef.doc(user).set({
-        //   'user': username,
-        // });
         final receiverCollectionRefs = FirebaseFirestore.instance
             .collection('users/$user/pendingRequests');
         receiverCollectionRefs.doc(widget.profileId).delete();
@@ -322,8 +321,8 @@ class _OthersProfileState extends State<OthersProfile>
     setState(() {
       showAccepted = false;
     });
-    sendNotification(widget.profileId, '$username has accepted your request !!',
-        'Request Accepted', user);
+    // sendNotification(widget.profileId, '$username has accepted your request !!',
+    //     'Request Accepted', user);
   }
 
   unfriending() async {
@@ -470,8 +469,15 @@ class _OthersProfileState extends State<OthersProfile>
         color: Colors.white,
         splashColor: Colors.blue[200],
         onPressed: () async {
-          if(!isLoading)
-          await unfriending();
+          if (!isLoading) {
+            setState(() {
+                isLoading = true;
+              });
+            await unfriending();
+            setState(() {
+                isLoading = false;
+              });
+          }
           SnackBar snackBar = SnackBar(
             behavior: SnackBarBehavior.floating,
             duration: Duration(seconds: 2),
@@ -483,7 +489,8 @@ class _OthersProfileState extends State<OthersProfile>
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
           Navigator.pop(context);
-          Navigator.pushNamed(context, 'home_screen');
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => HomeScreen()));
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -497,9 +504,13 @@ class _OthersProfileState extends State<OthersProfile>
                   style: TextStyle(
                       color: Colors.blue[900], fontFamily: 'Montserrat'),
                 )
-              : Center(
-                  child: CircularProgressIndicator(),
-                ),
+              : SizedBox(
+                height: 16,
+                width: 16,
+
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                )),
         ),
       );
     } else {
@@ -530,10 +541,10 @@ class _OthersProfileState extends State<OthersProfile>
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
           } else if (!isSentRequest) {
-            if(!isLoading)
-            setState(() {
-              isLoading = true;
-            });
+            if (!isLoading)
+              setState(() {
+                isLoading = true;
+              });
             await sendFriendRequest();
             await getUsersFriendData();
             await isRequestSent();
@@ -570,7 +581,9 @@ class _OthersProfileState extends State<OthersProfile>
               : SizedBox(
                   height: 16,
                   width: 16,
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
                 ),
         ),
       );
@@ -593,7 +606,7 @@ class _OthersProfileState extends State<OthersProfile>
               radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
-                  ? AssetImage('assets/images/profile-user.png')
+                  ? AssetImage('assets/images/user.png')
                   : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(
@@ -646,7 +659,9 @@ class _OthersProfileState extends State<OthersProfile>
               backgroundColor: Colors.grey[900],
             ),
             body: SafeArea(
-              child: buildProfileHeader(),
+              child: dataLoaded
+                  ? buildProfileHeader()
+                  : Center(child: CircularProgressIndicator()),
             ),
           )
         : Scaffold(

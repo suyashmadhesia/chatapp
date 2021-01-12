@@ -1,4 +1,5 @@
 import 'package:Inbox/components/friends_card.dart';
+import 'package:Inbox/components/group_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,8 @@ class _FriendsScreenState extends State<FriendsScreen>
     _tabController.addListener(handleTabIndex);
   }
 
-
   @override
-  void dispose(){
+  void dispose() {
     _tabController.removeListener(handleTabIndex);
     _tabController.dispose();
     super.dispose();
@@ -42,14 +42,26 @@ class _FriendsScreenState extends State<FriendsScreen>
   bool isDataLoaded = false;
   bool isEmptyFriendList = false;
   bool isEmptyGroupList = false;
-
+  String myUsername;
   getUsersFriendData() async {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     friendsList = userAccountRefs['friendsList'];
+    groupList = userAccountRefs['groupsList'];
+    myUsername = userAccountRefs['groupsList'];
     setState(() {
       isDataLoaded = true;
     });
+    if (groupList.isEmpty) {
+      setState(() {
+        isEmptyGroupList = true;
+      });
+    }
+    if (groupList.isNotEmpty) {
+      setState(() {
+        isEmptyGroupList = false;
+      });
+    }
     if (friendsList.isNotEmpty) {
       setState(() {
         isEmptyFriendList = false;
@@ -63,10 +75,11 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   floatingActionButton() {
     return FloatingActionButton(
-      onPressed: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => CreateGroup()));
+      onPressed: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => CreateGroup()));
       },
-      elevation : 5,
+      elevation: 5,
       backgroundColor: Colors.grey[900],
       child: Icon(
         Icons.add,
@@ -104,11 +117,34 @@ class _FriendsScreenState extends State<FriendsScreen>
       ),
     );
   }
-  
+
   // build no content screen for group tab
   buildNoContentScreenForGroups() {
-    return Center(
-      child: Text('hello world'),
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            isEmptyGroupList ? Text('') : CircularProgressIndicator(),
+            SizedBox(
+              height: 10,
+            ),
+            Center(
+                child: isEmptyGroupList
+                    ? Text('No group joined yet. Tap + button to create one !!',
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                            fontFamily: 'Mulish'))
+                    : Text('Wait while we loading .....',
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                            fontFamily: 'Mulish'))),
+          ],
+        ),
+      ),
     );
   }
 
@@ -160,48 +196,90 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   //group list stream
   groupListStream() {
-    return Center(
-      child: Text('Groups are shown here'),
-    );
+    return StreamBuilder(
+        stream: _collectionRefs
+            .collection('groups')
+            .orderBy('messageAt', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasData) {
+            final groupIds = snapshot.data.documents;
+            List<GroupCard> groupsWidget = [];
+            for (var groupid in groupIds) {
+              final groupName = groupid['groupName'];
+              final groupBanner = groupid['groupBanner'];
+              final groupId = groupid['groupId'];
+              final groupMembers = groupid['groupMember'];
+              final messageAt = groupid['messageAt'];
+              final lastMessage = groupid['lastMessage'];
+
+              DateTime dateTime = messageAt.toDate();
+
+              if (groupMembers.contains(_userId)) {
+                final GroupCard groupWidget = GroupCard(
+                  groupName: groupName,
+                  groupBanner: groupBanner,
+                  groupId: groupId,
+                  lastMessage: lastMessage,
+                  messageAt: dateTime,
+                  userId: _userId,
+                  key: Key(groupId),
+                  username : myUsername,
+                );
+                groupsWidget.add(groupWidget);
+                groupsWidget.reversed;
+              }
+            }
+            return ListView(physics: BouncingScrollPhysics(), children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: groupsWidget,
+              ),
+            ]);
+          }
+        });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.grey[900],
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            tabs: [
-              Tab(
-                child: Text('Chats',
-                    style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
-              ),
-              Tab(
-                child: Text('Groups',
-                    style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
-              )
-            ],
-          ),
-        ),
-        backgroundColor: Colors.white,
-        body: TabBarView(
+      appBar: AppBar(
+        title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.grey[900],
+        bottom: TabBar(
           controller: _tabController,
-          physics: BouncingScrollPhysics(),
-          children: [
-            isDataLoaded && !isEmptyFriendList
-                ? friendsListStream()
-                : buildNocontentForChats(),
-            buildNoContentScreenForGroups(),
-            //  isDataLoaded && !isEmptyGroupList
-            //   ? groupListStream()
-            //   : buildNoContentScreenForGroups(),
+          indicatorColor: Colors.white,
+          tabs: [
+            Tab(
+              child: Text('Chats',
+                  style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
+            ),
+            Tab(
+              child: Text('Groups',
+                  style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
+            )
           ],
         ),
-        floatingActionButton : _tabController.index == 1 ? floatingActionButton() : null, //checking whether we are on chat tab or group tab
-        );
+      ),
+      backgroundColor: Colors.white,
+      body: TabBarView(
+        controller: _tabController,
+        physics: BouncingScrollPhysics(),
+        children: [
+          isDataLoaded && !isEmptyFriendList
+              ? friendsListStream()
+              : buildNocontentForChats(),
+          isDataLoaded && !isEmptyGroupList
+              ? groupListStream()
+              : buildNoContentScreenForGroups(),
+        ],
+      ),
+      floatingActionButton: _tabController.index == 1
+          ? floatingActionButton()
+          : null, //checking whether we are on chat tab or group tab
+    );
   }
 }
