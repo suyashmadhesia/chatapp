@@ -111,7 +111,7 @@ class _GroupCardState extends State<GroupCard> {
 }
 
 showGroupChat(BuildContext context,
-    {String groupId, String groupName, String groupBanner, String myUsername}) {
+    {String groupId, String groupName, String groupBanner}) {
   Navigator.push(
     context,
     MaterialPageRoute(
@@ -119,7 +119,6 @@ showGroupChat(BuildContext context,
         groupId: groupId,
         groupName: groupName,
         groupBanner: groupBanner,
-        myUsername : myUsername
       ),
     ),
   );

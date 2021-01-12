@@ -1,3 +1,4 @@
+import 'package:Inbox/components/group_message_bubble.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,22 +9,25 @@ class GroupChatScreen extends StatefulWidget {
   final String groupId;
   final String groupName;
   final String groupBanner;
-  final String myUsername;
-  GroupChatScreen({this.groupId, this.groupName, this.groupBanner, this.myUsername});
+  GroupChatScreen({
+    this.groupId,
+    this.groupName,
+    this.groupBanner,
+  });
 
   @override
   _GroupChatScreenState createState() => _GroupChatScreenState();
 }
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
-
-  initState(){
+  initState() {
     super.initState();
     getUserData();
   }
 
 //Variables
   String message;
+  String myUsername;
   final messageTextController = TextEditingController();
   final userid = FirebaseAuth.instance.currentUser.uid;
   final collectionRefs = FirebaseFirestore.instance;
@@ -33,6 +37,58 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   bool isDataLoaded = false;
   List groupsList = [];
   bool isAbleToSendMessage = false;
+  var joinedAt;
+
+  messageStream() {
+    return StreamBuilder(
+      stream: collectionRefs
+          .collection('groups/' + widget.groupId + '/messages')
+          .orderBy('timestamp', descending: false)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasData) {
+          final messages = snapshot.data.documents.reversed;
+          List<GroupMessageBubble> messageBubbles = [];
+          for (var message in messages) {
+            final messageText = message['message'];
+            final usernameOfSender = message['usernameOfSender'];
+            final messageId = message['messageId'];
+            final timeStamp = message['timestamp'];
+            final visibility = message['visibility'];
+            final senderUserId = message['senderUserId'];
+
+            String time = '';
+            DateTime d = timeStamp.toDate();
+            final String dateTOstring = d.toString();
+
+            for (int i = 11; i <= 15; i++) {
+              time = time + dateTOstring[i];
+            }
+
+            final messageBubble = GroupMessageBubble(
+              message: messageText,
+              messageId: messageId,
+              sender: userid == senderUserId,
+              timestamp: d,
+              time: time,
+              visibility: visibility,
+              usernameOfSender: usernameOfSender,
+            );
+            messageBubbles.add(messageBubble);
+          }
+          return Expanded(
+            child: ListView(
+              physics: BouncingScrollPhysics(),
+              reverse: true,
+              children: messageBubbles,
+            ),
+          );
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +139,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          // messageStream(),
+          messageStream(),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -140,8 +196,25 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     Icons.send,
                     color: Colors.green[400],
                   ),
-                  onPressed: () {
-                    sendMessage();
+                  onPressed: () async {
+                    String trimLeft = messageTextController.text.trimLeft();
+                    String trimRight = trimLeft.trimRight();
+                    message = trimRight;
+                    if (message != null && message != "") {
+                      getUserData();
+                      if (isAbleToSendMessage) {
+                        // debugPrint('in user group List');
+                        messageTextController.clear();
+                        setState(() {
+                          isSending = true;
+                        });
+                        await sendMessage(message);
+                        setState(() {
+                          isSending = false;
+                        });
+                        message = '';
+                      }
+                    }
                   },
                 ),
               ),
@@ -154,28 +227,37 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   onAddAssetClick() {}
 
-  sendMessage() async{
+  sendMessage(String message) async {
     String messageId = Uuid().v4();
-    await collectionRefs.collection('groups/'+widget.groupId).doc(messageId).set({
-      'message' : message,
-      'usernameOfSender' : widget.myUsername,
+    await collectionRefs
+        .collection('groups/' + widget.groupId + '/messages')
+        .doc(messageId)
+        .set({
+      'message': message,
+      'usernameOfSender': myUsername,
       'assets': [],
-      'messageId' : messageId,
-      'senderUserId' : userid,
-      'timestamp' : DateTime.now(),
-      'visibility' : true,
+      'messageId': messageId,
+      'senderUserId': userid,
+      'timestamp': DateTime.now(),
+      'visibility': true,
     });
-    await collectionRefs.collection('users/$userid/groups/'+widget.groupId+'messages').doc(messageId).set({
+    await collectionRefs
+        .collection('users/$userid/groups/' + widget.groupId + '/messages')
+        .doc(messageId)
+        .set({
       'messageAt': DateTime.now(),
       'messageId': messageId,
     });
   }
 
-  messageStream() {}
-
   getUserData() async {
     final userData = await collectionRefs.collection('users').doc(userid).get();
     groupsList = userData['groupsList'];
+    myUsername = userData['username'];
+
+    final groupMemberData = await collectionRefs.collection('groups'+ widget.groupId +'/members').doc(userid).get();
+    joinedAt = groupMemberData['joinAt'];
+    bool isAdmin = groupMemberData['isAdmin'];
 
     if (groupsList.contains(widget.groupId)) {
       setState(() {
