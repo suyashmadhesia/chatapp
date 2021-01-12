@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:Inbox/components/friends_card.dart';
-import 'package:Inbox/components/group_card.dart';
+import 'package:Inbox/helpers/firebase_query.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +14,92 @@ class FriendsScreen extends StatefulWidget {
 
 class _FriendsScreenState extends State<FriendsScreen>
     with SingleTickerProviderStateMixin {
+  ScrollController scrollController = ScrollController();
+  CollectionReference friendsReference;
+
+  StreamController<List<DocumentSnapshot>> controller;
+  List<DocumentSnapshot> friends = [];
+  int documentLimit = 10;
+  bool hasMore = true;
+  var lastDocument;
+  var currentUser;
+
+  bool isLoading = false;
+
+  void startLoading() {
+    setState(() {
+      isLoading = true;
+    });
+  }
+
+  void stopLoading() {
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   @override
   initState() {
     super.initState();
-    getUsersFriendData();
+    // getUsersFriendData();
+    currentUser = FirebaseAuth.instance.currentUser.uid;
+
     _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
     _tabController.addListener(handleTabIndex);
+    friendsReference =
+        FirebaseFirestore.instance.collection("users/$currentUser/friends");
+    controller = StreamController<List<DocumentSnapshot>>();
+    getFriends(isLoading, startLoading: startLoading, stopLoading: stopLoading);
+    scrollController.addListener(() {
+      double maxScroll = scrollController.position.maxScrollExtent;
+      double currentScroll = scrollController.position.pixels;
+      double delta = MediaQuery.of(context).size.height * 0.20;
+      if (maxScroll - currentScroll <= delta) {
+        getFriends(isLoading,
+            startLoading: startLoading, stopLoading: stopLoading);
+      }
+    });
+  }
+
+  Stream<List<DocumentSnapshot>> get stream => controller.stream;
+
+  getFriends(bool isLoading,
+      {Function limitExceed,
+      Function stopLoading,
+      Function startLoading}) async {
+    if (!hasMore) {
+      limitExceed();
+      return;
+    }
+    if (isLoading) {
+      return;
+    }
+    startLoading();
+    QuerySnapshot querySnapshot;
+    if (lastDocument == null) {
+      // Bring all friends except blocked ones
+      querySnapshot = await friendsReference
+          .where("isBlocked", isEqualTo: false)
+          .orderBy("messageAt", descending: true)
+          .limit(documentLimit)
+          .get();
+    } else {
+      querySnapshot = await friendsReference
+          .where("isBlocked", isEqualTo: false)
+          .orderBy("messageAt", descending: true)
+          .limit(documentLimit)
+          .get();
+    }
+    if (querySnapshot.docs.length < documentLimit) {
+      hasMore = false;
+    }
+
+    lastDocument = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+    friends.addAll(querySnapshot.docs);
+    controller.sink.add(querySnapshot.docs);
+    print(friends);
+    stopLoading();
   }
 
   @override
@@ -42,26 +124,14 @@ class _FriendsScreenState extends State<FriendsScreen>
   bool isDataLoaded = false;
   bool isEmptyFriendList = false;
   bool isEmptyGroupList = false;
-  String myUsername;
+
   getUsersFriendData() async {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     friendsList = userAccountRefs['friendsList'];
-    groupList = userAccountRefs['groupsList'];
-    myUsername = userAccountRefs['groupsList'];
     setState(() {
       isDataLoaded = true;
     });
-    if (groupList.isEmpty) {
-      setState(() {
-        isEmptyGroupList = true;
-      });
-    }
-    if (groupList.isNotEmpty) {
-      setState(() {
-        isEmptyGroupList = false;
-      });
-    }
     if (friendsList.isNotEmpty) {
       setState(() {
         isEmptyFriendList = false;
@@ -120,46 +190,23 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   // build no content screen for group tab
   buildNoContentScreenForGroups() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            isEmptyGroupList ? Text('') : CircularProgressIndicator(),
-            SizedBox(
-              height: 10,
-            ),
-            Center(
-                child: isEmptyGroupList
-                    ? Text('No group joined yet. Tap + button to create one !!',
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: 'Mulish'))
-                    : Text('Wait while we loading .....',
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: 'Mulish'))),
-          ],
-        ),
-      ),
+    return Center(
+      child: Text('hello world'),
     );
   }
 
   //TODO: UPDATE friends list stream
   friendsListStream() {
     return StreamBuilder(
-        stream: _collectionRefs
-            .collection('users/$_userId/friends')
-            .orderBy('messageAt', descending: true)
-            .snapshots(),
+        stream: controller.stream,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          print(snapshot);
+          if (!snapshot.hasData && snapshot.data.length == 0) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasData) {
-            final userIds = snapshot.data.documents;
+            print(snapshot);
+            print(snapshot.data);
+            final userIds = snapshot.data;
             List<FriendsTile> friendsWidget = [];
             for (var userid in userIds) {
               final sendersUsername = userid['username'];
@@ -196,50 +243,9 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   //group list stream
   groupListStream() {
-    return StreamBuilder(
-        stream: _collectionRefs
-            .collection('groups')
-            .orderBy('messageAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasData) {
-            final groupIds = snapshot.data.documents;
-            List<GroupCard> groupsWidget = [];
-            for (var groupid in groupIds) {
-              final groupName = groupid['groupName'];
-              final groupBanner = groupid['groupBanner'];
-              final groupId = groupid['groupId'];
-              final groupMembers = groupid['groupMember'];
-              final messageAt = groupid['messageAt'];
-              final lastMessage = groupid['lastMessage'];
-
-              DateTime dateTime = messageAt.toDate();
-
-              if (groupMembers.contains(_userId)) {
-                final GroupCard groupWidget = GroupCard(
-                  groupName: groupName,
-                  groupBanner: groupBanner,
-                  groupId: groupId,
-                  lastMessage: lastMessage,
-                  messageAt: dateTime,
-                  userId: _userId,
-                  key: Key(groupId),
-                  username : myUsername,
-                );
-                groupsWidget.add(groupWidget);
-                groupsWidget.reversed;
-              }
-            }
-            return ListView(physics: BouncingScrollPhysics(), children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: groupsWidget,
-              ),
-            ]);
-          }
-        });
+    return Center(
+      child: Text('Groups are shown here'),
+    );
   }
 
   @override
@@ -272,16 +278,10 @@ class _FriendsScreenState extends State<FriendsScreen>
           isDataLoaded && !isEmptyFriendList
               ? friendsListStream()
               : buildNocontentForChats(),
-<<<<<<< HEAD
           buildNoContentScreenForGroups(),
           //  isDataLoaded && !isEmptyGroupList
           //   ? groupListStream()
           //   : buildNoContentScreenForGroups(),
-=======
-          isDataLoaded && !isEmptyGroupList
-              ? groupListStream()
-              : buildNoContentScreenForGroups(),
->>>>>>> ac7e1c68758f93bf8242787fcd62580ae5e1c4be
         ],
       ),
       floatingActionButton: _tabController.index == 1

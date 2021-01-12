@@ -1,3 +1,4 @@
+import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/screens/chat_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -30,6 +31,8 @@ class _FriendsTileState extends State<FriendsTile> {
 
   bool isDataLoaded = false;
   String avatar;
+  double screenHeight;
+  double screenWidth;
 
   getUserAvatr() async {
     final _data = await FirebaseFirestore.instance
@@ -44,6 +47,11 @@ class _FriendsTileState extends State<FriendsTile> {
 
   @override
   Widget build(BuildContext context) {
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Container(
       color: Colors.grey[50],
       child: Column(
@@ -53,22 +61,21 @@ class _FriendsTileState extends State<FriendsTile> {
           ),
           GestureDetector(
             onTap: () {
-              showChatScreen(context, profileId: widget.sendersUserId);
+              showChatScreen(context, profileId: widget.sendersUserId, username: widget.sendersUsername, avatar: avatar);
             },
             child: ListTile(
               leading: isDataLoaded
                   ? CircleAvatar(
                       backgroundColor: Colors.white,
-                      radius: 32,
+                      radius: screenHeight * 42,
                       backgroundImage: avatar == null || avatar == ''
-                          ? AssetImage('assets/images/profile-user.png')
+                          ? AssetImage('assets/images/user.png')
                           : CachedNetworkImageProvider(avatar),
                     )
                   : CircleAvatar(
                       backgroundColor: Colors.white,
-                      radius: 32,
-                      backgroundImage:
-                          AssetImage('assets/images/profile-user.png'),
+                      radius: screenHeight * 42,
+                      backgroundImage: AssetImage('assets/images/user.png'),
                     ),
               trailing: !widget.isSeen
                   ? Icon(
@@ -82,17 +89,19 @@ class _FriendsTileState extends State<FriendsTile> {
                       color: Colors.black,
                       fontSize: 18,
                       fontFamily: 'Monstserrat')),
-              subtitle: Text(widget.lastMessage,
-                  style: !widget.isSeen
-                      ? TextStyle(
-                          color: Colors.grey[800],
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        )
-                      : TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        )),
+              subtitle: Text(
+                widget.lastMessage,
+                style: !widget.isSeen
+                    ? TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      )
+                    : TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+              ),
             ),
           ),
           SizedBox(
@@ -108,12 +117,14 @@ class _FriendsTileState extends State<FriendsTile> {
   }
 }
 
-showChatScreen(BuildContext context, {String profileId}) {
+showChatScreen(BuildContext context, {String profileId, String username, String avatar}) {
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => ChatScreen(
         userId: profileId,
+        username: username,
+        avatar: avatar,
       ),
     ),
   );

@@ -1,19 +1,14 @@
-//import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/components/message_bubble.dart';
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
-//import 'package:Inbox/screens/friends_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-//import 'package:focused_menu/modals.dart';
-// import 'package:skeleton_text/skeleton_text.dart';
-//import 'package:focused_menu/focused_menu.dart';
-//import 'package:Inbox/components/message_bubble.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -21,7 +16,9 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 
   final String userId;
-  ChatScreen({this.userId});
+  final String username;
+  final String avatar;
+  ChatScreen({this.userId, this.username, this.avatar});
 }
 
 setCurrentChatScreen(String username) async {
@@ -43,26 +40,28 @@ class _ChatScreenState extends State<ChatScreen> {
 
   final messageTextController = TextEditingController();
   final user = FirebaseAuth.instance.currentUser;
-  final userid = FirebaseAuth.instance.currentUser.uid;
   final sendersMessageRefs = FirebaseFirestore.instance;
   final receiverMessageRefs = FirebaseFirestore.instance;
+  final messageCollectionRefs = FirebaseFirestore.instance;
   final DateTime timeStamp = DateTime.now();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  String username;
   String rUsername;
-  String profileLink;
-  String receiversUserId;
   bool isBlocked = false;
   bool isLoaded = false;
   bool isSending = false;
   bool isReceiverBlocked = false;
   List friendsList = [];
+  String uniqueMessageId;
+  String avatar;
+  bool isSeen = false;
+  String lastMessage;
+  String username;
 
   setIsSeen() async {
     if (isInternet) {
       await FirebaseFirestore.instance
-          .collection('users/$userid/friends')
+          .collection('users/' + user.uid + '/friends')
           .doc(widget.userId)
           .update({
         'isSeen': true,
@@ -139,15 +138,10 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         isInternet = true;
       });
-      // setState(() {
-      //   isLoading = false;
-      // });
-      // debugPrint('internet hai ');
     } else {
       setState(() {
         isInternet = false;
       });
-      // debugPrint('internet nhi hai');
     }
   }
 
@@ -155,7 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (isLoaded && isInternet) {
       if (friendsList.contains(widget.userId)) {
         FirebaseFirestore.instance
-            .collection('users/$userid/friends')
+            .collection('users/' + user.uid + '/friends')
             .doc(widget.userId)
             .update({
           'isSeen': true,
@@ -168,33 +162,43 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   getUserData() async {
-    final senderCollectionRef =
-        await FirebaseFirestore.instance.collection('users').doc(userid).get();
+    final senderCollectionRef = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
     friendsList = senderCollectionRef['friendsList'];
+    avatar = senderCollectionRef['avtar'];
+    username = senderCollectionRef['username'];
     final senderMessageRefs = await FirebaseFirestore.instance
         .collection('users/' + user.uid + '/friends')
         .doc(widget.userId)
         .get();
+    lastMessage = senderMessageRefs['lastMessage'];
     final receiverBlocked = senderMessageRefs['isBlocked'];
-    final receiverAccountRefs = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .get();
-    username = receiverAccountRefs[
-        'username']; // username of other person sending message
-    profileLink = receiverAccountRefs['avtar'];
-    receiversUserId = receiverAccountRefs['userId'];
-    // if user is not blocked
+    uniqueMessageId = senderMessageRefs['messageCollectionId'];
     final receiverMessageRefs = await FirebaseFirestore.instance
         .collection('users/' + widget.userId + '/friends')
         .doc(user.uid)
         .get();
     final block = receiverMessageRefs['isBlocked'];
-    rUsername = receiverMessageRefs['username']; // username of app holder
-    setCurrentChatScreen(username);
+    rUsername = receiverMessageRefs[
+        'username']; // my user name means the name of current sender
+    isSeen = receiverMessageRefs['isSeen'];
+
+    setCurrentChatScreen(widget.username);
     if (block) {
       setState(() {
         isBlocked = true;
+      });
+    }
+    if (isSeen) {
+      setState(() {
+        isSeen = true;
+      });
+    }
+    if (!isSeen) {
+      setState(() {
+        isSeen = false;
       });
     }
     setState(() {
@@ -239,38 +243,12 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  AppBar buildNocontentBar() {
-    return AppBar(
-      backgroundColor: Colors.grey[900],
-      title: Row(
-        children: [
-          Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: CircleAvatar(
-                backgroundColor: Colors.grey[800],
-                radius: 20,
-              )),
-          Text(
-            '                       ',
-            style: TextStyle(
-              backgroundColor: Colors.grey[800],
-              color: Colors.white,
-              fontFamily: 'Montserrat',
-              fontSize: 20.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String message;
 
   messageStream() {
     return StreamBuilder(
-      stream: sendersMessageRefs
-          .collection(
-              'users/' + user.uid + '/friends/' + widget.userId + '/messages')
+      stream: messageCollectionRefs
+          .collection('messages/$uniqueMessageId/conversation')
           .orderBy('timestamp', descending: false)
           .snapshots(),
       builder: (context, snapshot) {
@@ -283,8 +261,9 @@ class _ChatScreenState extends State<ChatScreen> {
             final messageText = messag['message'];
             final messageSender = messag['sender'];
             final timeStamp = messag['timestamp'];
-            final myMessageId = messag['id'];
-            final messageId = messag['anotherId'];
+            final messageId = messag['messageId'];
+            final visibility = messag['visibility'];
+            // print(visibility);
 
             String day = '';
             String time = '';
@@ -303,12 +282,14 @@ class _ChatScreenState extends State<ChatScreen> {
               timestamp: d,
               senderId: user.uid,
               receiverId: widget.userId,
-              myMessageId: myMessageId,
-              ontherId: messageId,
+              myMessageId: messageId,
               message: messageText,
-              sender: userid == messageSender,
+              sender: user.uid == messageSender, //bool checking is sender;
               time: time,
-              // messageId: messageId,
+              visibility: visibility,
+              uniqueMessageId: uniqueMessageId,
+              // avatar: widget.avatar
+             
             );
             messageBubbles.add(messageBubble);
           }
@@ -322,6 +303,51 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       },
     );
+  }
+
+  sendMessage(String message) async {
+    final messageDoc = await messageCollectionRefs
+        .collection('messages/$uniqueMessageId/conversation')
+        .add({
+      'sender': user.uid,
+      'message': message,
+      'timestamp': DateTime.now(),
+      'messageId': '',
+      'assets': [],
+      'visibility': true,
+      'avatar': avatar,
+    });
+    final String messageId = messageDoc.id;
+    await messageCollectionRefs
+        .collection('messages/$uniqueMessageId/conversation')
+        .doc(messageId)
+        .update({
+      'messageId': messageId,
+    });
+    sendersMessageRefs
+        .collection('users/' + widget.userId + '/friends')
+        .doc(user.uid)
+        .update({
+      'messageAt': DateTime.now(),
+      'lastMessage': message,
+      'isSeen': false,
+    });
+    sendersMessageRefs
+        .collection('users/' + user.uid + '/friends')
+        .doc(widget.userId)
+        .update({
+      'messageAt': DateTime.now(),
+      'lastMessage': message,
+      'isSeen': true,
+    });
+    await sendersMessageRefs
+        .collection(
+            'users/' + user.uid + '/friends/' + widget.userId + '/messages')
+        .doc(messageId)
+        .set({
+      'messageId': messageId,
+      'timestamp': DateTime.now(),
+    });
   }
 
   void onAddAssetClick() {}
@@ -351,14 +377,15 @@ class _ChatScreenState extends State<ChatScreen> {
                             fontSize: 10.0,
                             color: Colors.grey[400],
                             fontFamily: 'Montserrat'),
-                      )
+                      ),
                   ],
                 ),
                 isBlocked
                     ? Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                            'You cannot send message ! $username has blocked you'),
+                        child: Text('You cannot send message ! ' +
+                            widget.username +
+                            ' has blocked you'),
                       )
                     : Padding(
                         padding: const EdgeInsets.only(
@@ -368,11 +395,6 @@ class _ChatScreenState extends State<ChatScreen> {
                           keyboardType: TextInputType.multiline,
                           minLines: 1,
                           maxLines: 50,
-                          // onChanged: (value) {
-                          //   String trimLeft = value.trimLeft();
-                          //   String trimRight = trimLeft.trimRight();
-                          //   message = trimRight;
-                          // },
                           cursorColor: Colors.grey[100],
                           autofocus: false,
                           style: TextStyle(
@@ -383,7 +405,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           decoration: InputDecoration(
                             prefixIcon: IconButton(
                               splashRadius: 8,
-                              icon: Icon(Icons.add),
+                              icon: Icon(
+                                Icons.add,
+                                color: Colors.white,
+                              ),
                               onPressed: () {
                                 onAddAssetClick();
                               },
@@ -407,102 +432,20 @@ class _ChatScreenState extends State<ChatScreen> {
                                   if (isBlocked == false &&
                                       isReceiverBlocked == false &&
                                       friendsList.contains(widget.userId)) {
+                                    setState(() {
+                                      isSending = true;
+                                    });
 //Sender Collections
-                                    sendNotification(widget.userId, message,
-                                        rUsername, user.uid);
+                                    // sendNotification(widget.userId, message,
+                                    //     rUsername, user.uid);
                                     messageTextController.clear();
-                                    final senderMessageCollection =
-                                        await sendersMessageRefs
-                                            .collection('users/' +
-                                                widget.userId +
-                                                '/friends/' +
-                                                user.uid +
-                                                '/messages')
-                                            .add({
-                                      'sender': user.uid,
-                                      'message': message,
-                                      'timestamp': DateTime.now(),
-                                      'id': '',
-                                      'anotherId': '',
-                                    });
-
-                                    final String docid =
-                                        senderMessageCollection.id;
-
-                                    sendersMessageRefs
-                                        .collection('users/' +
-                                            widget.userId +
-                                            '/friends')
-                                        .doc(user.uid)
-                                        .update({
-                                      'messageAt': DateTime.now(),
-                                      'lastMessage': message,
-                                    });
-
-//Receiver Collections
-                                    FirebaseFirestore.instance
-                                        .collection('users/' +
-                                            widget.userId +
-                                            '/friends')
-                                        .doc(user.uid)
-                                        .update({
-                                      'isSeen': false,
-                                    });
-                                    final receieverMessageCollection =
-                                        await sendersMessageRefs
-                                            .collection('users/' +
-                                                user.uid +
-                                                '/friends/' +
-                                                widget.userId +
-                                                '/messages')
-                                            .add({
-                                      'sender': user.uid,
-                                      'message': message,
-                                      'timestamp': DateTime.now(),
-                                      'id': '',
-                                      'anotherId': '',
-                                    });
-                                    final String docId =
-                                        receieverMessageCollection.id;
-
-                                    sendersMessageRefs
-                                        .collection(
-                                            'users/' + user.uid + '/friends')
-                                        .doc(widget.userId)
-                                        .update({
-                                      'messageAt': DateTime.now(),
-                                      'lastMessage': message,
-                                    });
-                                    //userCollection of message id
-                                    sendersMessageRefs
-                                        .collection('users/' +
-                                            widget.userId +
-                                            '/friends/' +
-                                            user.uid +
-                                            '/messages')
-                                        .doc(docid)
-                                        .update({
-                                      'id': docid,
-                                      'anotherId': docId,
-                                    });
-                                    sendersMessageRefs
-                                        .collection('users/' +
-                                            user.uid +
-                                            '/friends/' +
-                                            widget.userId +
-                                            '/messages')
-                                        .doc(docId)
-                                        .update({
-                                      'id': docId,
-                                      'anotherId': docid,
-                                    });
-                                    message = '';
+                                    //TODO here messege is save in senders db
+                                    await sendMessage(message);
                                     setState(() {
                                       isSending = false;
                                     });
-                                  }
-                                  //ashfkjdshksngldmgldfmgladnklgnkasldnglkan
-                                  else {
+                                    message = '';
+                                  } else {
                                     showdialog(context);
                                   }
                                 } else {
@@ -605,17 +548,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
-  clearChat() async {
-    await FirebaseFirestore.instance
-        .collection(
-            'users/' + user.uid + '/friends/' + widget.userId + '/messages')
-        .get()
-        .then((snapshot) {
-      for (DocumentSnapshot ds in snapshot.docs) {
-        ds.reference.delete();
-      }
-    });
-  }
+  clearChat() async {}
 
   appbarActionButton() {
     return <Widget>[
@@ -639,44 +572,42 @@ class _ChatScreenState extends State<ChatScreen> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: Color(0xff484848),
-          appBar: isLoaded
-              ? AppBar(
-                  backgroundColor: Colors.grey[900],
-                  actions: appbarActionButton(),
-                  title: GestureDetector(
-                    onTap: () => showProfile(context, profileId: widget.userId),
-                    child: Row(
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(right: 14),
-                            child: CircleAvatar(
-                                backgroundColor: Colors.white,
-                                radius: 20,
-                                backgroundImage: profileLink == '' ||
-                                        profileLink == null
-                                    ? AssetImage(
-                                        'assets/images/profile-user.png')
-                                    : CachedNetworkImageProvider(profileLink))),
-                        Text(
-                          username,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Montserrat',
-                            fontSize: 20.0,
-                          ),
-                        ),
-                      ],
-                    ),
+        key: _scaffoldKey,
+        backgroundColor: Color(0xff484848),
+        appBar: AppBar(
+          backgroundColor: Colors.grey[900],
+          actions: appbarActionButton(),
+          title: GestureDetector(
+            onTap: () => showProfile(context, profileId: widget.userId),
+            child: Row(
+              children: [
+                Padding(
+                    padding: const EdgeInsets.only(right: 14),
+                    child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 20,
+                        backgroundImage:
+                            widget.avatar == '' || widget.avatar == null
+                                ? AssetImage('assets/images/user.png')
+                                : CachedNetworkImageProvider(widget.avatar))),
+                Text(
+                  widget.username,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Montserrat',
+                    fontSize: 20.0,
                   ),
-                )
-              : buildNocontentBar(),
-          body: isLoaded
-              ? bodyToBuild()
-              : Center(
-                  child: CircularProgressIndicator(),
-                )),
+                ),
+              ],
+            ),
+          ),
+        ),
+        body: isLoaded
+            ? bodyToBuild()
+            : Center(
+                child: CircularProgressIndicator(),
+              ),
+      ),
     );
   }
 }
