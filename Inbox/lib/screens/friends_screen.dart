@@ -42,12 +42,13 @@ class _FriendsScreenState extends State<FriendsScreen>
   bool isDataLoaded = false;
   bool isEmptyFriendList = false;
   bool isEmptyGroupList = false;
-
+  String myUsername;
   getUsersFriendData() async {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     friendsList = userAccountRefs['friendsList'];
     groupList = userAccountRefs['groupsList'];
+    myUsername = userAccountRefs['groupsList'];
     setState(() {
       isDataLoaded = true;
     });
@@ -223,6 +224,9 @@ class _FriendsScreenState extends State<FriendsScreen>
                   groupId: groupId,
                   lastMessage: lastMessage,
                   messageAt: dateTime,
+                  userId: _userId,
+                  key: Key(groupId),
+                  username : myUsername,
                 );
                 groupsWidget.add(groupWidget);
                 groupsWidget.reversed;

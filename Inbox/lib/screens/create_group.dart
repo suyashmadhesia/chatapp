@@ -88,14 +88,17 @@ class _CreateGroupState extends State<CreateGroup> {
         'groupDescription': description,
         'createdAt': DateTime.now(),
         'messageAt': DateTime.now(),
-        'lastMessage': '',
+        'lastMessage': 'You have joined this group',
         'groupBanner': medialUrl,
-        'groupMember' : [currentUserId],
+        'groupMember': [currentUserId],
       });
-      await collectionRefs.collection('groups/$groupId/members').doc(currentUserId).set({
-        'joinAt' : DateTime.now(),
-        'isAdmin' : true,
-        'userId' : currentUserId,
+      await collectionRefs
+          .collection('groups/$groupId/members')
+          .doc(currentUserId)
+          .set({
+        'joinAt': DateTime.now(),
+        'isAdmin': true,
+        'userId': currentUserId,
       });
       await collectionRefs.collection('users').doc(currentUserId).update({
         'groupsList': FieldValue.arrayUnion([groupId]),
@@ -108,7 +111,8 @@ class _CreateGroupState extends State<CreateGroup> {
         'isMuted': false,
         'groupName': groupName,
         'isAdmin': true,
-        'messageAt' : DateTime.now(),
+        'messageAt': DateTime.now(),
+        'groupId' : groupId,
       });
       setState(() {
         isUploading = true;
@@ -120,8 +124,17 @@ class _CreateGroupState extends State<CreateGroup> {
         'groupDescription': description,
         'createdAt': DateTime.now(),
         'messageAt': DateTime.now(),
-        'lastMessage': '',
+        'lastMessage': 'You have joined this group',
         'groupBanner': '',
+        'groupMember': [currentUserId],
+      });
+      await collectionRefs
+          .collection('groups/$groupId/members')
+          .doc(currentUserId)
+          .set({
+        'joinAt': DateTime.now(),
+        'isAdmin': true,
+        'userId': currentUserId,
       });
       await collectionRefs.collection('users').doc(currentUserId).update({
         'groupsList': FieldValue.arrayUnion([groupId]),
@@ -133,8 +146,9 @@ class _CreateGroupState extends State<CreateGroup> {
         'joinedAt': DateTime.now(),
         'isMuted': false,
         'groupName': groupName,
-        'lastMessage': '',
         'isAdmin': true,
+        'messageAt': DateTime.now(),
+        'groupId' : groupId,
       });
       setState(() {
         isUploading = true;
@@ -205,16 +219,15 @@ class _CreateGroupState extends State<CreateGroup> {
   floatingActionButton() {
     return FloatingActionButton(
       onPressed: () async {
-        if(!isUploading){
+        if (!isUploading) {
           if (_formKey.currentState.validate()) {
-          await handleSubmit();
-          debugPrint('Done !');
-          Navigator.pop(context);
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => HomeScreen()));
+            await handleSubmit();
+            debugPrint('Done !');
+            Navigator.pop(context);
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          }
         }
-        }
-       
       },
       elevation: 5,
       backgroundColor: Colors.grey[900],
@@ -274,12 +287,12 @@ class _CreateGroupState extends State<CreateGroup> {
                           ? Icon(Icons.delete)
                           : Icon(Icons.upload_file),
                       onPressed: () {
-                        if(!isUploading){
+                        if (!isUploading) {
                           if (_image == null) {
-                          selectImage(context);
-                        } else if (_image != null) {
-                          clearImage();
-                        }
+                            selectImage(context);
+                          } else if (_image != null) {
+                            clearImage();
+                          }
                         }
                       },
                     ),

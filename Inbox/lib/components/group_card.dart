@@ -1,6 +1,7 @@
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/screens/group_chatScreen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class GroupCard extends StatefulWidget {
@@ -9,24 +10,43 @@ class GroupCard extends StatefulWidget {
   final String groupId;
   final DateTime messageAt;
   final String lastMessage;
+  final String userId;
+  final Key key;
+  final String username;
 
   GroupCard(
       {this.groupName,
+      this.userId,
       this.messageAt,
       this.lastMessage,
       this.groupBanner,
-      this.groupId});
+      this.groupId,
+      this.key,
+      this.username,
+      });
 
   @override
   _GroupCardState createState() => _GroupCardState();
 }
 
 class _GroupCardState extends State<GroupCard> {
-  checkMessageSeen() {}
-
   double screenHeight;
   double screenWidth;
   bool isDataLoaded = false;
+  final collectionRefs = FirebaseFirestore.instance;
+
+//Updating messageAT for cecking that message is seen or not
+  updateSeen() async {
+    final groupInUserCollection =
+        collectionRefs.collection('users/' + widget.userId + '/groups');
+    await groupInUserCollection.doc(widget.groupId).update({
+      'messageAt': DateTime.now(),
+    });
+  }
+
+  checkMessageSeen() {}
+
+  getUserData() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +111,7 @@ class _GroupCardState extends State<GroupCard> {
 }
 
 showGroupChat(BuildContext context,
-    {String groupId, String groupName, String groupBanner}) {
+    {String groupId, String groupName, String groupBanner, String myUsername}) {
   Navigator.push(
     context,
     MaterialPageRoute(
@@ -99,6 +119,7 @@ showGroupChat(BuildContext context,
         groupId: groupId,
         groupName: groupName,
         groupBanner: groupBanner,
+        myUsername : myUsername
       ),
     ),
   );

@@ -2,27 +2,37 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class GroupChatScreen extends StatefulWidget {
   final String groupId;
   final String groupName;
   final String groupBanner;
-  GroupChatScreen({this.groupId, this.groupName, this.groupBanner});
+  final String myUsername;
+  GroupChatScreen({this.groupId, this.groupName, this.groupBanner, this.myUsername});
 
   @override
   _GroupChatScreenState createState() => _GroupChatScreenState();
 }
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
+
+  initState(){
+    super.initState();
+    getUserData();
+  }
+
 //Variables
   String message;
   final messageTextController = TextEditingController();
   final userid = FirebaseAuth.instance.currentUser.uid;
-  final sendersMessageRefs = FirebaseFirestore.instance;
-  final receiverMessageRefs = FirebaseFirestore.instance;
+  final collectionRefs = FirebaseFirestore.instance;
   final DateTime timeStamp = DateTime.now();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isSending = false;
+  bool isDataLoaded = false;
+  List groupsList = [];
+  bool isAbleToSendMessage = false;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +68,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ),
         ),
       ),
-      body: bodyToBuild(),
+      body: isDataLoaded
+          ? bodyToBuild()
+          : Center(
+              child: CircularProgressIndicator(),
+            ),
     );
   }
 
@@ -140,7 +154,37 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   onAddAssetClick() {}
 
-  sendMessage(){}
+  sendMessage() async{
+    String messageId = Uuid().v4();
+    await collectionRefs.collection('groups/'+widget.groupId).doc(messageId).set({
+      'message' : message,
+      'usernameOfSender' : widget.myUsername,
+      'assets': [],
+      'messageId' : messageId,
+      'senderUserId' : userid,
+      'timestamp' : DateTime.now(),
+      'visibility' : true,
+    });
+    await collectionRefs.collection('users/$userid/groups/'+widget.groupId+'messages').doc(messageId).set({
+      'messageAt': DateTime.now(),
+      'messageId': messageId,
+    });
+  }
 
   messageStream() {}
+
+  getUserData() async {
+    final userData = await collectionRefs.collection('users').doc(userid).get();
+    groupsList = userData['groupsList'];
+
+    if (groupsList.contains(widget.groupId)) {
+      setState(() {
+        isAbleToSendMessage = true;
+      });
+    }
+
+    setState(() {
+      isDataLoaded = true;
+    });
+  }
 }
