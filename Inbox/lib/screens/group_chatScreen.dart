@@ -14,8 +14,6 @@ class GroupChatScreen extends StatefulWidget {
 }
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
-
-
 //Variables
   String message;
   final messageTextController = TextEditingController();
@@ -24,6 +22,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final receiverMessageRefs = FirebaseFirestore.instance;
   final DateTime timeStamp = DateTime.now();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool isSending = false;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +58,89 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ),
         ),
       ),
+      body: bodyToBuild(),
     );
   }
+
+  bodyToBuild() {
+    return GestureDetector(
+      onTap: () {},
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          // messageStream(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (isSending)
+                Text(
+                  'Sending ...',
+                  style: TextStyle(
+                      fontSize: 10.0,
+                      color: Colors.grey[400],
+                      fontFamily: 'Montserrat'),
+                )
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+                left: 8.0, right: 8.0, bottom: 10, top: 10),
+            child: TextField(
+              controller: messageTextController,
+              keyboardType: TextInputType.multiline,
+              minLines: 1,
+              maxLines: 50,
+              cursorColor: Colors.grey[100],
+              autofocus: false,
+              style: TextStyle(
+                  height: 1,
+                  fontSize: 14.0,
+                  color: Colors.grey[100],
+                  fontFamily: 'Montserrat'),
+              decoration: InputDecoration(
+                focusColor: Colors.grey[900],
+                filled: true,
+                fillColor: Colors.grey[900],
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(50)),
+                    borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(50)),
+                    borderSide: BorderSide.none),
+                hintText: 'Send Message',
+                hintStyle: TextStyle(
+                    color: Colors.grey[100],
+                    fontSize: 12.0,
+                    fontFamily: 'Montserrat'),
+                prefixIcon: IconButton(
+                  splashRadius: 8,
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    onAddAssetClick();
+                  },
+                ),
+                suffixIcon: IconButton(
+                  splashRadius: 8,
+                  icon: Icon(
+                    Icons.send,
+                    color: Colors.green[400],
+                  ),
+                  onPressed: () {
+                    sendMessage();
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  onAddAssetClick() {}
+
+  sendMessage(){}
+
+  messageStream() {}
 }
