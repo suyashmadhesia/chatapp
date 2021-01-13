@@ -266,15 +266,11 @@ class _ChatScreenState extends State<ChatScreen> {
             final visibility = message['visibility'];
             // print(visibility);
 
-            String day = '';
             String time = '';
 
             DateTime d = timeStamp.toDate();
             final String dateTOstring = d.toString();
 
-            for (int i = 5; i <= 10; i++) {
-              day = day + dateTOstring[i];
-            }
             for (int i = 11; i <= 15; i++) {
               time = time + dateTOstring[i];
             }

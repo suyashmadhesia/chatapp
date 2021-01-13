@@ -1,4 +1,5 @@
 //import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/notification_card.dart';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -83,48 +84,30 @@ class _NotificationScreenState extends State<NotificationScreen> {
             return LinearProgressIndicator();
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
-            List<Widget> notificationWidget = [];
+            List<NotificationCard> notificationWidget = [];
             for (var userid in userIds) {
               final sendersUsername = userid['SendersUsername'];
               final sendersUserId = userid['pendingUserId'];
               final senderAvatar = userid['SendersAvatar'];
-              final notificationCard = Container(
-                color: Colors.grey[50],
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 5,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        showProfile(context, profileId: sendersUserId);
-                      },
-                      child: ListTile(
-                        leading: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            radius: screenHeight * 42,
-                            backgroundImage: senderAvatar == '' ||
-                                    senderAvatar == null
-                                ? AssetImage('assets/images/user.png')
-                                : CachedNetworkImageProvider(senderAvatar)),
-                        title: Text(
-                            sendersUsername +
-                                ' sent you friend request tap to accept or reject',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Divider(
-                      color: Colors.grey[500],
-                      height: 2.0,
-                    )
-                  ],
-                ),
+              final requestType = userid['requestType'];
+              final timeStamp = userid['sendAt'];
+
+              String time = '';
+
+              DateTime d = timeStamp.toDate();
+              final String dateTOstring = d.toString();
+
+              for (int i = 11; i <= 15; i++) {
+                time = time + dateTOstring[i];
+              }
+
+              final notificationCard = NotificationCard(
+                avatar: senderAvatar,
+                requestType: requestType,
+                timeStamp: d,
+                id: sendersUserId,
+                username: sendersUsername,
+                time: time,
               );
               notificationWidget.add(notificationCard);
               notificationWidget.reversed;
@@ -142,6 +125,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           }
         });
   }
+
   double screenHeight;
   double screenWidth;
   @override
@@ -168,15 +152,4 @@ class _NotificationScreenState extends State<NotificationScreen> {
       body: empty ? buildNoContentScreen() : notficationStream(),
     );
   }
-}
-
-showProfile(BuildContext context, {String profileId}) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => OthersProfile(
-        profileId: profileId,
-      ),
-    ),
-  );
 }

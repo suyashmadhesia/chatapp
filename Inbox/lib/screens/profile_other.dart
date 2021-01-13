@@ -221,6 +221,8 @@ class _OthersProfileState extends State<OthersProfile>
           'pendingUserId': user,
           'SendersUsername': username,
           'SendersAvatar': avatar,
+          'requestType' : 'FriendRequest',
+          'sendAt' : DateTime.now(),
         });
         // sendNotification(widget.profileId, '$username has sent you request !!',
         //     'Friend Request', user);

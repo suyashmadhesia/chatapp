@@ -82,8 +82,8 @@ class _CreateGroupState extends State<CreateGroup> {
     if (_image != null) {
       await compressImage();
       String medialUrl = await uploadImage(_image);
-      await collectionRefs.collection('groups').doc(groupId).set({
-        'groupId': groupId,
+      await collectionRefs.collection('groups').doc('GROUP'+groupId).set({
+        'groupId': 'GROUP'+groupId,
         'groupName': groupName,
         'groupDescription': description,
         'createdAt': DateTime.now(),
@@ -93,7 +93,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'groupMember': [currentUserId],
       });
       await collectionRefs
-          .collection('groups/$groupId/members')
+          .collection('groups/GROUP$groupId/members')
           .doc(currentUserId)
           .set({
         'joinAt': DateTime.now(),
@@ -101,25 +101,25 @@ class _CreateGroupState extends State<CreateGroup> {
         'userId': currentUserId,
       });
       await collectionRefs.collection('users').doc(currentUserId).update({
-        'groupsList': FieldValue.arrayUnion([groupId]),
+        'groupsList': FieldValue.arrayUnion(['GROUP'+groupId]),
       });
       await collectionRefs
           .collection('users/$currentUserId/groups')
-          .doc(groupId)
+          .doc('GROUP'+groupId)
           .set({
         'joinedAt': DateTime.now(),
         'isMuted': false,
         'groupName': groupName,
         'isAdmin': true,
         'messageAt': DateTime.now(),
-        'groupId': groupId,
+        'groupId': 'GROUP'+groupId,
       });
       setState(() {
         isUploading = true;
       });
     } else if (_image == null) {
-      await collectionRefs.collection('groups').doc(groupId).set({
-        'groupId': groupId,
+      await collectionRefs.collection('groups').doc('GROUP'+groupId).set({
+        'groupId': 'GROUP'+groupId,
         'groupName': groupName,
         'groupDescription': description,
         'createdAt': DateTime.now(),
@@ -129,7 +129,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'groupMember': [currentUserId],
       });
       await collectionRefs
-          .collection('groups/$groupId/members')
+          .collection('groups/GROUP$groupId/members')
           .doc(currentUserId)
           .set({
         'joinAt': DateTime.now(),
@@ -137,18 +137,18 @@ class _CreateGroupState extends State<CreateGroup> {
         'userId': currentUserId,
       });
       await collectionRefs.collection('users').doc(currentUserId).update({
-        'groupsList': FieldValue.arrayUnion([groupId]),
+        'groupsList': FieldValue.arrayUnion(['GROUP'+groupId]),
       });
       await collectionRefs
           .collection('users/$currentUserId/groups')
-          .doc(groupId)
+          .doc('GROUP'+groupId)
           .set({
         'joinedAt': DateTime.now(),
         'isMuted': false,
         'groupName': groupName,
         'isAdmin': true,
         'messageAt': DateTime.now(),
-        'groupId': groupId,
+        'groupId': 'GROUP'+groupId,
       });
       setState(() {
         isUploading = true;
