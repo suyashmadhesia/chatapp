@@ -1,4 +1,5 @@
 import 'package:Inbox/components/message_bubble.dart';
+import 'package:Inbox/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
@@ -289,7 +290,6 @@ class _ChatScreenState extends State<ChatScreen> {
               visibility: visibility,
               uniqueMessageId: uniqueMessageId,
               // avatar: widget.avatar
-             
             );
             messageBubbles.add(messageBubble);
           }
@@ -305,7 +305,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  sendMessage(String message) async {
+  sendMessage(String message, {List<Asset> assets = const []}) async {
     final messageDoc = await messageCollectionRefs
         .collection('messages/$uniqueMessageId/conversation')
         .add({
@@ -313,7 +313,7 @@ class _ChatScreenState extends State<ChatScreen> {
       'message': message,
       'timestamp': DateTime.now(),
       'messageId': '',
-      'assets': [],
+      'assets': assets,
       'visibility': true,
       'avatar': avatar,
     });

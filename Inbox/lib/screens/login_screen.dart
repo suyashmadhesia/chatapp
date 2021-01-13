@@ -1,5 +1,6 @@
 import 'dart:async';
-import  'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/crypto.dart';
 import 'package:Inbox/screens/registration_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -54,25 +55,23 @@ class _LoginScreenState extends State<LoginScreen> {
   String username;
   String password;
   String userUid;
-	double screenHeight;
-	double screenWidth;
+  double screenHeight;
+  double screenWidth;
 
   final _formKey = GlobalKey<FormState>();
 
   //Functions
 
   saveDeviceToken(uid) async {
-    
-
     // Get the token for this device
     String fcmToken = await _fcm.getToken();
 
     // Save it to Firestore
     if (fcmToken != null) {
-      final tokens = FirebaseFirestore.instance
-          .collection('users/'+uid+'/tokens');
+      final tokens =
+          FirebaseFirestore.instance.collection('users/' + uid + '/tokens');
       tokens.doc(fcmToken).set({
-	      'tokenId' : fcmToken,
+        'tokenId': fcmToken,
       });
     }
   }
@@ -82,11 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-		double screenH = MediaQuery.of(context).size.height;
-		double screenW = MediaQuery.of(context).size.width;
-		ScreenSize screenSize = ScreenSize(height:screenH,width : screenW);
-		screenHeight = screenSize.dividingHeight();
-		screenWidth = screenSize.dividingWidth();
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
@@ -131,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
                           child: PasswordFields(
-                            obsecure: true,
+                              obsecure: true,
                               onChanged: (value) {
                                 password = value;
                               },
@@ -170,15 +169,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                   showSnipper = true;
                                 });
                                 try {
+                                  var encryptedPassword =
+                                      Encrypt.encrypt(password);
+                                  print(encryptedPassword);
                                   final user =
                                       await _auth.signInWithEmailAndPassword(
-                                          email: username, password: password);
+                                          email: username,
+                                          password: encryptedPassword);
                                   if (user != null) {
                                     final currentUserId = _auth.currentUser.uid;
-                                   
+
                                     isAuth();
-				    await saveDeviceToken(currentUserId);
-				    
+                                    await saveDeviceToken(currentUserId);
                                   }
                                   setState(() {
                                     showSnipper = false;

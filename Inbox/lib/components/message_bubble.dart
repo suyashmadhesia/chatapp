@@ -1,3 +1,4 @@
+import 'package:Inbox/models/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,18 +15,19 @@ class MessageBubble extends StatelessWidget {
   final String receiverId;
   final DateTime timestamp;
   final String uniqueMessageId;
+  final List<Asset> assets;
 
-  MessageBubble({
-    this.message,
-    this.sender,
-    this.time,
-    this.myMessageId,
-    this.senderId,
-    this.receiverId,
-    this.timestamp,
-    this.visibility,
-    this.uniqueMessageId,
-  });
+  MessageBubble(
+      {this.message,
+      this.sender,
+      this.time,
+      this.myMessageId,
+      this.senderId,
+      this.receiverId,
+      this.timestamp,
+      this.visibility,
+      this.uniqueMessageId,
+      this.assets});
 
   // Function to dissolve date time into Date | Time format
   // Herby using if DateTime.now().date() == d.date() then Today

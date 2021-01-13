@@ -1,4 +1,5 @@
 import 'package:Inbox/screens/home.dart';
+import 'package:Inbox/screens/image_editing_screen.dart';
 import 'package:Inbox/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
