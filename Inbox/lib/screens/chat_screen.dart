@@ -256,14 +256,14 @@ class _ChatScreenState extends State<ChatScreen> {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          final message = snapshot.data.documents.reversed;
+          final messages = snapshot.data.documents.reversed;
           List<MessageBubble> messageBubbles = [];
-          for (var messag in message) {
-            final messageText = messag['message'];
-            final messageSender = messag['sender'];
-            final timeStamp = messag['timestamp'];
-            final messageId = messag['messageId'];
-            final visibility = messag['visibility'];
+          for (var message in messages) {
+            final messageText = message['message'];
+            final messageSender = message['sender'];
+            final timeStamp = message['timestamp'];
+            final messageId = message['messageId'];
+            final visibility = message['visibility'];
             // print(visibility);
 
             String day = '';

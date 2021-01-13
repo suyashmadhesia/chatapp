@@ -1,37 +1,28 @@
-import 'package:Inbox/models/message.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:focused_menu/focused_menu.dart';
 import 'package:focused_menu/modals.dart';
 
-class MessageBubble extends StatelessWidget {
+class GroupMessageBubble extends StatelessWidget {
   final String message;
-  final bool sender;
-  final String time;
-  final String myMessageId;
+  final String usernameOfSender;
+  final String messageId;
   final bool visibility;
-  final String senderId;
-  final String receiverId;
+  final String time;
   final DateTime timestamp;
-  final String uniqueMessageId;
-  final List<Asset> assets;
+  final List assets;
+  final bool sender;
 
-  MessageBubble(
-      {this.message,
-      this.sender,
-      this.time,
-      this.myMessageId,
-      this.senderId,
-      this.receiverId,
-      this.timestamp,
-      this.visibility,
-      this.uniqueMessageId,
-      this.assets});
+  GroupMessageBubble({
+    this.timestamp,
+    this.time,
+    this.message,
+    this.messageId,
+    this.visibility,
+    this.assets,
+    this.usernameOfSender,
+    this.sender,
+  });
 
-  // Function to dissolve date time into Date | Time format
-  // Herby using if DateTime.now().date() == d.date() then Today
-  // else Date Month
   static const Map<int, String> months = {
     1: 'Jan',
     2: 'Feb',
@@ -57,32 +48,8 @@ class MessageBubble extends StatelessWidget {
     return '${timestamp.day} ${months[timestamp.month]} | $time';
   }
 
-  //Function
-
-  unsendMessage() async {
-    await FirebaseFirestore.instance
-        .collection('messages/$uniqueMessageId/conversation')
-        .doc(myMessageId)
-        .update({
-      'visibility': false,
-    });
-    await FirebaseFirestore.instance
-        .collection('users/$senderId/friends/')
-        .doc(receiverId)
-        .update({
-      'lastMessage': 'This message was deleted',
-    });
-    await FirebaseFirestore.instance
-        .collection('users/$receiverId/friends/')
-        .doc(senderId)
-        .update({
-      'lastMessage': 'This message was deleted',
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    // final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     return visibility || visibility == null
         ? Padding(
@@ -92,6 +59,18 @@ class MessageBubble extends StatelessWidget {
               crossAxisAlignment:
                   sender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
+                if (visibility)
+                  if (sender)
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(
+                        'You',
+                        style: TextStyle(
+                            color: Colors.grey[300],
+                            fontSize: 11,
+                            fontFamily: 'Montserrat'),
+                      ),
+                    ),
                 if (visibility)
                   Padding(
                     padding: sender
@@ -123,9 +102,7 @@ class MessageBubble extends StatelessWidget {
                                         'Unsend',
                                         style: TextStyle(color: Colors.white),
                                       ),
-                                      onPressed: () async {
-                                        await unsendMessage();
-                                      },
+                                      onPressed: () async {},
                                       backgroundColor: Colors.redAccent,
                                       trailingIcon: Icon(
                                         Icons.delete,
