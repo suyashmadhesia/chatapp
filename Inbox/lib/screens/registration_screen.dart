@@ -1,4 +1,5 @@
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/crypto.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -77,8 +78,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         errorText: 'Username must be less than 10 characters')
   ]);
 
- 
-
   String username;
   String password;
   String confirmPassword;
@@ -144,18 +143,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 32, right: 32),
                         child: PasswordFields(
-                          obsecure: false,
+                            obsecure: false,
                             onChanged: (value) {
                               phone = value.toString();
                             },
                             type: TextInputType.number,
-                            validation: (phone){
-                              
+                            validation: (phone) {
                               String phoneNumber = phone.toString();
-                              if(phoneNumber == null || phoneNumber.isEmpty){
+                              if (phoneNumber == null || phoneNumber.isEmpty) {
                                 return 'Phone Number must be provided';
-                              }
-                              else if(phoneNumber.length > 10 || phoneNumber.length < 10){
+                              } else if (phoneNumber.length > 10 ||
+                                  phoneNumber.length < 10) {
                                 return 'Enter valid Phone Number';
                               }
                             },
@@ -180,7 +178,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
                           child: PasswordFields(
-                            obsecure: true,
+                              obsecure: true,
                               validation: (value) => MatchValidator(
                                       errorText: 'Passwords do not match')
                                   .validateMatch(value, password),
@@ -207,12 +205,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   await saveDeviceToken(user.uid);
                                   _firestore.doc(user.uid).set({
                                     'username': name,
-                                    'phoneNumber' : '+91'+phone,
+                                    'phoneNumber': '+91' + phone,
                                     'bio': '',
                                     'avtar': '',
                                     'gender': '',
                                     'userId': user.uid,
-                                    'password': password,
+                                    'password': Encrypt.encrypt(password),
                                     'timeStamp': timeStamp,
                                     'email': '',
                                     'securityQuestion': '',

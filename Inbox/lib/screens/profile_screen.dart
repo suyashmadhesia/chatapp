@@ -37,12 +37,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     setCurrentScreen();
   }
 
+  Account user;
 
   final _auth = FirebaseAuth.instance;
   final userRefs = FirebaseFirestore.instance.collection('users');
 
-	double screenHeight;
-	double screenWidth;
+  double screenHeight;
+  double screenWidth;
 //Functions
 
   _showDialog(parentContext) async {
@@ -108,62 +109,67 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           );
         }
-        Account user = Account.fromDocument(snapshot.data);
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            CircleAvatar(
-              radius: screenHeight * 70,
-              backgroundColor: Colors.grey[100],
-              backgroundImage: user.avtar == ''
-                  ? AssetImage('assets/images/user.png')
-                  : CachedNetworkImageProvider(user.avtar),
-            ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                user.username,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 24.0,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-            ),
-           
-            SizedBox(height: screenHeight * 26.66),
-            Text(
-              user.email == '' ? 'Email: Add your email....' : user.email,
-              style: TextStyle(
-                  color: Colors.black54, fontFamily: 'Mulish', fontSize: 16.0),
-            ),
-            SizedBox(height: screenHeight * 26.67),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 32, right: 32),
-                child: Text(
-                  user.bio == ''
-                      ? 'Bio : Write something about you....'
-                      : user.bio,
-                  style: TextStyle(
-                      color: Colors.grey, fontFamily: 'Mulish', fontSize: 16.0),
-                ),
-              ),
-            ),
-          ],
-        );
+        user = Account.fromDocument(snapshot.data);
+        return (true)
+            ? ProfileBody(user: user)
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  CircleAvatar(
+                    radius: screenHeight * 70,
+                    backgroundColor: Colors.grey[100],
+                    backgroundImage: user.avtar == ''
+                        ? AssetImage('assets/images/user.png')
+                        : CachedNetworkImageProvider(user.avtar),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      user.username,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 24.0,
+                        fontFamily: 'Montserrat',
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 26.66),
+                  Text(
+                    user.email == '' ? 'Email: Add your email....' : user.email,
+                    style: TextStyle(
+                        color: Colors.black54,
+                        fontFamily: 'Mulish',
+                        fontSize: 16.0),
+                  ),
+                  SizedBox(height: screenHeight * 26.67),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 32, right: 32),
+                      child: Text(
+                        user.bio == ''
+                            ? 'Bio : Write something about you....'
+                            : user.bio,
+                        style: TextStyle(
+                            color: Colors.grey,
+                            fontFamily: 'Mulish',
+                            fontSize: 16.0),
+                      ),
+                    ),
+                  ),
+                ],
+              );
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-		double screenH = MediaQuery.of(context).size.height;
-		double screenW = MediaQuery.of(context).size.width;
-		ScreenSize screenSize = ScreenSize(height: screenH,width:screenW);
-		screenHeight = screenSize.dividingHeight();
-		screenWidth = screenSize.dividingWidth();
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -191,6 +197,36 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Center(
           child: buildProfileHeader(),
         ),
+      ),
+    );
+  }
+}
+
+class ProfileBody extends StatelessWidget {
+  final Account user;
+
+  ProfileBody({this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    ScreenSize screen = ScreenSize(context: context);
+    return Container(
+      color: Colors.grey[900],
+      height: screen.vertical(1000),
+      width: screen.horizontal(100),
+      child: ListView(
+        children: [
+          Container(
+            width: screen.horizontal(100),
+            height: screen.vertical(40),
+            child: (user.avtar.isNotEmpty || true)
+                ? Image.network(
+                    "https://i.pinimg.com/originals/00/3b/c0/003bc0694886d2021ad14bd500a6cfc3.jpg",
+                    fit: BoxFit.fill,
+                  )
+                : Image.asset('assets/images/user.png'),
+          ),
+        ],
       ),
     );
   }

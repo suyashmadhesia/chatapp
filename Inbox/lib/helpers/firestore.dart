@@ -6,7 +6,6 @@ class FireStore {
     return FirebaseFirestore.instance.collection(path);
   }
 
-<<<<<<< HEAD
   static Future<void> deleteMessage(
       // This function will delete the message from receivers db
       String senderId,
@@ -49,7 +48,4 @@ class FireStore {
   static Future<bool> cancelTask(UploadTask task) async {
     return await task.cancel();
   }
-=======
-  
->>>>>>> ac7e1c68758f93bf8242787fcd62580ae5e1c4be
 }
