@@ -30,10 +30,18 @@ class GroupCard extends StatefulWidget {
 }
 
 class _GroupCardState extends State<GroupCard> {
+
+  initState(){
+    super.initState();
+    getUserData();
+  }
+
+
   double screenHeight;
   double screenWidth;
   bool isDataLoaded = false;
   final collectionRefs = FirebaseFirestore.instance;
+  DateTime joinedAt;
 
 //Updating messageAT for cecking that message is seen or not
   updateSeen() async {
@@ -46,7 +54,23 @@ class _GroupCardState extends State<GroupCard> {
 
   checkMessageSeen() {}
 
-  getUserData() async {}
+  getUserData() async {
+    final groupInUserCollection =
+      await collectionRefs.collection('users/' + widget.userId + '/groups').doc(widget.groupId).get();
+      final joinAt = groupInUserCollection['joinedAt'];
+      joinedAt = joinAt.toDate();
+      setState(() {
+        isDataLoaded = true;
+      });
+
+  }
+
+  compare(){
+    if(isDataLoaded){
+      return joinedAt.isAfter(widget.messageAt);
+    }
+    
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,11 +95,11 @@ class _GroupCardState extends State<GroupCard> {
             },
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.grey[300],
                 radius: screenHeight * 42,
                 backgroundImage:
                     widget.groupBanner == null || widget.groupBanner == ''
-                        ? AssetImage('assets/images/user.png')
+                        ? AssetImage('assets/images/group.png')
                         : CachedNetworkImageProvider(widget.groupBanner),
               ),
               title: Text(
@@ -86,12 +110,18 @@ class _GroupCardState extends State<GroupCard> {
                   fontFamily: 'Monstserrat',
                 ),
               ),
-              subtitle: widget.lastMessage == ""
-                  ? null
-                  : Text(
-                      widget.lastMessage,
+              subtitle: isDataLoaded
+                  ? Text(
+                      compare() ? widget.lastMessage : 'You hav joined this group',
                       style: TextStyle(
                         color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                    )
+                  : Text(
+                      'Loading...',
+                      style: TextStyle(
+                        color: Colors.blue,
                         fontSize: 14,
                       ),
                     ),

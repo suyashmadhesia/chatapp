@@ -175,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   final user =
                                       await _auth.signInWithEmailAndPassword(
                                           email: username,
-                                          password: encryptedPassword);
+                                          password: password);
                                   if (user != null) {
                                     final currentUserId = _auth.currentUser.uid;
 

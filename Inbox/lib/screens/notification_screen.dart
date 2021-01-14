@@ -12,7 +12,7 @@ import 'package:Inbox/screens/profile_other.dart';
 // import 'package:flutter/services.dart';
 // import 'package:flutter_svg/svg.dart';
 // import 'package:Inbox/screens/friends_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:skeleton_text/skeleton_text.dart';
@@ -108,6 +108,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 id: sendersUserId,
                 username: sendersUsername,
                 time: time,
+                userId: _userId,
               );
               notificationWidget.add(notificationCard);
               notificationWidget.reversed;

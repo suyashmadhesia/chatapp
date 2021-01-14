@@ -110,9 +110,9 @@ class _ProfileScreenState extends State<ProfileScreen>
           );
         }
         user = Account.fromDocument(snapshot.data);
-        return (true)
-            ? ProfileBody(user: user)
-            : Column(
+        // return (true)
+        //     ? ProfileBody(user: user)
+          return  Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[

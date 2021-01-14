@@ -7,7 +7,11 @@ class Account{
   final String avtar;
   final String gender;
   final String email;
-  
+  final List groupList;
+  final List requestList;
+  final List pendingList;
+
+
   Account({
     this.userId,
     this.username,
@@ -15,6 +19,9 @@ class Account{
     this.avtar,
     this.gender,
     this.email,
+    this.groupList,
+    this.pendingList,
+    this.requestList,
   });
 
   factory Account.fromDocument(DocumentSnapshot doc){
@@ -25,6 +32,9 @@ class Account{
       avtar: doc['avtar'],
       gender: doc['gender'],
       email: doc['email'],
+      groupList: doc['groupsList'],
+      pendingList: doc['pendingList'],
+      requestList: doc['requestList'],
     );
   }
 

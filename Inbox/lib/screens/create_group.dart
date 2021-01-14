@@ -91,6 +91,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'lastMessage': 'You have joined this group',
         'groupBanner': medialUrl,
         'groupMember': [currentUserId],
+        'adminsId' : [currentUserId],
       });
       await collectionRefs
           .collection('groups/GROUP$groupId/members')
@@ -127,6 +128,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'lastMessage': 'You have joined this group',
         'groupBanner': '',
         'groupMember': [currentUserId],
+        'adminsId' : [currentUserId],
       });
       await collectionRefs
           .collection('groups/GROUP$groupId/members')
