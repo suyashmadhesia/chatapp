@@ -248,8 +248,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           isSending = true;
                         });
                         await sendMessage(message);
-                        notificationData.sendNotification('New Message from '+widget.groupName, userid,
-                            widget.groupId, message, 'Group Message',isMuted: false, topic: '/topics/'+widget.groupId);
+                        await notificationData.sendNotification('New Message from '+widget.groupName, userid,
+                            widget.groupId, message, 'Group Message',isMuted: false);
                         setState(() {
                           isSending = false;
                         });

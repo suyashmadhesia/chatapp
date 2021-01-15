@@ -90,8 +90,6 @@ class _NotificationCardState extends State<NotificationCard> {
                       setState(() {
                         isLoading = true;
                       });
-                      SendNotification().topicToSuscribe('/topics/'+widget.id);
-                      SendNotification().topics.add('/topics/'+widget.id);
                       await joinGroup();
                       setState(() {
                         isLoading = false;
