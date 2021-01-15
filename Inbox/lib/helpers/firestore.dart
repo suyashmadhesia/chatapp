@@ -6,21 +6,6 @@ class FireStore {
     return FirebaseFirestore.instance.collection(path);
   }
 
-  static Future<void> deleteMessage(
-      // This function will delete the message from receivers db
-      String senderId,
-      String receiverId,
-      String messageId) async {
-    var refReceiver = FireStore.getCollectionReference(
-        'users/$receiverId/friends/$senderId/messages');
-    await refReceiver.doc(messageId).delete();
-  }
-
-  static Future<void> unsendMessage(String senderId, String receiverId,
-      String messageIdOnSender, String messageIdOnReceiver) async {
-    await FireStore.deleteMessage(senderId, receiverId, messageIdOnReceiver);
-    await FireStore.deleteMessage(receiverId, senderId, messageIdOnSender);
-  }
 
   static Reference getAssetRef(String ref) {
     Reference reference = FirebaseStorage.instance.ref(ref);

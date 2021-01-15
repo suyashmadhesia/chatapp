@@ -2,18 +2,29 @@ import 'dart:io';
 
 class DropDownMenu {
   static const String block = 'Block';
-  static const String clearChat = 'Clear Chat';
+  static const String muteChat = 'Mute Chat';
 
   static const String unBlock = 'Unblock';
+  static const String unMute = 'Unmute';
 
   static const List<String> choices = <String>[
     block,
-    clearChat,
+    muteChat,
   ];
 
   static const List<String> blockedChoice = <String>[
     unBlock,
-    clearChat,
+    muteChat,
+  ];
+
+  static const List<String> bothBlockedAndMuted = <String>[
+    unBlock,
+    unMute,
+  ];
+
+  static const List<String> unMuteChoice = <String>[
+    block,
+    unMute,
   ];
 }
 

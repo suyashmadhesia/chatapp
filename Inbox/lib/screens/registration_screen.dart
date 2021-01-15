@@ -1,10 +1,10 @@
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/helpers/crypto.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -40,22 +40,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     });
   }
 
-  saveDeviceToken(uid) async {
-    // Get the token for this device
-    String fcmToken = await _fcm.getToken();
-
-    // Save it to Firestore
-    if (fcmToken != null) {
-      final tokens =
-          FirebaseFirestore.instance.collection('users/' + uid + '/tokens');
-      tokens.doc(fcmToken).set({
-        'tokenId': fcmToken,
-      });
-    }
-  }
-
 //const
-  final FirebaseMessaging _fcm = FirebaseMessaging();
+  final SendNotification notificationData = SendNotification();
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -199,10 +185,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 final newUser =
                                     await _auth.createUserWithEmailAndPassword(
                                         email: username, password: password);
+                                await notificationData.topicToSuscribe('/topics/APP');
+
 //Saving data to firestore
                                 if (newUser != null) {
                                   User user = FirebaseAuth.instance.currentUser;
-                                  await saveDeviceToken(user.uid);
+
                                   _firestore.doc(user.uid).set({
                                     'username': name,
                                     'phoneNumber': '+91' + phone,
