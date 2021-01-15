@@ -163,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   final user =
                                       await _auth.signInWithEmailAndPassword(
                                           email: username, password: password);
-                                  notificationData.topicToSuscribe('App');
+                                  await notificationData.topicToSuscribe("/topics/APP");
                                   if (user != null) {
                                     isAuth();
                                   }

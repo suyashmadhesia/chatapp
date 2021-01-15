@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 class SendNotification{
 
 
-List <String> topics =['App'];
+List <String> topics =['/topics/APP'];
 final fcm = FirebaseMessaging();
 
 /*
@@ -41,10 +41,10 @@ Future<void> sendNotification(
         "receiversUserId" : receiversUserId,
         "isMuted" : isMuted,
       },
-      "to": topic == null || topic.isEmpty ? "App" : topic,
+      "to": topic == null || topic.isEmpty ? "/topics/APP" : topic,
       "collapse_key": notificationType,
     };
-
+    print(topic);
     final headers = {
       'content-type': 'application/json',
       'Authorization':
@@ -62,18 +62,18 @@ Future<void> sendNotification(
       final response = await Dio(options).post(postUrl, data: data);
 
       if (response.statusCode == 200) {
-        // debugPrint('message sent');
+        print('message sent');
       } else {
-        // debugPrint('notification sending failed');
+        print('notification sending failed');
         // on failure do sth
       }
     } catch (e) {
       // debugPrint('exception $e');
-    }
+    }print('notification send');
   }
 
-  topicToSuscribe(String topicName){
-    fcm.subscribeToTopic(topicName);
+  topicToSuscribe(String topicName) async{
+    await fcm.subscribeToTopic(topicName);
   }
 
   topicToUnsuscribe(String topicName){

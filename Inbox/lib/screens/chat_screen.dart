@@ -1,7 +1,7 @@
 import 'package:Inbox/components/message_bubble.dart';
 import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/message.dart';
-import 'package:dio/dio.dart';
+// import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -380,7 +380,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                     messageTextController.clear();
                                     //TODO here messege is save in senders db
                                     await sendMessage(message);
-                                    notificationData.sendNotification(
+                                   
+                                    setState(() {
+                                      isSending = false;
+                                    });
+                                    await notificationData.sendNotification(
                                         'New message from $rUsername',
                                         user.uid,
                                         widget.userId,
@@ -388,9 +392,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                         'Private Message',
                                         isMuted: isMute,
                                         );
-                                    setState(() {
-                                      isSending = false;
-                                    });
                                     message = '';
                                   } else {
                                     showdialog(context);

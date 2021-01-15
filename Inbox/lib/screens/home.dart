@@ -49,7 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
     _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {},
+      onMessage: (Map<String, dynamic> message) async {
+        print(message);
+      },
       onLaunch: (Map<String, dynamic> message) async {},
       onResume: (Map<String, dynamic> message) async {},
     );
@@ -189,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
         animationDuration: Duration(milliseconds: 400),
         color: Colors.grey[900],
         backgroundColor: Colors.white,
-        height: screenHeight * 7,
+        height: screenHeight * 75,
         items: <Widget>[
           Icon(
             Icons.question_answer,

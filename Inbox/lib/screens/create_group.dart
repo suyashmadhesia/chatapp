@@ -157,8 +157,8 @@ class _CreateGroupState extends State<CreateGroup> {
         isUploading = true;
       });
     }
-    SendNotification().topicToSuscribe('GROUP$groupId');
-    SendNotification().topics.add('GROUP$groupId');
+    SendNotification().topicToSuscribe('/topics/GROUP$groupId');
+    SendNotification().topics.add('/topics/GROUP$groupId');
   }
 
   Future<String> uploadImage(image) async {

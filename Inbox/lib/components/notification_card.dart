@@ -90,8 +90,8 @@ class _NotificationCardState extends State<NotificationCard> {
                       setState(() {
                         isLoading = true;
                       });
-                      SendNotification().topicToSuscribe(widget.id);
-                      SendNotification().topics.add(widget.id);
+                      SendNotification().topicToSuscribe('/topics/'+widget.id);
+                      SendNotification().topics.add('/topics/'+widget.id);
                       await joinGroup();
                       setState(() {
                         isLoading = false;
@@ -161,8 +161,9 @@ class _NotificationCardState extends State<NotificationCard> {
                 group = group + widget.id[i];
               }
               if (group == 'GROUP') {
-                showProfile(context, profileId: widget.id);
+                
               }
+              showProfile(context, profileId: widget.id);
             },
             child: ListTile(
               subtitle: acceptOrRejectButton(),
