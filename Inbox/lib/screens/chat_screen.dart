@@ -48,6 +48,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String rUsername;
+  bool isMute = false;
   bool isBlocked = false;
   bool isLoaded = false;
   bool isSending = false;
@@ -476,14 +477,24 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void choiceAction(String choice) {
-    if (choice == DropDownMenu.clearChat) {
+    if (choice == DropDownMenu.muteChat) {
 //print('clear chat');
-      clearChat();
+      muteChat();
     } else if (choice == DropDownMenu.block) {
       blockUser();
     } else if (choice == DropDownMenu.unBlock) {
       unBlockUser();
     }
+    else if(choice == DropDownMenu.unMute){
+      unMuteChat();
+    }
+  }
+
+  unMuteChat(){
+    setState(() {
+      isMute = false;
+    });
+    debugPrint('un muted');
   }
 
   blockUser() async {
@@ -544,20 +555,46 @@ class _ChatScreenState extends State<ChatScreen> {
     _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
-  clearChat() async {}
+  muteChat() async {
+    setState(() {
+      isMute = true;
+    });
+    debugPrint('Muted');
+  }
+
+  // isReceiverBlocked
+  //             ? DropDownMenu.blockedChoice.map((String choice) {
+  //                 return PopupMenuItem(value: choice, child: Text(choice));
+  //               }).toList()
+  //             : DropDownMenu.choices.map((String choice) {
+  //                 return PopupMenuItem(value: choice, child: Text(choice));
+  //               }).toList();
 
   appbarActionButton() {
     return <Widget>[
       PopupMenuButton<String>(
         onSelected: choiceAction,
         itemBuilder: (BuildContext context) {
-          return isReceiverBlocked
-              ? DropDownMenu.blockedChoice.map((String choice) {
-                  return PopupMenuItem(value: choice, child: Text(choice));
-                }).toList()
-              : DropDownMenu.choices.map((String choice) {
-                  return PopupMenuItem(value: choice, child: Text(choice));
-                }).toList();
+          if(isReceiverBlocked && !isMute){
+            return DropDownMenu.blockedChoice.map((String choice){
+              return PopupMenuItem(value : choice, child:Text(choice));
+            }).toList();
+          }
+          else if(!isReceiverBlocked && isMute){
+            return DropDownMenu.unMuteChoice.map((String choice){
+              return PopupMenuItem(value : choice, child:Text(choice));
+            }).toList();
+          }
+          else if(isReceiverBlocked && isMute){
+            return DropDownMenu.bothBlockedAndMuted.map((String choice){
+              return PopupMenuItem(value : choice, child:Text(choice));
+            }).toList();
+          }
+          else{
+            return DropDownMenu.choices.map((String choice){
+              return PopupMenuItem(value : choice, child:Text(choice));
+            }).toList();
+          }
         },
       )
     ];
@@ -569,9 +606,10 @@ class _ChatScreenState extends State<ChatScreen> {
       onWillPop: _onWillPop,
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Color(0xff484848),
+        backgroundColor: Color(0xff111111),
         appBar: AppBar(
-          backgroundColor: Colors.grey[900],
+          elevation: 5,
+          backgroundColor: Colors.black,
           actions: appbarActionButton(),
           title: GestureDetector(
             onTap: () => showProfile(context, profileId: widget.userId),

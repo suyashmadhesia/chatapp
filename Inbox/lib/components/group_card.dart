@@ -67,7 +67,7 @@ class _GroupCardState extends State<GroupCard> {
 
   compare(){
     if(isDataLoaded){
-      return joinedAt.isAfter(widget.messageAt);
+      return widget.messageAt.isAfter(joinedAt);
     }
     
   }
@@ -112,7 +112,7 @@ class _GroupCardState extends State<GroupCard> {
               ),
               subtitle: isDataLoaded
                   ? Text(
-                      compare() ? widget.lastMessage : 'You hav joined this group',
+                      compare() ? widget.lastMessage : 'You have joined this group',
                       style: TextStyle(
                         color: Colors.grey[400],
                         fontSize: 14,

@@ -90,6 +90,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 time: time,
                 visibility: visibility,
                 usernameOfSender: usernameOfSender,
+                groupId: widget.groupId,
               );
               messageBubbles.add(messageBubble);
             }
@@ -218,7 +219,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     fontFamily: 'Montserrat'),
                 prefixIcon: IconButton(
                   splashRadius: 8,
-                  icon: Icon(Icons.add),
+                  icon: Icon(Icons.add,
+                  color: Colors.white,
+                  ),
                   onPressed: () {
                     onAddAssetClick();
                   },
@@ -298,7 +301,7 @@ List requestList = [];
       color: showInvite ? Colors.green : Colors.red,
       onPressed: () async {
         if (!buttonLoading) {
-          getInvitationData(userID);
+          await getInvitationData(userID);
           if (pendingList.contains(widget.groupId) && !requestList.contains(widget.groupId)) {
             setState(() {
               buttonLoading = true;
@@ -492,8 +495,9 @@ List requestList = [];
       'timestamp': DateTime.now(),
       'visibility': true,
     });
-    collectionRefs.collection('groups').doc(widget.groupId).update({
+    await collectionRefs.collection('groups').doc(widget.groupId).update({
       'lastMessage': message,
+      'messageAt' : DateTime.now(),
     });
     await collectionRefs
         .collection('users/$userid/groups/' + widget.groupId + '/messages')
@@ -548,9 +552,10 @@ List requestList = [];
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
     return Scaffold(
-      backgroundColor: Color(0xff484848),
+      backgroundColor: Color(0xff111111),
       key: _scaffoldKey,
       appBar: AppBar(
+        elevation: 5,
         automaticallyImplyLeading: showSearchBar ? false : true,
         actions: [
           if (admin)
@@ -586,7 +591,7 @@ List requestList = [];
             onPressed: () {},
           )
         ],
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.black,
         title: !showSearchBar
             ? GestureDetector(
                 onTap: () {},
