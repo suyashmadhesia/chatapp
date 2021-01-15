@@ -1,3 +1,4 @@
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/user.dart';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/screens/home.dart';
@@ -14,7 +15,10 @@ class OthersProfile extends StatefulWidget {
   @override
   _OthersProfileState createState() => _OthersProfileState();
   final String profileId;
-  OthersProfile({this.profileId});
+  final String profileUrl;
+  final String profileDescription;
+
+  OthersProfile({this.profileId, this.profileDescription, this.profileUrl});
 }
 
 class _OthersProfileState extends State<OthersProfile>
@@ -69,69 +73,7 @@ class _OthersProfileState extends State<OthersProfile>
     }
   }
 
-  Future<List> getToken(userId) async {
-    final db = FirebaseFirestore.instance;
-
-    var token;
-    List listofTokens = [];
-    await db.collection('users/' + userId + '/tokens').get().then((snapshot) {
-      snapshot.docs.forEach((doc) {
-        token = doc.id;
-        listofTokens.add(token);
-      });
-    });
-
-    return listofTokens;
-  }
-
-  Future<void> sendNotification(
-      receiver, username, head, receiversUserId) async {
-    var token = await getToken(receiver);
-    // debugPrint('token : $token');
-
-    final data = {
-      "notification": {
-        "body": username,
-        "title": head,
-      },
-      "priority": "high",
-      "data": {
-        "click_action": "FLUTTER_NOTIFICATION_CLICK",
-        "id": "1",
-        "status": "done",
-        "type": "Profile",
-        "userId": receiversUserId,
-      },
-      'registration_ids': token,
-      "collapse_key": "$receiversUserId profile",
-    };
-
-    final headers = {
-      'content-type': 'application/json',
-      'Authorization':
-          'key=AAAAdFdVbjo:APA91bGYkVTkUUKVcOk5O5jz2WZAwm8d1losRaJVEYKF5yspBahEWf-2oMhrnyWhi5pOumnSB0k8Lkb24ibUyawsYhD-P2H6gDUMOgflpQonYMKx9Ov6JmqbtY2uylIo2Moo4-9XbzfV'
-    };
-
-    BaseOptions options = new BaseOptions(
-      connectTimeout: 5000,
-      receiveTimeout: 3000,
-      headers: headers,
-    );
-
-    final postUrl = 'https://fcm.googleapis.com/fcm/send';
-    try {
-      final response = await Dio(options).post(postUrl, data: data);
-
-      if (response.statusCode == 200) {
-        // debugPrint('message sent');
-      } else {
-        // debugPrint('notification sending failed');
-        // on failure do sth
-      }
-    } catch (e) {
-      // debugPrint('exception $e');
-    }
-  }
+  final SendNotification notificationData = SendNotification();
 
   checkingAccept() async {
     final userAccountRefs =
@@ -221,13 +163,20 @@ class _OthersProfileState extends State<OthersProfile>
           'pendingUserId': user,
           'SendersUsername': username,
           'SendersAvatar': avatar,
-          'requestType' : 'FriendRequest',
-          'sendAt' : DateTime.now(),
+          'requestType': 'FriendRequest',
+          'sendAt': DateTime.now(),
         });
-        // sendNotification(widget.profileId, '$username has sent you request !!',
-        //     'Friend Request', user);
       }
     }
+    //Sending notification here;
+    notificationData.sendNotification(
+        'New Friend Request',
+        user,
+        widget.profileId,
+        '$username sent you friend request !!',
+        'Friend Request',
+        isMuted: false);
+
     setState(() {
       isSentRequest = true;
     });
@@ -301,6 +250,7 @@ class _OthersProfileState extends State<OthersProfile>
           'isSeen': isSeen,
           'lastMessage': 'Say hi to $rUsername',
           'messageCollectionId': messageCollectionId,
+          'isMuted' : false,
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -314,17 +264,23 @@ class _OthersProfileState extends State<OthersProfile>
           'isSeen': isSeen,
           'lastMessage': 'Say hi to $username',
           'messageCollectionId': messageCollectionId,
+          'isMuted' : false,
         });
         final receiverCollectionRefs = FirebaseFirestore.instance
             .collection('users/$user/pendingRequests');
         receiverCollectionRefs.doc(widget.profileId).delete();
       }
     }
+    notificationData.sendNotification(
+        'Friend Request Accepted',
+        user,
+        widget.profileId,
+        '$username Accepted your Friend Request !!',
+        'Request Accepted',
+        isMuted : false);
     setState(() {
       showAccepted = false;
     });
-    // sendNotification(widget.profileId, '$username has accepted your request !!',
-    //     'Request Accepted', user);
   }
 
   unfriending() async {
@@ -473,12 +429,12 @@ class _OthersProfileState extends State<OthersProfile>
         onPressed: () async {
           if (!isLoading) {
             setState(() {
-                isLoading = true;
-              });
+              isLoading = true;
+            });
             await unfriending();
             setState(() {
-                isLoading = false;
-              });
+              isLoading = false;
+            });
           }
           SnackBar snackBar = SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -507,12 +463,11 @@ class _OthersProfileState extends State<OthersProfile>
                       color: Colors.blue[900], fontFamily: 'Montserrat'),
                 )
               : SizedBox(
-                height: 16,
-                width: 16,
-
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                )),
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  )),
         ),
       );
     } else {

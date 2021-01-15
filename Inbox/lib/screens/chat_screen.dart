@@ -1,4 +1,5 @@
 import 'package:Inbox/components/message_bubble.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
@@ -40,6 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   final messageTextController = TextEditingController();
+  final SendNotification notificationData = SendNotification();
   final user = FirebaseAuth.instance.currentUser;
   final sendersMessageRefs = FirebaseFirestore.instance;
   final receiverMessageRefs = FirebaseFirestore.instance;
@@ -48,7 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String rUsername;
-  bool isMute = false;
+  bool isMute;
   bool isBlocked = false;
   bool isLoaded = false;
   bool isSending = false;
@@ -68,67 +70,6 @@ class _ChatScreenState extends State<ChatScreen> {
           .update({
         'isSeen': true,
       });
-    }
-  }
-
-  Future<List> getToken(userId) async {
-    final db = FirebaseFirestore.instance;
-
-    var token;
-    List listofTokens = [];
-    await db.collection('users/' + userId + '/tokens').get().then((snapshot) {
-      snapshot.docs.forEach((doc) {
-        token = doc.id;
-        listofTokens.add(token);
-      });
-    });
-
-    return listofTokens;
-  }
-
-  Future<void> sendNotification(
-      receiver, message, username, receiversUserId) async {
-    var token = await getToken(receiver);
-    // debugPrint('token : $token');
-
-    final data = {
-      "notification": {"body": "$message", "title": "$username"},
-      "priority": "high",
-      "data": {
-        "click_action": "FLUTTER_NOTIFICATION_CLICK",
-        "id": "1",
-        "status": "done",
-        "type": "Message",
-        "userId": receiversUserId,
-      },
-      'registration_ids': token,
-      "collapse_key": "$receiversUserId message",
-    };
-
-    final headers = {
-      'content-type': 'application/json',
-      'Authorization':
-          'key=AAAAdFdVbjo:APA91bGYkVTkUUKVcOk5O5jz2WZAwm8d1losRaJVEYKF5yspBahEWf-2oMhrnyWhi5pOumnSB0k8Lkb24ibUyawsYhD-P2H6gDUMOgflpQonYMKx9Ov6JmqbtY2uylIo2Moo4-9XbzfV'
-    };
-
-    BaseOptions options = new BaseOptions(
-      connectTimeout: 5000,
-      receiveTimeout: 3000,
-      headers: headers,
-    );
-
-    final postUrl = 'https://fcm.googleapis.com/fcm/send';
-    try {
-      final response = await Dio(options).post(postUrl, data: data);
-
-      if (response.statusCode == 200) {
-        // debugPrint('message sent');
-      } else {
-        // debugPrint('notification sending failed');
-        // on failure do sth
-      }
-    } catch (e) {
-      // debugPrint('exception $e');
     }
   }
 
@@ -183,6 +124,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(user.uid)
         .get();
     final block = receiverMessageRefs['isBlocked'];
+    isMute = receiverMessageRefs['isMuted'];
     rUsername = receiverMessageRefs[
         'username']; // my user name means the name of current sender
     isSeen = receiverMessageRefs['isSeen'];
@@ -438,6 +380,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                     messageTextController.clear();
                                     //TODO here messege is save in senders db
                                     await sendMessage(message);
+                                    notificationData.sendNotification(
+                                        'New message from $rUsername',
+                                        user.uid,
+                                        widget.userId,
+                                        message,
+                                        'Private Message',
+                                        isMuted: isMute,
+                                        );
                                     setState(() {
                                       isSending = false;
                                     });
@@ -484,13 +434,12 @@ class _ChatScreenState extends State<ChatScreen> {
       blockUser();
     } else if (choice == DropDownMenu.unBlock) {
       unBlockUser();
-    }
-    else if(choice == DropDownMenu.unMute){
+    } else if (choice == DropDownMenu.unMute) {
       unMuteChat();
     }
   }
 
-  unMuteChat(){
+  unMuteChat() {
     setState(() {
       isMute = false;
     });
@@ -562,37 +511,26 @@ class _ChatScreenState extends State<ChatScreen> {
     debugPrint('Muted');
   }
 
-  // isReceiverBlocked
-  //             ? DropDownMenu.blockedChoice.map((String choice) {
-  //                 return PopupMenuItem(value: choice, child: Text(choice));
-  //               }).toList()
-  //             : DropDownMenu.choices.map((String choice) {
-  //                 return PopupMenuItem(value: choice, child: Text(choice));
-  //               }).toList();
-
   appbarActionButton() {
     return <Widget>[
       PopupMenuButton<String>(
         onSelected: choiceAction,
         itemBuilder: (BuildContext context) {
-          if(isReceiverBlocked && !isMute){
-            return DropDownMenu.blockedChoice.map((String choice){
-              return PopupMenuItem(value : choice, child:Text(choice));
+          if (isReceiverBlocked && !isMute) {
+            return DropDownMenu.blockedChoice.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
             }).toList();
-          }
-          else if(!isReceiverBlocked && isMute){
-            return DropDownMenu.unMuteChoice.map((String choice){
-              return PopupMenuItem(value : choice, child:Text(choice));
+          } else if (!isReceiverBlocked && isMute) {
+            return DropDownMenu.unMuteChoice.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
             }).toList();
-          }
-          else if(isReceiverBlocked && isMute){
-            return DropDownMenu.bothBlockedAndMuted.map((String choice){
-              return PopupMenuItem(value : choice, child:Text(choice));
+          } else if (isReceiverBlocked && isMute) {
+            return DropDownMenu.bothBlockedAndMuted.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
             }).toList();
-          }
-          else{
-            return DropDownMenu.choices.map((String choice){
-              return PopupMenuItem(value : choice, child:Text(choice));
+          } else {
+            return DropDownMenu.choices.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
             }).toList();
           }
         },

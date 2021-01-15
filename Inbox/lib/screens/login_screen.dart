@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/helpers/crypto.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/registration_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -40,7 +41,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _auth = FirebaseAuth.instance;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final FirebaseMessaging _fcm = FirebaseMessaging();
+
+  final SendNotification notificationData = SendNotification();
 
   final passwordValidator = MultiValidator([
     RequiredValidator(errorText: 'Password is required'),
@@ -61,20 +63,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   //Functions
-
-  saveDeviceToken(uid) async {
-    // Get the token for this device
-    String fcmToken = await _fcm.getToken();
-
-    // Save it to Firestore
-    if (fcmToken != null) {
-      final tokens =
-          FirebaseFirestore.instance.collection('users/' + uid + '/tokens');
-      tokens.doc(fcmToken).set({
-        'tokenId': fcmToken,
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,13 +162,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   print(encryptedPassword);
                                   final user =
                                       await _auth.signInWithEmailAndPassword(
-                                          email: username,
-                                          password: password);
+                                          email: username, password: password);
+                                  notificationData.topicToSuscribe('App');
                                   if (user != null) {
-                                    final currentUserId = _auth.currentUser.uid;
-
                                     isAuth();
-                                    await saveDeviceToken(currentUserId);
                                   }
                                   setState(() {
                                     showSnipper = false;

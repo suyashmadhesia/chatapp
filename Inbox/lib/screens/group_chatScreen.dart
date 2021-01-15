@@ -1,5 +1,6 @@
 import 'package:Inbox/components/group_message_bubble.dart';
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/user.dart';
 // import 'package:Inbox/screens/search_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,6 +32,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
 //Variables
+  final SendNotification notificationData = SendNotification();
   String message;
   String myUsername;
   final messageTextController = TextEditingController();
@@ -52,6 +54,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   DateTime joinAt;
   bool showInvite = true;
   bool sendRequest = true;
+  List pendingList = [];
+  List requestList = [];
 
   messageStream() {
     return StreamBuilder(
@@ -81,8 +85,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             for (int i = 11; i <= 15; i++) {
               time = time + dateTOstring[i];
             }
-            if(compare){
-               final messageBubble = GroupMessageBubble(
+            if (compare) {
+              final messageBubble = GroupMessageBubble(
                 message: messageText,
                 messageId: messageId,
                 sender: userid == senderUserId,
@@ -94,7 +98,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               );
               messageBubbles.add(messageBubble);
             }
-             
           }
           return Expanded(
             child: ListView(
@@ -219,8 +222,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     fontFamily: 'Montserrat'),
                 prefixIcon: IconButton(
                   splashRadius: 8,
-                  icon: Icon(Icons.add,
-                  color: Colors.white,
+                  icon: Icon(
+                    Icons.add,
+                    color: Colors.white,
                   ),
                   onPressed: () {
                     onAddAssetClick();
@@ -239,12 +243,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     if (message != null && message != "") {
                       getUserData();
                       if (isAbleToSendMessage) {
-                        // debugPrint('in user group List');
                         messageTextController.clear();
                         setState(() {
                           isSending = true;
                         });
                         await sendMessage(message);
+                        notificationData.sendNotification('New Message from '+widget.groupName, userid,
+                            widget.groupId, message, 'Group Message',isMuted: false, topic: widget.groupId);
                         setState(() {
                           isSending = false;
                         });
@@ -262,9 +267,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   onAddAssetClick() {}
-List pendingList = [];
-List requestList = [];
-  getInvitationData(String userID) async{
+
+  getInvitationData(String userID) async {
     final userData = await collectionRefs.collection('users').doc(userID).get();
     pendingList = userData['pendingList'];
     requestList = userData['requestList'];
@@ -302,19 +306,19 @@ List requestList = [];
       onPressed: () async {
         if (!buttonLoading) {
           await getInvitationData(userID);
-          if (pendingList.contains(widget.groupId) && !requestList.contains(widget.groupId)) {
+          if (pendingList.contains(widget.groupId) &&
+              !requestList.contains(widget.groupId)) {
             setState(() {
               buttonLoading = true;
             });
             print('cancel Invitation');
             await cancelInvitation(userID);
             await getInvitationData(userID);
-            if(pendingList.contains(widget.groupId)){
+            if (pendingList.contains(widget.groupId)) {
               setState(() {
                 showInvite = false;
               });
-            }
-            else{
+            } else {
               showInvite = true;
             }
             setState(() {
@@ -327,12 +331,11 @@ List requestList = [];
             print('sending Invitation');
             await sendInvitation(userID);
             await getInvitationData(userID);
-            if(!pendingList.contains(widget.groupId)){
+            if (!pendingList.contains(widget.groupId)) {
               setState(() {
                 showInvite = true;
               });
-            }
-            else{
+            } else {
               showInvite = false;
             }
             setState(() {
@@ -343,8 +346,7 @@ List requestList = [];
       },
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Text(
-            showInvite ? 'Invite' : 'Cancel Invitation',
+        child: Text(showInvite ? 'Invite' : 'Cancel Invitation',
             style: TextStyle(
                 color: Colors.white, fontSize: 12, fontFamily: 'Monstserrat')),
       ),
@@ -383,7 +385,7 @@ List requestList = [];
             List<Widget> searchResult = [];
             snapshot.data.documents.forEach((doc) {
               Account users = Account.fromDocument(doc);
-              
+
               if (users.userId != userid &&
                   !users.groupList.contains(widget.groupId) &&
                   !users.requestList.contains(widget.groupId)) {
@@ -414,8 +416,7 @@ List requestList = [];
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : inviteButton(
-                                   users.userId),
+                                : inviteButton(users.userId),
                             leading: CircleAvatar(
                               backgroundColor: Colors.grey[800],
                               radius: screenWidth * 7.5,
@@ -497,7 +498,7 @@ List requestList = [];
     });
     await collectionRefs.collection('groups').doc(widget.groupId).update({
       'lastMessage': message,
-      'messageAt' : DateTime.now(),
+      'messageAt': DateTime.now(),
     });
     await collectionRefs
         .collection('users/$userid/groups/' + widget.groupId + '/messages')

@@ -1,4 +1,5 @@
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -89,6 +90,8 @@ class _NotificationCardState extends State<NotificationCard> {
                       setState(() {
                         isLoading = true;
                       });
+                      SendNotification().topicToSuscribe(widget.id);
+                      SendNotification().topics.add(widget.id);
                       await joinGroup();
                       setState(() {
                         isLoading = false;

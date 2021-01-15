@@ -49,33 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
     _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        // print("onMessage: $message");
-        if (message['data']['type'] == 'Message') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        } else if (message['data']['type'] == 'Profile' &&
-            message['notification']['title'] == 'Request Accepted') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        }
-      },
+      onMessage: (Map<String, dynamic> message) async {},
       onLaunch: (Map<String, dynamic> message) async {},
-      onResume: (Map<String, dynamic> message) async {
-        // print("onResume: $message");
-        if (message['data']['type'] == 'Message') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        } else if (message['data']['type'] == 'Profile' &&
-            message['notification']['title'] == 'Request Accepted') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        }
-      },
+      onResume: (Map<String, dynamic> message) async {},
     );
     getUserData();
     checkInternet();
@@ -213,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
         animationDuration: Duration(milliseconds: 400),
         color: Colors.grey[900],
         backgroundColor: Colors.white,
-        height: screenHeight * 70,
+        height: screenHeight * 7,
         items: <Widget>[
           Icon(
             Icons.question_answer,
