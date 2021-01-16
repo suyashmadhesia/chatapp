@@ -4,7 +4,7 @@ import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+// import 'package:data_connection_checker/data_connection_checker.dart';
 // import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
@@ -31,7 +31,6 @@ class _OthersProfileState extends State<OthersProfile>
   @override
   void initState() {
     super.initState();
-    checkInternet();
     getUsersFriendData();
     isRequestSent();
     checkingAccept();
@@ -60,18 +59,6 @@ class _OthersProfileState extends State<OthersProfile>
   double screenWidth;
   bool dataLoaded = false;
 
-  checkInternet() async {
-    bool result = await DataConnectionChecker().hasConnection;
-    if (result == true) {
-      setState(() {
-        isInternet = true;
-      });
-    } else {
-      setState(() {
-        isInternet = false;
-      });
-    }
-  }
 
   final SendNotification notificationData = SendNotification();
 

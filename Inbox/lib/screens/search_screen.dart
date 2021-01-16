@@ -44,7 +44,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   handleSearch(String value) {
     Future<QuerySnapshot> users =
-        usersRef.where('username', isGreaterThanOrEqualTo: value).get();
+      usersRef.where('username', isGreaterThanOrEqualTo: value).get();
     setState(() {
       searchResult = users;
     });

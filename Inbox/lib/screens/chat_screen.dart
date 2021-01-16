@@ -6,7 +6,7 @@ import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+//import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
@@ -35,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     getUserData();
-    checkInternet();
+    //checkInternet();
 
     setIsSeen();
   }
@@ -75,18 +75,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool isInternet = true;
 
-  checkInternet() async {
-    bool result = await DataConnectionChecker().hasConnection;
-    if (result == true) {
-      setState(() {
-        isInternet = true;
-      });
-    } else {
-      setState(() {
-        isInternet = false;
-      });
-    }
-  }
 
   Future<bool> _onWillPop() async {
     if (isLoaded && isInternet) {

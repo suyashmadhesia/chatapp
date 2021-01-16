@@ -7,7 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/screens/friends_screen.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:Inbox/screens/search_screen.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+// import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -227,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(left: screenWidth * 25,right: screenWidth * 25,bottom: screenWidth * 3),
+        padding: EdgeInsets.only(left: screenWidth * 25,right: screenWidth * 25,bottom: screenWidth * 3.5),
         child: Material(
           elevation: 10,
           borderRadius: BorderRadius.all(
