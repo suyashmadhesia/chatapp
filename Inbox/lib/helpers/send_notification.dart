@@ -23,11 +23,12 @@ no of topic to suscribing topic
 */
 
 Future<void> sendNotification(
-     notificationTitle, sendersUserId, receiversUserId, message, notificationType, {bool isMuted, String topic}) async {
+     notificationTitle, sendersUserId, receiversUserId, message, notificationType, {bool isMuted, String topic, String tag}) async {
     // debugPrint('token : $token');
 
     final data = {
       "notification": {
+        "tag" : tag,
         "body": message,
         "title": notificationTitle,
       },
@@ -41,8 +42,8 @@ Future<void> sendNotification(
         "receiversUserId" : receiversUserId,
         "isMuted" : isMuted,
       },
-      "to": topic == null || topic.isEmpty ? "/topics/APP" : topic,
-      "collapse_key": notificationType,
+      "to": "/topics/APP",
+      "collapse_key" : tag,
     };
     print(topic);
     final headers = {

@@ -80,7 +80,7 @@ class _GroupCardState extends State<GroupCard> {
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
     return Container(
-      color: Colors.grey[50],
+      color: Colors.white,
       child: Column(
         children: [
           SizedBox(
@@ -95,7 +95,7 @@ class _GroupCardState extends State<GroupCard> {
             },
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.grey[300],
+                backgroundColor: Colors.white,
                 radius: screenHeight * 42,
                 backgroundImage:
                     widget.groupBanner == null || widget.groupBanner == ''
@@ -130,10 +130,7 @@ class _GroupCardState extends State<GroupCard> {
           SizedBox(
             height: 5,
           ),
-          Divider(
-            color: Colors.grey[500],
-            height: 2.0,
-          )
+         
         ],
       ),
     );

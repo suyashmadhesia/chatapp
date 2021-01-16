@@ -5,7 +5,7 @@ import 'package:Inbox/screens/home.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
-import 'package:dio/dio.dart';
+// import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -605,44 +605,26 @@ class _OthersProfileState extends State<OthersProfile>
     ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
-    return isInternet
-        ? Scaffold(
+    return
+        Scaffold(
             key: _scaffoldKey,
             backgroundColor: Colors.white,
             appBar: AppBar(
+              elevation: 0,
               title:
-                  Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
-              automaticallyImplyLeading: true,
-              backgroundColor: Colors.grey[900],
+              Text('Profile', style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
+              automaticallyImplyLeading: false,
+              leading: IconButton(icon: Icon(Icons.arrow_back, color: Colors.black), onPressed: (){
+                Navigator.pop(context);
+              }),
+              backgroundColor: Colors.white,
             ),
             body: SafeArea(
               child: dataLoaded
                   ? buildProfileHeader()
                   : Center(child: CircularProgressIndicator()),
             ),
-          )
-        : Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('No internet :(',
-                    style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
-                        fontFamily: 'Mulish')),
-                FlatButton(
-                    padding: EdgeInsets.all(8.0),
-                    color: Colors.greenAccent[700],
-                    onPressed: () => checkInternet(),
-                    child: Text('Retry',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontFamily: 'Mulish')))
-              ],
-            )),
           );
+        
   }
 }

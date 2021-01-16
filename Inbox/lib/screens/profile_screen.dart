@@ -1,3 +1,4 @@
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/edit_profile.dart';
 import 'package:Inbox/components/screen_size.dart';
 //import 'package:Inbox/screens/home.dart';
@@ -79,6 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               onPressed: () async {
                 _auth.signOut();
+                SendNotification().topicToUnsuscribe('/topics/APP');
                 final SharedPreferences sharedPreferences =
                     await SharedPreferences.getInstance();
                 sharedPreferences.remove('email');
@@ -112,53 +114,49 @@ class _ProfileScreenState extends State<ProfileScreen>
         user = Account.fromDocument(snapshot.data);
         // return (true)
         //     ? ProfileBody(user: user)
-          return  Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: screenHeight * 70,
-                    backgroundColor: Colors.grey[100],
-                    backgroundImage: user.avtar == ''
-                        ? AssetImage('assets/images/user.png')
-                        : CachedNetworkImageProvider(user.avtar),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text(
-                      user.username,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24.0,
-                        fontFamily: 'Montserrat',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 26.66),
-                  Text(
-                    user.email == '' ? 'Email: Add your email....' : user.email,
-                    style: TextStyle(
-                        color: Colors.black54,
-                        fontFamily: 'Mulish',
-                        fontSize: 16.0),
-                  ),
-                  SizedBox(height: screenHeight * 26.67),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 32, right: 32),
-                      child: Text(
-                        user.bio == ''
-                            ? 'Bio : Write something about you....'
-                            : user.bio,
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontFamily: 'Mulish',
-                            fontSize: 16.0),
-                      ),
-                    ),
-                  ),
-                ],
-              );
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            CircleAvatar(
+              radius: screenHeight * 70,
+              backgroundColor: Colors.grey[100],
+              backgroundImage: user.avtar == ''
+                  ? AssetImage('assets/images/user.png')
+                  : CachedNetworkImageProvider(user.avtar),
+            ),
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                user.username,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 24.0,
+                  fontFamily: 'Montserrat',
+                ),
+              ),
+            ),
+            SizedBox(height: screenHeight * 26.66),
+            Text(
+              user.email == '' ? 'Email: Add your email....' : user.email,
+              style: TextStyle(
+                  color: Colors.black54, fontFamily: 'Mulish', fontSize: 16.0),
+            ),
+            SizedBox(height: screenHeight * 26.67),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32),
+                child: Text(
+                  user.bio == ''
+                      ? 'Bio : Write something about you....'
+                      : user.bio,
+                  style: TextStyle(
+                      color: Colors.grey, fontFamily: 'Mulish', fontSize: 16.0),
+                ),
+              ),
+            ),
+          ],
+        );
       },
     );
   }
@@ -173,23 +171,28 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           onPressed: () {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EditProfileScreen()));
           },
-          icon: Icon(Icons.edit, color: Colors.white),
+          icon: Icon(Icons.edit, color: Colors.black),
         ),
-        title: Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
+        title: Text('Profile',
+            style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: IconButton(
                 splashRadius: 16.0,
                 onPressed: () => _showDialog(context),
-                icon: Icon(Icons.logout)),
+                icon: Icon(
+                  Icons.logout,
+                  color: Colors.black,
+                ),),
           )
         ],
       ),

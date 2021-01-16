@@ -49,7 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final DateTime timeStamp = DateTime.now();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  String rUsername;
+
   bool isMute;
   bool isBlocked = false;
   bool isLoaded = false;
@@ -125,8 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .get();
     final block = receiverMessageRefs['isBlocked'];
     isMute = receiverMessageRefs['isMuted'];
-    rUsername = receiverMessageRefs[
-        'username']; // my user name means the name of current sender
+    // my user name means the name of current sender
     isSeen = receiverMessageRefs['isSeen'];
 
     setCurrentChatScreen(widget.username);
@@ -380,19 +379,20 @@ class _ChatScreenState extends State<ChatScreen> {
                                     messageTextController.clear();
                                     //TODO here messege is save in senders db
                                     await sendMessage(message);
-                                   
+
+                                    notificationData.sendNotification(
+                                      '$username',
+                                      user.uid,
+                                      widget.userId,
+                                      message,
+                                      'Private Message',
+                                      tag: user.uid,
+                                      isMuted: isMute,
+                                    );
+                                    message = '';
                                     setState(() {
                                       isSending = false;
                                     });
-                                    await notificationData.sendNotification(
-                                        'New message from $rUsername',
-                                        user.uid,
-                                        widget.userId,
-                                        message,
-                                        'Private Message',
-                                        isMuted: isMute,
-                                        );
-                                    message = '';
                                   } else {
                                     showdialog(context);
                                   }

@@ -53,7 +53,7 @@ class _FriendsTileState extends State<FriendsTile> {
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
     return Container(
-      color: Colors.grey[50],
+      color: Colors.white,
       child: Column(
         children: [
           SizedBox(
@@ -80,10 +80,10 @@ class _FriendsTileState extends State<FriendsTile> {
               trailing: !widget.isSeen
                   ? Icon(
                       Icons.fiber_manual_record,
-                      color: Colors.blue[900],
+                      color: Colors.pink[400],
                       size: 12,
                     )
-                  : Icon(Icons.fiber_manual_record, color: Colors.grey[50]),
+                  : Icon(Icons.fiber_manual_record, color: Colors.white),
               title: Text(widget.sendersUsername,
                   style: TextStyle(
                       color: Colors.black,
@@ -107,10 +107,7 @@ class _FriendsTileState extends State<FriendsTile> {
           SizedBox(
             height: 5,
           ),
-          Divider(
-            color: Colors.grey[500],
-            height: 2.0,
-          )
+         
         ],
       ),
     );

@@ -140,11 +140,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
+         leading: IconButton(icon: Icon(Icons.arrow_back, color: Colors.black), onPressed: (){
+                Navigator.pop(context);
+              }),
         title: Text(
           'Notifications',
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontFamily: 'Montserrat',
             fontSize: 20.0,
           ),

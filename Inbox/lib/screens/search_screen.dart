@@ -38,6 +38,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final usersRef = FirebaseFirestore.instance.collection('users');
   double screenWidth;
   double screenHeight;
+  bool isSearching = false;
 
 //Functions
 
@@ -49,43 +50,79 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  buildSearchResult() {
+    if (isSearching) {
+      return new Align(
+          alignment: Alignment.topCenter,
+          //heightFactor: 0.0,
+          child: searchList());
+    } else {
+      return new Align(alignment: Alignment.topCenter, child: new Container());
+    }
+  }
+
   AppBar buildSearchField() {
     return AppBar(
+      elevation: 0,
       toolbarHeight: screenHeight * 100,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Colors.white,
       automaticallyImplyLeading: false,
-      title: TextFormField(
+      title: Material(
+        elevation: 5,
+        borderRadius: BorderRadius.all(
+            Radius.circular(screenWidth * 13),
+          ),
+              child: TextFormField(
           inputFormatters: <TextInputFormatter>[
             FilteringTextInputFormatter(RegExp('[a-z0-9_]'),
                 allow: true) //RegEx for  only correct input taken
           ],
           style: TextStyle(
-              color: Colors.grey[700],
-              fontFamily: 'Montserrat',
-              fontSize: 14.0),
-          onChanged: handleSearch,
-          cursorColor: Colors.grey[600],
+              color: Colors.black, fontFamily: 'Montserrat', fontSize: 12.0),
+          onChanged: (value) {
+            if (value.isEmpty) {
+              setState(() {
+                isSearching = false;
+              });
+            } else {
+              setState(() {
+                isSearching = true;
+              });
+              handleSearch(value);
+            }
+          },
+          cursorColor: Colors.black,
           decoration: InputDecoration(
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide.none),
-              hintText: 'Search here .....',
-              hintStyle: TextStyle(
-                  color: Colors.grey, fontFamily: 'Montserrat', fontSize: 14.0),
-              filled: true,
-              fillColor: Colors.grey[300],
-              suffixIcon: Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: IconButton(
-                  splashRadius: 8.0,
-                  // onPressed: () => getUserData,
-                  onPressed: () {
-                    FocusScope.of(context).unfocus();
-                  },
-                  icon: Icon(
-                    Icons.search,
-                    color: Colors.grey[600],
-                  ),
+            isDense: true, // important line
+            contentPadding: EdgeInsets.fromLTRB(screenWidth * 2.5, screenWidth * 3, 0, screenWidth * 3),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(screenWidth * 13)),
+                borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(screenWidth * 13)),
+                borderSide: BorderSide.none),
+            hintText: 'Search...',
+            hintStyle: TextStyle(
+                color: Colors.black, fontFamily: 'Montserrat', fontSize: 12.0),
+            filled: true,
+            fillColor: Colors.white,
+            suffixIcon: Padding(
+              padding: EdgeInsets.only(left: screenWidth * 8),
+              child: IconButton(
+                splashRadius: 8.0,
+                // onPressed: () => getUserData,
+                onPressed: () {
+                  FocusScope.of(context).unfocus();
+                },
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.black,
                 ),
-              ))),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -99,7 +136,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Center(
                 child: Text('Search new user here......',
                     style: TextStyle(
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontSize: 18,
                         fontFamily: 'Mulish'))),
           ],
@@ -108,7 +145,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  buildSearchResult() {
+  searchList() {
     return FutureBuilder(
       future: searchResult,
       builder: (context, snapshot) {
@@ -174,7 +211,15 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: buildSearchField(),
-      body: searchResult == null ? buildNoContent() : buildSearchResult(),
+      body: searchResult == null || !isSearching ? GestureDetector(
+        onTap: (){
+          FocusScope.of(context).unfocus();
+        },
+        child: buildNoContent()) : GestureDetector(
+          onTap: (){
+          FocusScope.of(context).unfocus();
+        },
+          child : buildSearchResult()),
     );
   }
 }
@@ -193,7 +238,7 @@ class _UserResultState extends State<UserResult> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.grey[50],
+      color: Colors.white,
       child: Column(
         children: [
           SizedBox(
@@ -228,10 +273,7 @@ class _UserResultState extends State<UserResult> {
           SizedBox(
             height: 5,
           ),
-          Divider(
-            color: Colors.grey[500],
-            height: 2.0,
-          )
+         
         ],
       ),
     );

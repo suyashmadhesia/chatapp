@@ -1,5 +1,7 @@
 import 'package:Inbox/components/friends_card.dart';
 import 'package:Inbox/components/group_card.dart';
+import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/screens/notification_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -38,8 +40,10 @@ class _FriendsScreenState extends State<FriendsScreen>
   final _userId = FirebaseAuth.instance.currentUser.uid;
   List friendsList = [];
   List groupList = [];
+  List pendingList = [];
 
   bool isDataLoaded = false;
+  bool showNotification = false;
   bool isEmptyFriendList = false;
   bool isEmptyGroupList = false;
   String myUsername;
@@ -47,6 +51,7 @@ class _FriendsScreenState extends State<FriendsScreen>
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     friendsList = userAccountRefs['friendsList'];
+    pendingList = userAccountRefs['pendingList'];
     groupList = userAccountRefs['groupsList'];
     myUsername = userAccountRefs['username'];
     setState(() {
@@ -71,6 +76,15 @@ class _FriendsScreenState extends State<FriendsScreen>
         isEmptyFriendList = true;
       });
     }
+    if (pendingList.isNotEmpty) {
+      setState(() {
+        showNotification = true;
+      });
+    } else {
+      setState(() {
+        showNotification = false;
+      });
+    }
   }
 
   floatingActionButton() {
@@ -80,10 +94,10 @@ class _FriendsScreenState extends State<FriendsScreen>
             context, MaterialPageRoute(builder: (context) => CreateGroup()));
       },
       elevation: 5,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Colors.white,
       child: Icon(
         Icons.add,
-        color: Colors.white,
+        color: Colors.pink[400],
       ),
     );
   }
@@ -242,24 +256,76 @@ class _FriendsScreenState extends State<FriendsScreen>
         });
   }
 
+  double screenHeight;
+  double screenWidth;
+
   @override
   Widget build(BuildContext context) {
+    double screenW = MediaQuery.of(context).size.width;
+    double screenH = MediaQuery.of(context).size.height;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inbox', style: TextStyle(fontFamily: 'Montserrat')),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.notifications,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NotificationScreen(),
+                      ),
+                    );
+                  },
+                ),
+                if (showNotification)
+                  Padding(
+                    padding: EdgeInsets.all(screenWidth * 3),
+                    child: Container(
+                        width: screenWidth * 1.7,
+                        height: screenWidth * 1.7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.red, width: 1),
+                          color: Colors.red,
+                        )
+                        // borderRadius: BorderRadius.circular(8)),
+
+                        ),
+                  ),
+              ],
+            ),
+          )
+        ],
+        toolbarHeight: screenHeight * 170,
+        elevation: 0,
+        title: Text('Inbox',
+            style: TextStyle(
+                fontFamily: 'Mulish', color: Colors.black, fontSize: 32)),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
+          indicatorColor: Colors.grey[200],
           tabs: [
             Tab(
               child: Text('Chats',
-                  style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
+                  style: TextStyle(
+                      fontFamily: 'Mulish', fontSize: 15, color: Colors.black)),
             ),
             Tab(
               child: Text('Groups',
-                  style: TextStyle(fontFamily: 'Mulish', fontSize: 15)),
+                  style: TextStyle(
+                      fontFamily: 'Mulish', fontSize: 15, color: Colors.black)),
             )
           ],
         ),
