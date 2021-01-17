@@ -193,17 +193,19 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
+
   double screenHeight;
   double screenWidth;
   Scaffold buildAuthScreen() {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         children: <Widget>[
           FriendsScreen(),
           SearchScreen(),
           NotificationScreen(),
-          ProfileScreen(profileId: user?.uid),
+          if (user != null) ProfileScreen(profileId: user.uid),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
@@ -265,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
-    
+
     return isInternet
         ? buildAuthScreen()
         : Scaffold(

@@ -1,4 +1,6 @@
+import 'package:Inbox/assets_manager/image_picker.dart';
 import 'package:Inbox/screens/home.dart';
+import 'package:Inbox/screens/image_editing_screen.dart';
 import 'package:Inbox/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +46,7 @@ class _ChatAppState extends State<ChatApp> {
         initialRoute: 'splash_screen',
         routes: {
           'welcome_screen': (context) => WelcomeScreen(),
-          'splash_screen': (context) => SplashScreen(),
+          'splash_screen': (context) => ImagePickerScreen(),
           'login_screen': (context) => LoginScreen(),
           'registration_screen': (context) => RegistrationScreen(),
           'chat_screen': (context) => ChatScreen(),

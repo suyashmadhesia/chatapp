@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:Inbox/components/message_bubble.dart';
+import 'package:Inbox/helpers/file_manager.dart';
+import 'package:Inbox/helpers/firestore.dart';
+import 'package:Inbox/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
@@ -57,6 +62,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isSeen = false;
   String lastMessage;
   String username;
+
+  List<Asset> assets = [];
 
   setIsSeen() async {
     if (isInternet) {
@@ -257,12 +264,12 @@ class _ChatScreenState extends State<ChatScreen> {
         } else if (snapshot.hasData) {
           final message = snapshot.data.documents.reversed;
           List<MessageBubble> messageBubbles = [];
-          for (var messag in message) {
-            final messageText = messag['message'];
-            final messageSender = messag['sender'];
-            final timeStamp = messag['timestamp'];
-            final messageId = messag['messageId'];
-            final visibility = messag['visibility'];
+          for (QueryDocumentSnapshot message in message) {
+            final messageText = message['message'];
+            final messageSender = message['sender'];
+            final timeStamp = message['timestamp'];
+            final messageId = message['messageId'];
+            final visibility = message['visibility'];
             // print(visibility);
 
             String day = '';
@@ -277,6 +284,12 @@ class _ChatScreenState extends State<ChatScreen> {
             for (int i = 11; i <= 15; i++) {
               time = time + dateTOstring[i];
             }
+            List<Asset> assetList = [];
+            if (message.data().containsKey("assets")) {
+              assetList = (message["assets"] as List)
+                  .map((asset) => Asset.fromJson(asset))
+                  .toList();
+            }
 
             final messageBubble = MessageBubble(
               timestamp: d,
@@ -288,8 +301,8 @@ class _ChatScreenState extends State<ChatScreen> {
               time: time,
               visibility: visibility,
               uniqueMessageId: uniqueMessageId,
+              assets: assetList,
               // avatar: widget.avatar
-             
             );
             messageBubbles.add(messageBubble);
           }
@@ -305,7 +318,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  sendMessage(String message) async {
+  sendMessage(String message, {List<Asset> providedAssets = const []}) async {
     final messageDoc = await messageCollectionRefs
         .collection('messages/$uniqueMessageId/conversation')
         .add({
@@ -313,7 +326,7 @@ class _ChatScreenState extends State<ChatScreen> {
       'message': message,
       'timestamp': DateTime.now(),
       'messageId': '',
-      'assets': [],
+      'assets': assets.map((e) => e.toJson()),
       'visibility': true,
       'avatar': avatar,
     });
@@ -350,7 +363,37 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void onAddAssetClick() {}
+  Future<List<Asset>> uploadAssets(List<File> files) async {
+    List<Asset> assets = [];
+    for (File file in files) {
+      assets.add(Asset(file: file));
+      int index = assets.length - 1;
+      print('$index ${assets.length}');
+      assets[index].contentType = FileManager.getMimeType(file);
+      assets[index].setNameGenerated();
+      if (FileManager.isImage(file)) {
+        assets[index].thumbnailFile = await FileManager.compressImage(file);
+        var ref = FireStore.getAssetRef(
+            'media/${assets[index].name}-thumb.${assets[index].getContent()}');
+        var task =
+            FireStore.getUploadTaskUni8List(ref, assets[index].thumbnailFile);
+        task.whenComplete(() async =>
+            {assets[index].thumbnail = await FireStore.getDownloadUrl(task)});
+      }
+      var fileRef = FireStore.getAssetRef(
+          'media/${assets[index].name}.${assets[index].getContent()}');
+      var fileTask = FireStore.getUploadTask(fileRef, file);
+      assets[index].task = fileTask;
+      assets[index].task.whenComplete(() async =>
+          {assets[index].url = await FireStore.getDownloadUrl(fileTask)});
+    }
+    return assets;
+  }
+
+  void onAddAssetClick() async {
+    List<File> files = await FileManager.pickFiles();
+    assets = await uploadAssets(files);
+  }
 
   bodyToBuild() {
     return GestureDetector(

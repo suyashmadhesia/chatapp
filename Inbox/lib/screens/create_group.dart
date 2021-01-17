@@ -112,7 +112,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'groupName': groupName,
         'isAdmin': true,
         'messageAt': DateTime.now(),
-        'groupId' : groupId,
+        'groupId': groupId,
       });
       setState(() {
         isUploading = true;
@@ -148,7 +148,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'groupName': groupName,
         'isAdmin': true,
         'messageAt': DateTime.now(),
-        'groupId' : groupId,
+        'groupId': groupId,
       });
       setState(() {
         isUploading = true;

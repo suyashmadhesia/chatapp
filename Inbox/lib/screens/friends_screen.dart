@@ -48,7 +48,7 @@ class _FriendsScreenState extends State<FriendsScreen>
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     friendsList = userAccountRefs['friendsList'];
     groupList = userAccountRefs['groupsList'];
-    myUsername = userAccountRefs['groupsList'];
+    myUsername = userAccountRefs['username'];
     setState(() {
       isDataLoaded = true;
     });
@@ -272,10 +272,9 @@ class _FriendsScreenState extends State<FriendsScreen>
           isDataLoaded && !isEmptyFriendList
               ? friendsListStream()
               : buildNocontentForChats(),
-          buildNoContentScreenForGroups(),
-          //  isDataLoaded && !isEmptyGroupList
-          //   ? groupListStream()
-          //   : buildNoContentScreenForGroups(),
+          isDataLoaded && !isEmptyGroupList
+              ? groupListStream()
+              : buildNoContentScreenForGroups(),
         ],
       ),
       floatingActionButton: _tabController.index == 1

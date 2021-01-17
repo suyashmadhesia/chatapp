@@ -1,4 +1,9 @@
-import 'constant.dart' show isMediaExist;
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:Inbox/helpers/file_manager.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:random_string/random_string.dart';
 
 class Asset {
   String thumbnail;
@@ -6,14 +11,24 @@ class Asset {
   String contentType;
   String name;
   bool isAssetPresentInDevice;
-
+  File file;
+  Uint8List thumbnailFile;
+  UploadTask task;
+  double progrss;
   Asset(
       {this.name,
-      this.thumbnail,
+      this.thumbnail = "",
       this.isAssetPresentInDevice = false,
       this.contentType,
+      this.file,
+      this.task,
+      this.thumbnailFile,
+      this.progrss,
       this.url}) {
-    this.isAssetPresentInDevice = isMediaExist(name);
+    if (this.name != null && this.contentType != null) {
+      FileManager.isMediaExist(name, getContent())
+          .then((value) => {isAssetPresentInDevice = value});
+    }
   }
 
   Asset.fromJson(Map<String, String> json) {
@@ -21,6 +36,43 @@ class Asset {
     url = json["url"];
     contentType = json["contentType"];
     name = json["name"];
+  }
+
+  void updateProgress(double pg) {
+    this.progrss = pg;
+  }
+
+  static String _getContent(String content) {
+    var splitted = content.split("/");
+    return splitted[splitted.length - 1];
+  }
+
+  String getContent() {
+    return Asset._getContent(contentType);
+  }
+
+  String generateName() {
+    var generated = randomAlphaNumeric(18);
+    var content = getContent();
+    return '$content-$generated';
+  }
+
+  void setNameGenerated() {
+    this.name = this.generateName();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "name": name,
+      "thumbnail": thumbnail,
+      "ulr": url,
+      "contentType": contentType
+    };
+  }
+
+  @override
+  String toString() {
+    return "Asset(name:$name, contentType: $contentType)";
   }
 }
 

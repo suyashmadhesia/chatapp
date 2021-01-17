@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -6,7 +8,6 @@ class FireStore {
     return FirebaseFirestore.instance.collection(path);
   }
 
-<<<<<<< HEAD
   static Future<void> deleteMessage(
       // This function will delete the message from receivers db
       String senderId,
@@ -32,6 +33,10 @@ class FireStore {
     return ref.putFile(file);
   }
 
+  static UploadTask getUploadTaskUni8List(Reference ref, Uint8List data) {
+    return ref.putData(data);
+  }
+
   static Future<String> getDownloadUrl(UploadTask task) async {
     TaskSnapshot snapshot = await task.whenComplete(() => {});
     String url = await snapshot.ref.getDownloadURL();
@@ -49,7 +54,4 @@ class FireStore {
   static Future<bool> cancelTask(UploadTask task) async {
     return await task.cancel();
   }
-=======
-  
->>>>>>> ac7e1c68758f93bf8242787fcd62580ae5e1c4be
 }

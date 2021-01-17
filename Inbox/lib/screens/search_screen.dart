@@ -37,7 +37,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<QuerySnapshot> searchResult;
   final usersRef = FirebaseFirestore.instance.collection('users');
   double screenWidth;
-	double screenHeight;
+  double screenHeight;
 
 //Functions
 
@@ -121,8 +121,10 @@ class _SearchScreenState extends State<SearchScreen> {
             List<UserResult> searchResult = [];
             snapshot.data.documents.forEach((doc) {
               Account users = Account.fromDocument(doc);
-              UserResult userResult = UserResult(user: users);
-              searchResult.add(userResult);
+              if (users.userId != currentUser.uid) {
+                UserResult userResult = UserResult(user: users);
+                searchResult.add(userResult);
+              }
             });
             return ListView(
                 physics: BouncingScrollPhysics(), children: searchResult);
@@ -133,24 +135,30 @@ class _SearchScreenState extends State<SearchScreen> {
                 children: [
                   SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
                       height: screenHeight * 230, width: screenWidth * 48),
-                      SizedBox(height: screenHeight * 20),
-                      Text('No user found', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
+                  SizedBox(height: screenHeight * 20),
+                  Text('No user found',
+                      style: TextStyle(
+                          color: Colors.black, fontFamily: 'Montserrat'))
                 ],
               ),
             );
           }
         } else {
           return Center(
-              child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
-                      height: screenHeight * 230, width: screenWidth * 48),
-                      SizedBox(height: screenHeight * 20,),
-                      Text('Something went wrong Please try again', style: TextStyle(color: Colors.black,fontFamily: 'Montserrat'))  
-                ],
-              ),
-            );
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset('assets/images/undraw_warning_cyit.svg',
+                    height: screenHeight * 230, width: screenWidth * 48),
+                SizedBox(
+                  height: screenHeight * 20,
+                ),
+                Text('Something went wrong Please try again',
+                    style: TextStyle(
+                        color: Colors.black, fontFamily: 'Montserrat'))
+              ],
+            ),
+          );
         }
       },
     );
@@ -158,11 +166,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-		double screenW = MediaQuery.of(context).size.width;
-		double screenH = MediaQuery.of(context).size.height;
-		ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
-		screenHeight = screenSize.dividingHeight();
-		screenWidth = screenSize.dividingWidth();
+    double screenW = MediaQuery.of(context).size.width;
+    double screenH = MediaQuery.of(context).size.height;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: buildSearchField(),
@@ -179,7 +187,6 @@ class UserResult extends StatefulWidget {
 }
 
 class _UserResultState extends State<UserResult> {
- 
   String thisUserID;
   String userid = _SearchScreenState().currentUser.uid;
 
@@ -206,9 +213,10 @@ class _UserResultState extends State<UserResult> {
               leading: CircleAvatar(
                 backgroundColor: Colors.white,
                 radius: 32,
-                backgroundImage: widget.user.avtar == null || widget.user.avtar == ''
-                    ? AssetImage('assets/images/user.png')
-                    : CachedNetworkImageProvider(widget.user.avtar),
+                backgroundImage:
+                    widget.user.avtar == null || widget.user.avtar == ''
+                        ? AssetImage('assets/images/user.png')
+                        : CachedNetworkImageProvider(widget.user.avtar),
               ),
               title: Text(widget.user.username,
                   style: TextStyle(
@@ -228,8 +236,6 @@ class _UserResultState extends State<UserResult> {
       ),
     );
   }
-
-
 }
 
 showProfile(BuildContext context, {String profileId}) {
