@@ -1,8 +1,8 @@
 import 'package:Inbox/components/friends_card.dart';
 import 'package:Inbox/components/group_card.dart';
 import 'package:Inbox/components/screen_size.dart';
-import 'package:Inbox/screens/group_chatScreen.dart';
-import 'package:Inbox/screens/group_profile.dart';
+// import 'package:Inbox/screens/group_chatScreen.dart';
+// import 'package:Inbox/screens/group_profile.dart';
 import 'package:Inbox/screens/notification_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -93,7 +93,7 @@ class _FriendsScreenState extends State<FriendsScreen>
     return FloatingActionButton(
       onPressed: () {
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => CreateGroup()));
+            context, MaterialPageRoute(builder: (context) => CreateGroup(username : myUsername)));
       },
       elevation: 5,
       backgroundColor: Colors.white,

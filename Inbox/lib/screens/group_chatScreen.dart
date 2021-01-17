@@ -292,6 +292,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       'SendersAvatar': widget.groupBanner,
       'requestType': 'GroupRequestFromGroup',
       'sendAt': DateTime.now(),
+      'targetName' : myUsername,//Username of target
     });
   }
 
@@ -305,9 +306,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         .delete();
   }
 
-  inviteButton(String userID) {
-    return;
-  }
 
   buildSearchResult() {
     if (isSearching) {

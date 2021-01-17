@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //import 'package:Inbox/models/user.dart';
 // import 'package:Inbox/screens/home.dart';
-import 'package:Inbox/screens/profile_other.dart';
+// import 'package:Inbox/screens/profile_other.dart';
 // import 'package:Inbox/screens/profile_screen.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/services.dart';
@@ -91,6 +91,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               final senderAvatar = userid['SendersAvatar'];
               final requestType = userid['requestType'];
               final timeStamp = userid['sendAt'];
+              final targetName = userid['targetName'];
 
               String time = '';
 
@@ -109,6 +110,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 username: sendersUsername,
                 time: time,
                 userId: _userId,
+                target: targetName,
               );
               notificationWidget.add(notificationCard);
               notificationWidget.reversed;

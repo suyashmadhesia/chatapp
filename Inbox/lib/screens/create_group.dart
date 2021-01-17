@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:Inbox/helpers/send_notification.dart';
+// import 'package:Inbox/helpers/send_notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -12,6 +12,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class CreateGroup extends StatefulWidget {
+
+  final String username;
+CreateGroup({this.username});
+
   @override
   _CreateGroupState createState() => _CreateGroupState();
 }
@@ -138,6 +142,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'joinAt': DateTime.now(),
         'isAdmin': true,
         'userId': currentUserId,
+        'username' : widget.username,
       });
       await collectionRefs.collection('users').doc(currentUserId).update({
         'groupsList': FieldValue.arrayUnion(['GROUP'+groupId]),

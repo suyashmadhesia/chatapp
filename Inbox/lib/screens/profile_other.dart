@@ -11,6 +11,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //import 'search_screen.dart';
 
+// TODO referact code remove excess reads from firebase which checkinng functions are taking;
+
 class OthersProfile extends StatefulWidget {
   @override
   _OthersProfileState createState() => _OthersProfileState();
@@ -59,8 +61,8 @@ class _OthersProfileState extends State<OthersProfile>
   double screenWidth;
   bool dataLoaded = false;
 
-
   final SendNotification notificationData = SendNotification();
+
 
   checkingAccept() async {
     final userAccountRefs =
@@ -76,6 +78,21 @@ class _OthersProfileState extends State<OthersProfile>
       });
     }
   }
+// TODO wrap all function in one functions in checkStatus function;
+  // checkStatus() async {
+  //   final userAccountRefs =
+  //       await FirebaseFirestore.instance.collection('users').doc(user).get();
+  //   final receiverAccountRefs = await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .doc(widget.profileId)
+  //       .get();
+  //   if (userAccountRefs['pendingList'].contains(widget.profileId) &&
+  //       receiverAccountRefs['requestList'].contains(user)) {
+  //     setState(() {
+  //       showAccepted = true;
+  //     });
+  //   }
+  // }
 
   getUsersFriendData() async {
     final userAccountRefs =
@@ -152,6 +169,7 @@ class _OthersProfileState extends State<OthersProfile>
           'SendersAvatar': avatar,
           'requestType': 'FriendRequest',
           'sendAt': DateTime.now(),
+          'targetName' : rUsername,
         });
       }
     }
@@ -237,7 +255,7 @@ class _OthersProfileState extends State<OthersProfile>
           'isSeen': isSeen,
           'lastMessage': 'Say hi to $rUsername',
           'messageCollectionId': messageCollectionId,
-          'isMuted' : false,
+          'isMuted': false,
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -251,7 +269,7 @@ class _OthersProfileState extends State<OthersProfile>
           'isSeen': isSeen,
           'lastMessage': 'Say hi to $username',
           'messageCollectionId': messageCollectionId,
-          'isMuted' : false,
+          'isMuted': false,
         });
         final receiverCollectionRefs = FirebaseFirestore.instance
             .collection('users/$user/pendingRequests');
@@ -264,7 +282,7 @@ class _OthersProfileState extends State<OthersProfile>
         widget.profileId,
         '$username Accepted your Friend Request !!',
         'Request Accepted',
-        isMuted : false);
+        isMuted: false);
     setState(() {
       showAccepted = false;
     });
@@ -592,26 +610,26 @@ class _OthersProfileState extends State<OthersProfile>
     ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
-    return
-        Scaffold(
-            key: _scaffoldKey,
-            backgroundColor: Colors.white,
-            appBar: AppBar(
-              elevation: 0,
-              title:
-              Text('Profile', style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
-              automaticallyImplyLeading: false,
-              leading: IconButton(icon: Icon(Icons.arrow_back, color: Colors.black), onPressed: (){
-                Navigator.pop(context);
-              }),
-              backgroundColor: Colors.white,
-            ),
-            body: SafeArea(
-              child: dataLoaded
-                  ? buildProfileHeader()
-                  : Center(child: CircularProgressIndicator()),
-            ),
-          );
-        
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        title: Text('Profile',
+            style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.pop(context);
+            }),
+        backgroundColor: Colors.white,
+      ),
+      body: SafeArea(
+        child: dataLoaded
+            ? buildProfileHeader()
+            : Center(child: CircularProgressIndicator()),
+      ),
+    );
   }
 }

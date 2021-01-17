@@ -1,5 +1,5 @@
 import 'package:Inbox/components/screen_size.dart';
-import 'package:Inbox/helpers/send_notification.dart';
+// import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,6 +13,7 @@ class NotificationCard extends StatefulWidget {
   final requestType;
   final DateTime timeStamp;
   final String userId;
+  final String target;
 
   NotificationCard(
       {this.avatar,
@@ -21,7 +22,8 @@ class NotificationCard extends StatefulWidget {
       this.username,
       this.requestType,
       this.timeStamp,
-      this.userId});
+      this.userId,
+      this.target});
 
   @override
   _NotificationCardState createState() => _NotificationCardState();
@@ -42,6 +44,7 @@ class _NotificationCardState extends State<NotificationCard> {
       'joinAt': DateTime.now(),
       'isAdmin': false,
       'userId': widget.userId,
+      'username': widget.username,
     });
     await collectionRefs.collection('users').doc(widget.userId).update({
       'groupsList': FieldValue.arrayUnion([widget.id]),
@@ -63,7 +66,7 @@ class _NotificationCardState extends State<NotificationCard> {
     await receiverCollectionRef.doc(widget.id).delete();
   }
 
-  rejectInvitation() async{
+  rejectInvitation() async {
     await collectionRefs.collection('users').doc(widget.userId).update({
       'pendingList': FieldValue.arrayRemove([widget.id]),
     });
@@ -72,7 +75,7 @@ class _NotificationCardState extends State<NotificationCard> {
     await receiverCollectionRef.doc(widget.id).delete();
   }
 
-  acceptOrRejectButton() {
+  joinOrRejectButton() {
     if (widget.requestType == 'GroupRequestFromGroup') {
       return isLoading
           ? Center(
@@ -111,16 +114,16 @@ class _NotificationCardState extends State<NotificationCard> {
                   padding: const EdgeInsets.only(left: 8.0),
                   child: FlatButton(
                     color: Colors.grey[200],
-                    onPressed: () async{
+                    onPressed: () async {
                       if (!isLoading) {
-                      setState(() {
-                        isLoading = true;
-                      });
-                      await rejectInvitation();
-                      setState(() {
-                        isLoading = false;
-                      });
-                    }
+                        setState(() {
+                          isLoading = true;
+                        });
+                        await rejectInvitation();
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(4),
@@ -145,53 +148,99 @@ class _NotificationCardState extends State<NotificationCard> {
     double screenW = MediaQuery.of(context).size.width;
     ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
     double screenHeight = screenSize.dividingHeight();
-    return Container(
-      color: Colors.grey[50],
-      child: Column(
-        children: [
-          SizedBox(
-            height: 5,
-          ),
-          GestureDetector(
-            onTap: () {
-              String group = '';
-              for (int i = 0; i <= 5; i++) {
-                group = group + widget.id[i];
-              }
-              if (group == 'GROUP') {
-                
-              }
-              showProfile(context, profileId: widget.id);
-            },
-            child: ListTile(
-              subtitle: acceptOrRejectButton(),
-              leading: CircleAvatar(
-                  backgroundColor: Colors.white,
-                  radius: screenHeight * 42,
-                  backgroundImage: widget.avatar == '' || widget.avatar == null
-                      ? AssetImage('assets/images/user.png')
-                      : CachedNetworkImageProvider(widget.avatar)),
-              title: Text(
-                  widget.requestType == 'GroupRequestFromGroup'
-                      ? widget.username + ' group sent you invitation !!'
-                      : widget.username +
-                          ' sent you friend request tap to accept or reject',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                      fontFamily: 'Monstserrat')),
+    return widget.requestType == 'GroupJoiningFromUser'
+        ? Container(
+            color: Colors.grey[50],
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    String group = '';
+                    for (int i = 0; i <= 5; i++) {
+                      group = group + widget.id[i];
+                    }
+                    if (group == 'GROUP') {}
+                    showProfile(context, profileId: widget.id);
+                  },
+                  child: ListTile(
+                    // subtitle: joinOrRejectButton(),
+                    leading: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: screenHeight * 42,
+                        backgroundImage:
+                            widget.avatar == '' || widget.avatar == null
+                                ? AssetImage('assets/images/user.png')
+                                : CachedNetworkImageProvider(widget.avatar)),
+                    title: Text(
+                        widget.username +
+                            ' sent you request to join your ' +
+                            widget.target +
+                            ' group',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontFamily: 'Monstserrat')),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                )
+              ],
             ),
-          ),
-          SizedBox(
-            height: 5,
-          ),
-          Divider(
-            color: Colors.grey[500],
-            height: 2.0,
           )
-        ],
-      ),
-    );
+        : Container(
+            color: Colors.grey[50],
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    String group = '';
+                    for (int i = 0; i <= 5; i++) {
+                      group = group + widget.id[i];
+                    }
+                    if (group == 'GROUP') {}
+                    showProfile(context, profileId: widget.id);
+                  },
+                  child: ListTile(
+                    subtitle: joinOrRejectButton(),
+                    leading: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: screenHeight * 42,
+                        backgroundImage:
+                            widget.avatar == '' || widget.avatar == null
+                                ? AssetImage('assets/images/user.png')
+                                : CachedNetworkImageProvider(widget.avatar)),
+                    title: Text(
+                        widget.requestType == 'GroupRequestFromGroup'
+                            ? widget.username + ' group sent you invitation !!'
+                            : widget.username +
+                                ' sent you friend request tap to accept or reject',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontFamily: 'Monstserrat')),
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Divider(
+                  color: Colors.grey[500],
+                  height: 2.0,
+                )
+              ],
+            ),
+          );
   }
 }
 
