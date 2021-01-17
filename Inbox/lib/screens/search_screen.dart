@@ -168,10 +168,6 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           Radius.circular(screenWidth * 13),
         ),
         child: TextFormField(
-          inputFormatters: <TextInputFormatter>[
-            FilteringTextInputFormatter(RegExp('[a-z0-9_]'),
-                allow: true) //RegEx for  only correct input taken
-          ],
           style: TextStyle(
               color: Colors.black, fontFamily: 'Montserrat', fontSize: 12.0),
           onChanged: (value) {

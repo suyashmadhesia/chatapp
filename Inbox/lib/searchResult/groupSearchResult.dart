@@ -19,7 +19,7 @@ class GroupResult extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              
+							showGroupProfile(groups.groupId,context, groupName: groups.groupName,groupBanner: groups.groupBanner, groupDesciption: groups.groupDescription,groupAdmins: groups.adminsId,groupMembers: groups.groupMember);
             },
             child: ListTile(
               leading: CircleAvatar(
@@ -47,7 +47,7 @@ class GroupResult extends StatelessWidget {
   
 }
 
-showGroupProfile(String groupId, context, {String groupName, String groupBanner, String groupDesciption, List groupAdmins}){
+showGroupProfile(String groupId, context, {String groupName, String groupBanner, String groupDesciption, List groupAdmins, List groupMembers}){
   Navigator.push(
     context,
     MaterialPageRoute(
@@ -57,6 +57,7 @@ showGroupProfile(String groupId, context, {String groupName, String groupBanner,
         groupName: groupName,
         groupBanner: groupBanner,
         groupAdmin: groupAdmins,
+				groupMembers: groupMembers,
       ),
     ),
   );

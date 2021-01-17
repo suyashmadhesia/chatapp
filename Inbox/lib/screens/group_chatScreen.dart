@@ -53,8 +53,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Future<QuerySnapshot> searchResult;
   bool buttonLoading = false;
   DateTime joinAt;
-  bool showInvite = true;
-  bool sendRequest = true;
   List pendingList = [];
   List requestList = [];
 
@@ -255,7 +253,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             widget.groupId,
                             message,
                             'Group Message',
-                            tag : widget.groupId,
+                            tag: widget.groupId,
                             isMuted: false);
                         setState(() {
                           isSending = false;
@@ -308,56 +306,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   inviteButton(String userID) {
-    return FlatButton(
-      color: showInvite ? Colors.green : Colors.red,
-      onPressed: () async {
-        if (!buttonLoading) {
-          await getInvitationData(userID);
-          if (pendingList.contains(widget.groupId) &&
-              !requestList.contains(widget.groupId)) {
-            setState(() {
-              buttonLoading = true;
-            });
-            print('cancel Invitation');
-            await cancelInvitation(userID);
-            await getInvitationData(userID);
-            if (pendingList.contains(widget.groupId)) {
-              setState(() {
-                showInvite = false;
-              });
-            } else {
-              showInvite = true;
-            }
-            setState(() {
-              buttonLoading = false;
-            });
-          } else {
-            setState(() {
-              buttonLoading = true;
-            });
-            print('sending Invitation');
-            await sendInvitation(userID);
-            await getInvitationData(userID);
-            if (!pendingList.contains(widget.groupId)) {
-              setState(() {
-                showInvite = true;
-              });
-            } else {
-              showInvite = false;
-            }
-            setState(() {
-              buttonLoading = false;
-            });
-          }
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Text(showInvite ? 'Invite' : 'Cancel Invitation',
-            style: TextStyle(
-                color: Colors.white, fontSize: 12, fontFamily: 'Monstserrat')),
-      ),
-    );
+    return;
   }
 
   buildSearchResult() {
@@ -392,7 +341,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             List<Widget> searchResult = [];
             snapshot.data.documents.forEach((doc) {
               Account users = Account.fromDocument(doc);
-
+                bool showInvite = true;
+                bool sendRequest = true;
               if (users.userId != userid &&
                   !users.groupList.contains(widget.groupId) &&
                   !users.requestList.contains(widget.groupId)) {
@@ -400,7 +350,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     padding: const EdgeInsets.only(left: 8, right: 8),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey[700],
+                        color: Colors.black,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey,
@@ -423,7 +373,66 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : inviteButton(users.userId),
+                                : FlatButton(
+                                    color:
+                                        showInvite ? Colors.green : Colors.red,
+                                    onPressed: () async {
+                                      if (!buttonLoading) {
+                                        await getInvitationData(users.userId);
+                                        if (pendingList
+                                                .contains(widget.groupId) &&
+                                            !requestList
+                                                .contains(widget.groupId)) {
+                                          setState(() {
+                                            buttonLoading = true;
+                                          });
+                                          print('cancel Invitation');
+                                          await cancelInvitation(users.userId);
+                                          await getInvitationData(users.userId);
+                                          if (pendingList
+                                              .contains(widget.groupId)) {
+                                            setState(() {
+                                              showInvite = false;
+                                            });
+                                          } else {
+                                            showInvite = true;
+                                          }
+                                          setState(() {
+                                            buttonLoading = false;
+                                          });
+                                        } else {
+                                          setState(() {
+                                            buttonLoading = true;
+                                          });
+                                          print('sending Invitation');
+                                          await sendInvitation(users.userId);
+                                          await getInvitationData(users.userId);
+                                          if (!pendingList
+                                              .contains(widget.groupId)) {
+                                            setState(() {
+                                              showInvite = true;
+                                            });
+                                          } else {
+                                            showInvite = false;
+                                          }
+                                          setState(() {
+                                            buttonLoading = false;
+                                          });
+                                        }
+                                      }
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Text(
+                                          showInvite
+                                              ? 'Invite'
+                                              : 'Cancel Invitation',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontFamily: 'Monstserrat')),
+                                    ),
+                                  ),
                             leading: CircleAvatar(
                               backgroundColor: Colors.grey[800],
                               radius: screenWidth * 7.5,
@@ -563,7 +572,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       backgroundColor: Color(0xff111111),
       key: _scaffoldKey,
       appBar: AppBar(
-        elevation: 5,
+        elevation: 0,
         automaticallyImplyLeading: showSearchBar ? false : true,
         actions: [
           if (admin)
@@ -645,8 +654,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 }
 
-showGroupDashBoard(BuildContext context, {String groupId, String groupName, String groupBanner, String groupDescription}){
-
-  Navigator.push(context, MaterialPageRoute(builder: (context) => GroupDashboard()));
-
+showGroupDashBoard(BuildContext context,
+    {String groupId,
+    String groupName,
+    String groupBanner,
+    String groupDescription}) {
+  Navigator.push(
+      context, MaterialPageRoute(builder: (context) => GroupDashboard()));
 }
