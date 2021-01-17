@@ -2,6 +2,7 @@ import 'package:Inbox/components/group_message_bubble.dart';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/user.dart';
+import 'package:Inbox/screens/group_dashboard.dart';
 // import 'package:Inbox/screens/search_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -642,4 +643,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       ),
     );
   }
+}
+
+showGroupDashBoard(BuildContext context, {String groupId, String groupName, String groupBanner, String groupDescription}){
+
+  Navigator.push(context, MaterialPageRoute(builder: (context) => GroupDashboard()));
+
 }

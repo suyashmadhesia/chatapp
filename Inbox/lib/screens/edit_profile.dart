@@ -160,8 +160,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
       if (_image == null) {
         userRefs.doc(user.uid).update({
-          'bio': bio == null || bio == '' ? bioField : bio,
-          'email': email == null || email == '' ? emailField : email,
+          'bio': bio == null || bio == '' || bio.isEmpty ? bioField : bio,
+          'email': email == null || email == '' || email.isEmpty ? emailField : email,
         });
       }
       setState(() {
@@ -239,7 +239,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         decoration: BoxDecoration(
           color: Colors.grey[200],
           image: DecorationImage(
-            image: AssetImage('assets/images/group.png'),
+            image: AssetImage('assets/images/user.png'),
             fit: BoxFit.contain,
           ),
         ),
@@ -250,7 +250,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         width: width,
         child: Image.network(imageField),
       );
-      ;
+      
     } else if (imageField.isNotEmpty && _image != null) {
       return Container(
         height: height,

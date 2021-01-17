@@ -1,6 +1,8 @@
 import 'package:Inbox/components/friends_card.dart';
 import 'package:Inbox/components/group_card.dart';
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/screens/group_chatScreen.dart';
+import 'package:Inbox/screens/group_profile.dart';
 import 'package:Inbox/screens/notification_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -228,7 +230,8 @@ class _FriendsScreenState extends State<FriendsScreen>
               final groupMembers = groupid['groupMember'];
               final messageAt = groupid['messageAt'];
               final lastMessage = groupid['lastMessage'];
-
+              final groupDescription = groupid['groupDescription'];
+              final adminsList = groupid['adminsId'];
               DateTime dateTime = messageAt.toDate();
 
               if (groupMembers.contains(_userId)) {
@@ -241,6 +244,9 @@ class _FriendsScreenState extends State<FriendsScreen>
                   userId: _userId,
                   key: Key(groupId),
                   username: myUsername,
+                  membersList: groupMembers,
+                  groupDescription: groupDescription,
+                  adminList: adminsList,
                 );
                 groupsWidget.add(groupWidget);
                 groupsWidget.reversed;
@@ -283,6 +289,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                       context,
                       MaterialPageRoute(
                         builder: (context) => NotificationScreen(),
+                        //  builder: (context) => GroupProfileScreen(),
                       ),
                     );
                   },

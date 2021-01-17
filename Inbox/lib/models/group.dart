@@ -1,38 +1,30 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class GroupParticipant {
-  final User user;
-  final DateTime joined;
-  DateTime lastActivity;
-  bool isAdmin;
-  GroupParticipant(
-      {this.joined, this.user, this.lastActivity, this.isAdmin = false});
-}
+class GroupAccount {
+  final String groupBanner;
+  final String groupName;
+  final String groupDescription;
+  final String groupId;
+  final List groupMember;
+  final List adminsId;
 
-class Group {
-  String name;
-  final String gid;
-  String image;
-  final DateTime created;
-  String description;
-  bool isMute;
-  final User creator;
-  List<GroupParticipant> participants;
+  GroupAccount({
+    this.groupName,
+    this.groupDescription,
+    this.groupBanner,
+    this.adminsId,
+    this.groupId,
+    this.groupMember});
 
-  Group(
-      {this.name,
-      this.gid,
-      this.image,
-      this.created,
-      this.creator,
-      this.description,
-      this.isMute,
-      this.participants});
-
-  void addUserOnDatabase(User user) {}
-
-  void addParticpant(User user) {
-    this.participants.add(GroupParticipant(
-        user: user, joined: DateTime.now(), lastActivity: DateTime.now()));
+  factory GroupAccount.fromDocument(DocumentSnapshot doc){
+    return GroupAccount(
+      groupId: doc['groupId'],
+      groupName: doc['groupName'],
+      groupBanner: doc['groupBanner'],
+      groupMember: doc['groupMember'],
+      groupDescription: doc['groupDescription'],
+      adminsId: doc['adminsId'],
+    );
   }
+
 }

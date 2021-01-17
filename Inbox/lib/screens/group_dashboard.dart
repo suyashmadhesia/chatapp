@@ -4,8 +4,10 @@ class GroupDashboard extends StatefulWidget {
 
   final String groupId;
   final String groupName;
+  final String groupDescription;
+  final String groupBanner;
 
-  GroupDashboard({this.groupId, this.groupName});
+  GroupDashboard({this.groupId, this.groupName, this.groupBanner, this.groupDescription});
 
   @override
   _GroupDashboardState createState() => _GroupDashboardState();

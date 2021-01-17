@@ -13,6 +13,9 @@ class GroupCard extends StatefulWidget {
   final String userId;
   final Key key;
   final String username;
+  final List membersList;
+  final List adminList;
+  final String groupDescription;
 
   GroupCard(
       {this.groupName,
@@ -23,6 +26,9 @@ class GroupCard extends StatefulWidget {
       this.groupId,
       this.key,
       this.username,
+      this.adminList,
+      this.groupDescription,
+      this.membersList,
       });
 
   @override
@@ -95,7 +101,7 @@ class _GroupCardState extends State<GroupCard> {
             },
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.grey,
                 radius: screenHeight * 42,
                 backgroundImage:
                     widget.groupBanner == null || widget.groupBanner == ''
