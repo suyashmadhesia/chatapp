@@ -77,12 +77,13 @@ class Asset {
 }
 
 class Message {
-  String anotherId;
+  bool visibility;
   String sender;
   String messageId;
   DateTime timestamp;
   List<Asset> assets;
   String message;
+  String avatar;
 
   static const Map<int, String> months = {
     1: 'Jan',
@@ -98,9 +99,17 @@ class Message {
     11: 'Nov',
     12: 'Dec'
   };
-
+// TODO ther is no another id in db it was removed only given fields are => correct the json field
+/* assets =[]
+avatar =''
+message = ''
+messageId= ''
+sender = ''//sneder id
+timeStamp = ''
+visibility */
   Message(
-      {this.anotherId,
+      {this.visibility,
+      this.avatar,
       this.sender,
       this.assets = const [],
       this.timestamp,
@@ -108,7 +117,7 @@ class Message {
       this.messageId});
 
   Message.fromJson(Map<String, dynamic> json) {
-    anotherId = json['anotherId'];
+    visibility = json['visbility'];
     sender = json["sender"];
     messageId = json["messageId"];
     timestamp = json["timestamp"].toDate();
@@ -116,6 +125,7 @@ class Message {
     assets = json.containsKey("assets")
         ? (json["assets"]).map((value) => Asset.fromJson(value))
         : [];
+    avatar = json['avatar'];
   }
 
   String getDateFormat() {

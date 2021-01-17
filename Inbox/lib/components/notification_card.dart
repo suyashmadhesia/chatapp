@@ -63,7 +63,7 @@ class _NotificationCardState extends State<NotificationCard> {
     await receiverCollectionRef.doc(widget.id).delete();
   }
 
-  rejectInvitation() async{
+  rejectInvitation() async {
     await collectionRefs.collection('users').doc(widget.userId).update({
       'pendingList': FieldValue.arrayRemove([widget.id]),
     });
@@ -90,8 +90,6 @@ class _NotificationCardState extends State<NotificationCard> {
                       setState(() {
                         isLoading = true;
                       });
-                      SendNotification().topicToSuscribe(widget.id);
-                      SendNotification().topics.add(widget.id);
                       await joinGroup();
                       setState(() {
                         isLoading = false;
@@ -113,16 +111,16 @@ class _NotificationCardState extends State<NotificationCard> {
                   padding: const EdgeInsets.only(left: 8.0),
                   child: FlatButton(
                     color: Colors.grey[200],
-                    onPressed: () async{
+                    onPressed: () async {
                       if (!isLoading) {
-                      setState(() {
-                        isLoading = true;
-                      });
-                      await rejectInvitation();
-                      setState(() {
-                        isLoading = false;
-                      });
-                    }
+                        setState(() {
+                          isLoading = true;
+                        });
+                        await rejectInvitation();
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(4),
@@ -160,9 +158,8 @@ class _NotificationCardState extends State<NotificationCard> {
               for (int i = 0; i <= 5; i++) {
                 group = group + widget.id[i];
               }
-              if (group == 'GROUP') {
-                showProfile(context, profileId: widget.id);
-              }
+              if (group == 'GROUP') {}
+              showProfile(context, profileId: widget.id);
             },
             child: ListTile(
               subtitle: acceptOrRejectButton(),

@@ -32,6 +32,7 @@ class _ImageEditingScreenState extends State<ImageEditingScreen> {
 
 class MediaPacket extends StatelessWidget {
   final File file;
+<<<<<<< HEAD
   final Function(File) onPressed;
   const MediaPacket(this.file, this.onPressed, {Key key}) : super(key: key);
 
@@ -54,5 +55,12 @@ class MediaPacket extends StatelessWidget {
         onTap: onPressed != null ? onPressed : () => {},
       ),
     );
+=======
+  const MediaPacket(this.file, {Key key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    ScreenSize scale = ScreenSize(context: context);
+    return Container();
+>>>>>>> cd536dcff526cad230909fd459b7410ee58d1ca8
   }
 }

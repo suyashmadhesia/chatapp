@@ -110,55 +110,51 @@ class _ProfileScreenState extends State<ProfileScreen>
           );
         }
         user = Account.fromDocument(snapshot.data);
-        return (true)
-            ? ProfileBody(user: user)
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: screenHeight * 70,
-                    backgroundColor: Colors.grey[100],
-                    backgroundImage: user.avtar == ''
-                        ? AssetImage('assets/images/user.png')
-                        : CachedNetworkImageProvider(user.avtar),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text(
-                      user.username,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24.0,
-                        fontFamily: 'Montserrat',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 26.66),
-                  Text(
-                    user.email == '' ? 'Email: Add your email....' : user.email,
-                    style: TextStyle(
-                        color: Colors.black54,
-                        fontFamily: 'Mulish',
-                        fontSize: 16.0),
-                  ),
-                  SizedBox(height: screenHeight * 26.67),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 32, right: 32),
-                      child: Text(
-                        user.bio == ''
-                            ? 'Bio : Write something about you....'
-                            : user.bio,
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontFamily: 'Mulish',
-                            fontSize: 16.0),
-                      ),
-                    ),
-                  ),
-                ],
-              );
+        // return (true)
+        //     ? ProfileBody(user: user)
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            CircleAvatar(
+              radius: screenHeight * 70,
+              backgroundColor: Colors.grey[100],
+              backgroundImage: user.avtar == ''
+                  ? AssetImage('assets/images/user.png')
+                  : CachedNetworkImageProvider(user.avtar),
+            ),
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                user.username,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 24.0,
+                  fontFamily: 'Montserrat',
+                ),
+              ),
+            ),
+            SizedBox(height: screenHeight * 26.66),
+            Text(
+              user.email == '' ? 'Email: Add your email....' : user.email,
+              style: TextStyle(
+                  color: Colors.black54, fontFamily: 'Mulish', fontSize: 16.0),
+            ),
+            SizedBox(height: screenHeight * 26.67),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32),
+                child: Text(
+                  user.bio == ''
+                      ? 'Bio : Write something about you....'
+                      : user.bio,
+                  style: TextStyle(
+                      color: Colors.grey, fontFamily: 'Mulish', fontSize: 16.0),
+                ),
+              ),
+            ),
+          ],
+        );
       },
     );
   }

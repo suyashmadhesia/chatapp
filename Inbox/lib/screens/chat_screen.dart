@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:Inbox/components/message_bubble.dart';
 import 'package:Inbox/helpers/file_manager.dart';
 import 'package:Inbox/helpers/firestore.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/message.dart';
-import 'package:dio/dio.dart';
+// import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -44,6 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   final messageTextController = TextEditingController();
+  final SendNotification notificationData = SendNotification();
   final user = FirebaseAuth.instance.currentUser;
   final sendersMessageRefs = FirebaseFirestore.instance;
   final receiverMessageRefs = FirebaseFirestore.instance;
@@ -52,6 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String rUsername;
+  bool isMute;
   bool isBlocked = false;
   bool isLoaded = false;
   bool isSending = false;
@@ -73,67 +76,6 @@ class _ChatScreenState extends State<ChatScreen> {
           .update({
         'isSeen': true,
       });
-    }
-  }
-
-  Future<List> getToken(userId) async {
-    final db = FirebaseFirestore.instance;
-
-    var token;
-    List listofTokens = [];
-    await db.collection('users/' + userId + '/tokens').get().then((snapshot) {
-      snapshot.docs.forEach((doc) {
-        token = doc.id;
-        listofTokens.add(token);
-      });
-    });
-
-    return listofTokens;
-  }
-
-  Future<void> sendNotification(
-      receiver, message, username, receiversUserId) async {
-    var token = await getToken(receiver);
-    // debugPrint('token : $token');
-
-    final data = {
-      "notification": {"body": "$message", "title": "$username"},
-      "priority": "high",
-      "data": {
-        "click_action": "FLUTTER_NOTIFICATION_CLICK",
-        "id": "1",
-        "status": "done",
-        "type": "Message",
-        "userId": receiversUserId,
-      },
-      'registration_ids': token,
-      "collapse_key": "$receiversUserId message",
-    };
-
-    final headers = {
-      'content-type': 'application/json',
-      'Authorization':
-          'key=AAAAdFdVbjo:APA91bGYkVTkUUKVcOk5O5jz2WZAwm8d1losRaJVEYKF5yspBahEWf-2oMhrnyWhi5pOumnSB0k8Lkb24ibUyawsYhD-P2H6gDUMOgflpQonYMKx9Ov6JmqbtY2uylIo2Moo4-9XbzfV'
-    };
-
-    BaseOptions options = new BaseOptions(
-      connectTimeout: 5000,
-      receiveTimeout: 3000,
-      headers: headers,
-    );
-
-    final postUrl = 'https://fcm.googleapis.com/fcm/send';
-    try {
-      final response = await Dio(options).post(postUrl, data: data);
-
-      if (response.statusCode == 200) {
-        // debugPrint('message sent');
-      } else {
-        // debugPrint('notification sending failed');
-        // on failure do sth
-      }
-    } catch (e) {
-      // debugPrint('exception $e');
     }
   }
 
@@ -188,6 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(user.uid)
         .get();
     final block = receiverMessageRefs['isBlocked'];
+    isMute = receiverMessageRefs['isMuted'];
     rUsername = receiverMessageRefs[
         'username']; // my user name means the name of current sender
     isSeen = receiverMessageRefs['isSeen'];
@@ -262,9 +205,9 @@ class _ChatScreenState extends State<ChatScreen> {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          final message = snapshot.data.documents.reversed;
+          final messages = snapshot.data.documents.reversed;
           List<MessageBubble> messageBubbles = [];
-          for (QueryDocumentSnapshot message in message) {
+          for (QueryDocumentSnapshot message in messages) {
             final messageText = message['message'];
             final messageSender = message['sender'];
             final timeStamp = message['timestamp'];
@@ -272,15 +215,11 @@ class _ChatScreenState extends State<ChatScreen> {
             final visibility = message['visibility'];
             // print(visibility);
 
-            String day = '';
             String time = '';
 
             DateTime d = timeStamp.toDate();
             final String dateTOstring = d.toString();
 
-            for (int i = 5; i <= 10; i++) {
-              day = day + dateTOstring[i];
-            }
             for (int i = 11; i <= 15; i++) {
               time = time + dateTOstring[i];
             }
@@ -484,9 +423,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                     messageTextController.clear();
                                     //TODO here messege is save in senders db
                                     await sendMessage(message);
+
                                     setState(() {
                                       isSending = false;
                                     });
+                                    await notificationData.sendNotification(
+                                      'New message from $rUsername',
+                                      user.uid,
+                                      widget.userId,
+                                      message,
+                                      'Private Message',
+                                      isMuted: isMute,
+                                    );
                                     message = '';
                                   } else {
                                     showdialog(context);
@@ -523,14 +471,23 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void choiceAction(String choice) {
-    if (choice == DropDownMenu.clearChat) {
+    if (choice == DropDownMenu.muteChat) {
 //print('clear chat');
-      clearChat();
+      muteChat();
     } else if (choice == DropDownMenu.block) {
       blockUser();
     } else if (choice == DropDownMenu.unBlock) {
       unBlockUser();
+    } else if (choice == DropDownMenu.unMute) {
+      unMuteChat();
     }
+  }
+
+  unMuteChat() {
+    setState(() {
+      isMute = false;
+    });
+    debugPrint('un muted');
   }
 
   blockUser() async {
@@ -591,20 +548,35 @@ class _ChatScreenState extends State<ChatScreen> {
     _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
-  clearChat() async {}
+  muteChat() async {
+    setState(() {
+      isMute = true;
+    });
+    debugPrint('Muted');
+  }
 
   appbarActionButton() {
     return <Widget>[
       PopupMenuButton<String>(
         onSelected: choiceAction,
         itemBuilder: (BuildContext context) {
-          return isReceiverBlocked
-              ? DropDownMenu.blockedChoice.map((String choice) {
-                  return PopupMenuItem(value: choice, child: Text(choice));
-                }).toList()
-              : DropDownMenu.choices.map((String choice) {
-                  return PopupMenuItem(value: choice, child: Text(choice));
-                }).toList();
+          if (isReceiverBlocked && !isMute) {
+            return DropDownMenu.blockedChoice.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
+            }).toList();
+          } else if (!isReceiverBlocked && isMute) {
+            return DropDownMenu.unMuteChoice.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
+            }).toList();
+          } else if (isReceiverBlocked && isMute) {
+            return DropDownMenu.bothBlockedAndMuted.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
+            }).toList();
+          } else {
+            return DropDownMenu.choices.map((String choice) {
+              return PopupMenuItem(value: choice, child: Text(choice));
+            }).toList();
+          }
         },
       )
     ];
@@ -616,9 +588,10 @@ class _ChatScreenState extends State<ChatScreen> {
       onWillPop: _onWillPop,
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Color(0xff484848),
+        backgroundColor: Color(0xff111111),
         appBar: AppBar(
-          backgroundColor: Colors.grey[900],
+          elevation: 5,
+          backgroundColor: Colors.black,
           actions: appbarActionButton(),
           title: GestureDetector(
             onTap: () => showProfile(context, profileId: widget.userId),
