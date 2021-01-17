@@ -226,7 +226,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                   messageAt: dateTime,
                   userId: _userId,
                   key: Key(groupId),
-                  username : myUsername,
+                  username: myUsername,
                 );
                 groupsWidget.add(groupWidget);
                 groupsWidget.reversed;
@@ -272,16 +272,10 @@ class _FriendsScreenState extends State<FriendsScreen>
           isDataLoaded && !isEmptyFriendList
               ? friendsListStream()
               : buildNocontentForChats(),
-<<<<<<< HEAD
           buildNoContentScreenForGroups(),
           //  isDataLoaded && !isEmptyGroupList
           //   ? groupListStream()
           //   : buildNoContentScreenForGroups(),
-=======
-          isDataLoaded && !isEmptyGroupList
-              ? groupListStream()
-              : buildNoContentScreenForGroups(),
->>>>>>> ac7e1c68758f93bf8242787fcd62580ae5e1c4be
         ],
       ),
       floatingActionButton: _tabController.index == 1
