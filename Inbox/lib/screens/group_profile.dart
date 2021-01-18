@@ -124,6 +124,7 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
       final receiverCollectionRef = FirebaseFirestore.instance
           .collection('users/' + userId + '/pendingRequests');
       await receiverCollectionRef.doc(widget.groupId).delete();
+      SendNotification().topicToSuscribe('/topics/'+widget.groupId);
     }
     setState(() {
       loadingButton = false;
@@ -261,6 +262,7 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
           .collection('users/' + userId + '/groups')
           .doc(widget.groupId)
           .delete();
+      SendNotification().topicToUnsuscribe('/topics/'+widget.groupId);
     } else {
       if (widget.groupAdmin.length == 1 && widget.groupMembers.length > 1) {
         await collectionRefs
@@ -285,6 +287,7 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
             .collection('users/' + userId + '/groups')
             .doc(widget.groupId)
             .delete();
+        SendNotification().topicToUnsuscribe('/topics/'+widget.groupId);
         Navigator.pop(context);
       } else {
         print('error');

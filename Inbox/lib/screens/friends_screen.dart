@@ -1,6 +1,7 @@
 import 'package:Inbox/components/friends_card.dart';
 import 'package:Inbox/components/group_card.dart';
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 // import 'package:Inbox/screens/group_chatScreen.dart';
 // import 'package:Inbox/screens/group_profile.dart';
 import 'package:Inbox/screens/notification_screen.dart';
@@ -56,8 +57,12 @@ class _FriendsScreenState extends State<FriendsScreen>
     pendingList = userAccountRefs['pendingList'];
     groupList = userAccountRefs['groupsList'];
     myUsername = userAccountRefs['username'];
+    
     setState(() {
       isDataLoaded = true;
+    });
+    groupList.forEach((value){
+      SendNotification().topicToSuscribe('/topics/'+value);
     });
     if (groupList.isEmpty) {
       setState(() {
