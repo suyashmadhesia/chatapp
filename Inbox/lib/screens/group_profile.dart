@@ -29,7 +29,9 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
   initState() {
     super.initState();
     getUserData();
-    checkStatus();
+    checkSentRequest();
+    checkingAccept();
+    memberCheck();
   }
 
   //variables
@@ -38,13 +40,13 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
   final collectionRefs = FirebaseFirestore.instance;
   final userId = FirebaseAuth.instance.currentUser.uid;
   bool showAcceptButton = false;
-  bool showCancelButton = false;
-  bool showLeaveButton = false;
-  bool showRequestButton = false;
+
+  bool isJoined = false;
+  bool isRequestSent = false;
   bool isDataLoaded = false;
-  List groupList;
-  List pendingList;
-  List requestList;
+  List groupList = [];
+  List pendingList = [];
+  List requestList = [];
   bool loadingButton = false;
   String username;
   String avatar;
@@ -59,7 +61,7 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
         decoration: BoxDecoration(
           color: Colors.grey[200],
           image: DecorationImage(
-            image: AssetImage('assets/images/group.png'),
+            image: AssetImage('assets/images/user.png'),
             fit: BoxFit.contain,
           ),
         ),
@@ -84,61 +86,6 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
     setState(() {
       isDataLoaded = true;
     });
-  }
-
-  checkStatus() {
-    if (pendingList.contains(
-            widget.groupId) && //create accept button and cancel button,
-        !groupList.contains(widget.groupId) &&
-        !requestList.contains(widget.groupId)) {
-      setState(() {
-        showAcceptButton = true;
-        showCancelButton = false;
-        showLeaveButton = false;
-        showRequestButton = false;
-      });
-    } else if (!pendingList.contains(widget.groupId) && //create request button
-        !groupList.contains(widget.groupId) &&
-        !requestList.contains(widget.groupId)) {
-      setState(() {
-        showAcceptButton = false;
-        showCancelButton = false;
-        showLeaveButton = false;
-        showRequestButton = true;
-      });
-    } else if (!pendingList.contains(widget.groupId) && //create leave button
-        groupList.contains(widget.groupId) &&
-        !requestList.contains(widget.groupId)) {
-      setState(() {
-        showAcceptButton = false;
-        showCancelButton = false;
-        showLeaveButton = true;
-        showRequestButton = false;
-      });
-    } else if (!pendingList.contains(widget.groupId) && //create cancel  button
-        !groupList.contains(widget.groupId) &&
-        requestList.contains(widget.groupId)) {
-      setState(() {
-        showAcceptButton = false;
-        showCancelButton = true;
-        showLeaveButton = false;
-        showRequestButton = false;
-      });
-    }
-  }
-
-  flatButton(String data, Function onPressed, Color color) {
-    return FlatButton(
-      color: color,
-      onPressed: loadingButton ? null : onPressed,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          data,
-          style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
-        ),
-      ),
-    );
   }
 
   acceptInvitation() async {
@@ -181,15 +128,22 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
     setState(() {
       loadingButton = false;
     });
+    setState(() {
+      showAcceptButton = false;
+    });
   }
 
   rejectInvitation() async {
+    await getUserData();
     await collectionRefs.collection('users').doc(userId).update({
       'pendingList': FieldValue.arrayRemove([widget.groupId]),
     });
     final receiverCollectionRef = FirebaseFirestore.instance
         .collection('users/' + userId + '/pendingRequests');
     await receiverCollectionRef.doc(widget.groupId).delete();
+    setState(() {
+      showAcceptButton = false;
+    });
   }
 
   sendJoiningRequest() async {
@@ -203,27 +157,49 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
       await collectionRefs.collection('users').doc(userId).update({
         'requestList': FieldValue.arrayUnion([widget.groupId]),
       });
-      for (int i = 0; i <= widget.groupAdmin.length; i++) {
+      if (widget.groupAdmin.length == 1) {
         await collectionRefs
             .collection('users')
-            .doc(widget.groupAdmin[i])
+            .doc(widget.groupAdmin[0])
             .update({
           'pendingList': FieldValue.arrayUnion([userId]),
         });
         final sendDataToAdmin = collectionRefs
-            .collection('users/' + widget.groupAdmin[i] + '/pendingRequests');
+            .collection('users/' + widget.groupAdmin[0] + '/pendingRequests');
         await sendDataToAdmin.doc(userId).set({
           'pendingUserId': userId,
           'SendersUsername': username,
           'SenderAvatar': avatar,
           'requestType': 'GroupJoiningFromUser',
           'sendAt': DateTime.now(),
-          'targetName' : widget.groupName,
+          'targetName': widget.groupName,
         });
+      } else {
+        for (int i = 0; i <= widget.groupAdmin.length; i++) {
+          await collectionRefs
+              .collection('users')
+              .doc(widget.groupAdmin[i])
+              .update({
+            'pendingList': FieldValue.arrayUnion([userId]),
+          });
+          final sendDataToAdmin = collectionRefs
+              .collection('users/' + widget.groupAdmin[i] + '/pendingRequests');
+          await sendDataToAdmin.doc(userId).set({
+            'pendingUserId': userId,
+            'SendersUsername': username,
+            'SenderAvatar': avatar,
+            'requestType': 'GroupJoiningFromUser',
+            'sendAt': DateTime.now(),
+            'targetName': widget.groupName,
+          });
+        }
       }
     }
     setState(() {
       loadingButton = false;
+    });
+    setState(() {
+      isRequestSent = true;
     });
   }
 
@@ -238,63 +214,194 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
       await collectionRefs.collection('users').doc(userId).update({
         'requestList': FieldValue.arrayRemove([widget.groupId]),
       });
-      for (int i = 0; i <= widget.groupAdmin.length; i++) {
+      if (widget.groupAdmin.length == 1) {
         await collectionRefs
             .collection('users')
-            .doc(widget.groupAdmin[i])
+            .doc(widget.groupAdmin[0])
             .update({
           'pendingList': FieldValue.arrayRemove([userId]),
         });
         final sendDataToAdmin = collectionRefs
-            .collection('users/' + widget.groupAdmin[i] + '/pendingRequests');
+            .collection('users/' + widget.groupAdmin[0] + '/pendingRequests');
         await sendDataToAdmin.doc(userId).delete();
+      } else {
+        for (int i = 0; i <= widget.groupAdmin.length; i++) {
+          await collectionRefs
+              .collection('users')
+              .doc(widget.groupAdmin[i])
+              .update({
+            'pendingList': FieldValue.arrayRemove([userId]),
+          });
+          final sendDataToAdmin = collectionRefs
+              .collection('users/' + widget.groupAdmin[i] + '/pendingRequests');
+          await sendDataToAdmin.doc(userId).delete();
+        }
       }
     }
     setState(() {
       loadingButton = false;
     });
+    setState(() {
+      isRequestSent = false;
+    });
   }
 
+//TODO malfunctioning
   leaveGroup() async {
+    await getUserData();
     if (!widget.groupAdmin.contains(userId)) {
       await collectionRefs.collection('groups').doc(widget.groupId).update({
         'groupMember': FieldValue.arrayRemove([userId]),
       });
-    }else{
-      if(widget.groupAdmin.length < 2 && widget.groupMembers.length != 1){
+      await collectionRefs
+          .collection('groups/' + widget.groupId + '/members')
+          .doc(userId)
+          .delete();
+      await collectionRefs
+          .collection('users/' + userId + '/groups')
+          .doc(widget.groupId)
+          .delete();
+    } else {
+      if (widget.groupAdmin.length == 1 && widget.groupMembers.length > 1) {
         await collectionRefs
-        .collection('groups/' + widget.groupId + '/members')
-        .doc(widget.groupMembers[1])
-        .update({
-          'isAdmin' : true,
+            .collection('groups/' + widget.groupId + '/members')
+            .doc(widget.groupMembers[1])
+            .update({
+          'isAdmin': true,
         });
         await collectionRefs.collection('groups').doc(widget.groupId).update({
-        'groupMember': FieldValue.arrayRemove([userId]),
-      });
+          'adminsId': FieldValue.arrayUnion([widget.groupMembers[1]]),
+        });
+        await collectionRefs.collection('groups').doc(widget.groupId).update({
+          'groupMember': FieldValue.arrayRemove([userId]),
+          'adminsId': FieldValue.arrayRemove([userId]),
+        });
+
+        await collectionRefs
+            .collection('groups/' + widget.groupId + '/members')
+            .doc(userId)
+            .delete();
+        await collectionRefs
+            .collection('users/' + userId + '/groups')
+            .doc(widget.groupId)
+            .delete();
         Navigator.pop(context);
-      }
-      else if(widget.groupMembers.length == 1){
+      } else {
         print('error');
       }
     }
   }
 
+  checkingAccept() async {
+    final userAccountRefs =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    if (userAccountRefs['pendingList'].contains(widget.groupId)) {
+      setState(() {
+        showAcceptButton = true;
+      });
+    }
+  }
+
+  checkSentRequest() async {
+    final userAccountRefs =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    if (userAccountRefs['requestList'].contains(widget.groupId)) {
+      setState(() {
+        isRequestSent = true;
+      });
+    }
+  }
+
+  memberCheck() async {
+    final userAccountRefs =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    if (userAccountRefs['groupsList'].contains(widget.groupId)) {
+      setState(() {
+        isJoined = true;
+      });
+    }
+  }
+
   createGroupInteractionButton() {
-    if (showAcceptButton) {
+    if (showAcceptButton && !isJoined && !isRequestSent) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          flatButton('Join', acceptInvitation(), Colors.green),
-          flatButton('Cancel', rejectInvitation(), Colors.redAccent),
+          FlatButton(
+            color: Colors.greenAccent,
+            onPressed: () async {
+              if (!loadingButton) {
+                await acceptInvitation();
+                Navigator.pop(context);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+              child: Text(
+                "Accept",
+                style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+              ),
+            ),
+          ),
+          FlatButton(
+            color: Colors.greenAccent,
+            onPressed: () async {
+              if (!loadingButton) {
+                await rejectInvitation();
+                Navigator.pop(context);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+              child: Text(
+                "Reject",
+                style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+              ),
+            ),
+          )
         ],
       );
-    } else if (showCancelButton) {
-      return flatButton(
-          'Cancel Request', cancelJoiningRequest(), Colors.redAccent);
-    } else if (showLeaveButton) {
-      flatButton('Leave', leaveGroup(), Colors.redAccent);
-    } else if (showRequestButton) {
-      return flatButton('Send Request', sendJoiningRequest(), Colors.purple);
+    } else if (!showAcceptButton && isJoined && !isRequestSent) {
+      return FlatButton(
+        color: Colors.red,
+        onPressed: () async {
+          if (!loadingButton) {
+            await leaveGroup();
+            Navigator.pop(context);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+          child: Text(
+            "Leave",
+            style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+          ),
+        ),
+      );
+    } else {
+      return FlatButton(
+        color: isRequestSent ? Colors.red : Colors.green,
+        onPressed: () async {
+          if (!loadingButton) {
+            if (isRequestSent) {
+              await cancelJoiningRequest();
+              await getUserData();
+              await checkSentRequest();
+            } else {
+              await sendJoiningRequest();
+              await getUserData();
+              await checkSentRequest();
+            }
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+          child: Text(
+            isRequestSent ? "Cancel Request" : "Join Request",
+            style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+          ),
+        ),
+      );
     }
   }
 
@@ -307,85 +414,106 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
     screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
-      body: isDataLoaded ? ListView(
-        physics: BouncingScrollPhysics(),
-        children: [
-          SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: isDataLoaded
+          ? ListView(
+              physics: BouncingScrollPhysics(),
               children: [
-                Stack(
-                  children: [
-                    loadGroupBanner(screenH * 0.4, screenW),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          widget.groupName,
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontFamily: 'Montserrat',
-                              fontSize: 28),
+                SafeArea(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Stack(
+                        children: [
+                          loadGroupBanner(screenH * 0.4, screenW),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                widget.groupName,
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 28),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.arrow_back,
+                                color: Colors.black,
+                                size: 24,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          title: Text(
+                            'Description',
+                            style: TextStyle(
+                                color: Colors.green[900],
+                                fontFamily: 'Montserrat',
+                                fontSize: 14),
+                          ),
+                          subtitle: Text(
+                            widget.groupDescription,
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontFamily: 'Montserrat',
+                                fontSize: 16),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Material(
-                  color: Colors.white,
-                  elevation: 5,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    title: Text(
-                      'Description',
-                      style: TextStyle(
-                          color: Colors.green[900],
-                          fontFamily: 'Montserrat',
-                          fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      widget.groupDescription,
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontFamily: 'Montserrat',
-                          fontSize: 16),
-                    ),
+                      SizedBox(
+                        height: screenWidth * 2,
+                      ),
+                      Material(
+                        elevation: 5,
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          title: Text(
+                            'Total Members',
+                            style: TextStyle(
+                                color: Colors.green[900],
+                                fontFamily: 'Montserrat',
+                                fontSize: 14),
+                          ),
+                          subtitle: Text(
+                            widget.groupMembers.length.toString(),
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontFamily: 'Montserrat',
+                                fontSize: 16),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: screenWidth * 4,
+                      ),
+                      loadingButton
+                          ? Center(
+                              child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ))
+                          : createGroupInteractionButton(),
+                    ],
                   ),
                 ),
-                SizedBox(
-                  height: screenWidth * 2,
-                ),
-                Material(
-                  elevation: 5,
-                  child: ListTile(
-                    tileColor: Colors.white,
-                    title: Text(
-                      'Total Members',
-                      style: TextStyle(
-                          color: Colors.green[900],
-                          fontFamily: 'Montserrat',
-                          fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      widget.groupMembers.length.toString(),
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontFamily: 'Montserrat',
-                          fontSize: 16),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: screenWidth * 2,
-                ),
-                loadingButton ? Center(child: CircularProgressIndicator(strokeWidth: 2,)) : createGroupInteractionButton(),
               ],
-            ),
-          ),
-        ],
-      ) : Center(child: CircularProgressIndicator()),
+            )
+          : Center(child: CircularProgressIndicator()),
     );
   }
 }
