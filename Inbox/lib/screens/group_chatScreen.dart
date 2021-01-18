@@ -592,6 +592,7 @@ class _ResultState extends State<Result> {
       'requestType': 'GroupRequestFromGroup',
       'sendAt': DateTime.now(),
       'targetName': widget.myUsername, //Username of target
+      'targetId' : userID
     });
   }
 

@@ -92,6 +92,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               final requestType = userid['requestType'];
               final timeStamp = userid['sendAt'];
               final targetName = userid['targetName'];
+              final targetId = userid['targetId'];
 
               String time = '';
 
@@ -111,6 +112,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 time: time,
                 userId: _userId,
                 target: targetName,
+                targetId: targetId,
               );
               notificationWidget.add(notificationCard);
               notificationWidget.reversed;

@@ -172,6 +172,7 @@ class _OthersProfileState extends State<OthersProfile>
           'requestType': 'FriendRequest',
           'sendAt': DateTime.now(),
           'targetName' : rUsername,
+          'targetId' : widget.profileId,
         });
       }
     }

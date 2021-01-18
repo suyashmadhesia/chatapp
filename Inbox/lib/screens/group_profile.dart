@@ -170,10 +170,11 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
         await sendDataToAdmin.doc(userId).set({
           'pendingUserId': userId,
           'SendersUsername': username,
-          'SenderAvatar': avatar,
+          'SendersAvatar': avatar,
           'requestType': 'GroupJoiningFromUser',
           'sendAt': DateTime.now(),
           'targetName': widget.groupName,
+          'targetId' : widget.groupId,
         });
       } else {
         for (int i = 0; i <= widget.groupAdmin.length; i++) {

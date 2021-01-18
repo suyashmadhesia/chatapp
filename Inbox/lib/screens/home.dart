@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
       setState(() {});
     });
     var initializationSettingsAndroid =
-        new AndroidInitializationSettings('@drawable/ic_app');
+        new AndroidInitializationSettings('@mipmap/ic_launcher');
     var initializationSettingsIOS = new IOSInitializationSettings();
     var initializationSettings = new InitializationSettings(
         android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
