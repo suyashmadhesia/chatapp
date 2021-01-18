@@ -33,6 +33,7 @@ class _OthersProfileState extends State<OthersProfile>
   @override
   void initState() {
     super.initState();
+    tokens = notificationData.getToken(widget.profileId);
     getUsersFriendData();
     isRequestSent();
     checkingAccept();
@@ -41,6 +42,7 @@ class _OthersProfileState extends State<OthersProfile>
 
 //CollectionField Constant
   List userRequestList;
+  var tokens;
   List userPendingList;
   List userFriendsList;
 
@@ -174,12 +176,13 @@ class _OthersProfileState extends State<OthersProfile>
       }
     }
     //Sending notification here;
-    notificationData.sendNotification(
+    notificationData.sendOtherNotification(
         'New Friend Request',
         user,
         widget.profileId,
         '$username sent you friend request !!',
         'Friend Request',
+        tokens: tokens,
         isMuted: false);
 
     setState(() {
@@ -276,12 +279,13 @@ class _OthersProfileState extends State<OthersProfile>
         receiverCollectionRefs.doc(widget.profileId).delete();
       }
     }
-    notificationData.sendNotification(
+    notificationData.sendOtherNotification(
         'Friend Request Accepted',
         user,
         widget.profileId,
         '$username Accepted your Friend Request !!',
         'Request Accepted',
+        tokens: tokens,
         isMuted: false);
     setState(() {
       showAccepted = false;

@@ -35,12 +35,13 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     getUserData();
-    //checkInternet();
+    tokens = notificationData.getToken(widget.userId);
 
     setIsSeen();
   }
 
   final messageTextController = TextEditingController();
+  var tokens;
   final SendNotification notificationData = SendNotification();
   final user = FirebaseAuth.instance.currentUser;
   final sendersMessageRefs = FirebaseFirestore.instance;
@@ -362,13 +363,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                       isSending = true;
                                     });
 //Sender Collections
-                                    // sendNotification(widget.userId, message,
-                                    //     rUsername, user.uid);
+                                  
                                     messageTextController.clear();
                                     //TODO here messege is save in senders db
                                     await sendMessage(message);
-
-                                    notificationData.sendNotification(
+                                    notificationData.sendOtherNotification(
                                       '$username',
                                       user.uid,
                                       widget.userId,
@@ -376,7 +375,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'Private Message',
                                       tag: user.uid,
                                       isMuted: isMute,
+                                      tokens: tokens,
                                     );
+                                   
                                     message = '';
                                     setState(() {
                                       isSending = false;

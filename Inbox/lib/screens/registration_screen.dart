@@ -5,6 +5,7 @@ import 'package:Inbox/screens/home.dart';
 import 'package:Inbox/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -48,6 +49,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _firestore = FirebaseFirestore.instance.collection('users');
   final _auth = FirebaseAuth.instance;
   final DateTime timeStamp = DateTime.now();
+  final fcm = FirebaseMessaging();
   double screenWidth;
   double screenHeight;
 
@@ -71,6 +73,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String phone;
 
   bool showSpinner = false;
+
+  saveDeviceToken(uid) async{
+    String fcmToken = await fcm.getToken();
+    if(fcmToken != null){
+      final tokens = FirebaseFirestore.instance.collection('users/$uid/tokens');
+      tokens.doc(fcmToken).set({
+        'tokenId' : fcmToken,
+        'createdAt' : DateTime.now(),
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,8 +203,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 //Saving data to firestore
                                 if (newUser != null) {
                                   User user = FirebaseAuth.instance.currentUser;
+                                  await saveDeviceToken(user.uid);
 
-                                  _firestore.doc(user.uid).set({
+                                  await _firestore.doc(user.uid).set({
                                     'username': name,
                                     'phoneNumber': '+91' + phone,
                                     'bio': '',

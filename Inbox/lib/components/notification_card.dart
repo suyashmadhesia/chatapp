@@ -1,4 +1,5 @@
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 // import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -64,6 +65,7 @@ class _NotificationCardState extends State<NotificationCard> {
     final receiverCollectionRef = FirebaseFirestore.instance
         .collection('users/' + widget.userId + '/pendingRequests');
     await receiverCollectionRef.doc(widget.id).delete();
+    SendNotification().topicToSuscribe('/topics/'+widget.id);
   }
 
   rejectInvitation() async {

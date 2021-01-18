@@ -53,8 +53,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Future<QuerySnapshot> searchResult;
   bool buttonLoading = false;
   DateTime joinAt;
-  List pendingList = [];
-  List requestList = [];
 
   messageStream() {
     return StreamBuilder(
@@ -247,13 +245,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           isSending = true;
                         });
                         await sendMessage(message);
-                        await notificationData.sendNotification(
+                        await notificationData.sendGroupNotification(
                             widget.groupName,
                             userid,
                             widget.groupId,
                             message,
                             'Group Message',
                             tag: widget.groupId,
+                            topic: '/topics/'+widget.groupId,
                             isMuted: false);
                         setState(() {
                           isSending = false;
@@ -272,40 +271,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   onAddAssetClick() {}
-
-  getInvitationData(String userID) async {
-    final userData = await collectionRefs.collection('users').doc(userID).get();
-    pendingList = userData['pendingList'];
-    requestList = userData['requestList'];
-  }
-
-  sendInvitation(String userID) async {
-    await collectionRefs.collection('users').doc(userID).update({
-      'pendingList': FieldValue.arrayUnion([widget.groupId]),
-    });
-    await collectionRefs
-        .collection('users/' + userID + '/pendingRequests')
-        .doc(widget.groupId)
-        .set({
-      'pendingUserId': widget.groupId,
-      'SendersUsername': widget.groupName,
-      'SendersAvatar': widget.groupBanner,
-      'requestType': 'GroupRequestFromGroup',
-      'sendAt': DateTime.now(),
-      'targetName' : myUsername,//Username of target
-    });
-  }
-
-  cancelInvitation(String userID) async {
-    await collectionRefs.collection('users').doc(userID).update({
-      'pendingList': FieldValue.arrayRemove([widget.groupId]),
-    });
-    await collectionRefs
-        .collection('users/' + userID + '/pendingRequests')
-        .doc(widget.groupId)
-        .delete();
-  }
-
 
   buildSearchResult() {
     if (isSearching) {
@@ -336,125 +301,22 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           );
         } else if (snapshot.hasData) {
           if (snapshot.data.documents.length > 0) {
-            List<Widget> searchResult = [];
+            List<Result> searchResult = [];
             snapshot.data.documents.forEach((doc) {
               Account users = Account.fromDocument(doc);
-                bool showInvite = true;
-                bool sendRequest = true;
+
               if (users.userId != userid &&
                   !users.groupList.contains(widget.groupId) &&
                   !users.requestList.contains(widget.groupId)) {
-                final widgetResult = Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(0.5, 0.5), //(x,y)
-                            blurRadius: 1.0,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 5,
-                          ),
-                          ListTile(
-                            trailing: buttonLoading
-                                ? SizedBox(
-                                    height: 16,
-                                    width: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : FlatButton(
-                                    color:
-                                        showInvite ? Colors.green : Colors.red,
-                                    onPressed: () async {
-                                      if (!buttonLoading) {
-                                        await getInvitationData(users.userId);
-                                        if (pendingList
-                                                .contains(widget.groupId) &&
-                                            !requestList
-                                                .contains(widget.groupId)) {
-                                          setState(() {
-                                            buttonLoading = true;
-                                          });
-                                          print('cancel Invitation');
-                                          await cancelInvitation(users.userId);
-                                          await getInvitationData(users.userId);
-                                          if (pendingList
-                                              .contains(widget.groupId)) {
-                                            setState(() {
-                                              showInvite = false;
-                                            });
-                                          } else {
-                                            showInvite = true;
-                                          }
-                                          setState(() {
-                                            buttonLoading = false;
-                                          });
-                                        } else {
-                                          setState(() {
-                                            buttonLoading = true;
-                                          });
-                                          print('sending Invitation');
-                                          await sendInvitation(users.userId);
-                                          await getInvitationData(users.userId);
-                                          if (!pendingList
-                                              .contains(widget.groupId)) {
-                                            setState(() {
-                                              showInvite = true;
-                                            });
-                                          } else {
-                                            showInvite = false;
-                                          }
-                                          setState(() {
-                                            buttonLoading = false;
-                                          });
-                                        }
-                                      }
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Text(
-                                          showInvite
-                                              ? 'Invite'
-                                              : 'Cancel Invitation',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontFamily: 'Monstserrat')),
-                                    ),
-                                  ),
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.grey[800],
-                              radius: screenWidth * 7.5,
-                              backgroundImage:
-                                  users.avtar == null || users.avtar == ''
-                                      ? AssetImage('assets/images/user.png')
-                                      : CachedNetworkImageProvider(users.avtar),
-                            ),
-                            title: Text(users.username,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontFamily: 'Monstserrat')),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Divider(
-                            color: Colors.grey[600],
-                            height: 1.0,
-                          )
-                        ],
-                      ),
-                    ));
+                final widgetResult = Result(
+                  widget.groupId,
+                  widget.groupName,
+                  widget.groupBanner,
+                  myUsername,
+                  screenWidth,
+                  users
+                );
+                
                 searchResult.add(widgetResult);
               }
             });
@@ -659,4 +521,184 @@ showGroupDashBoard(BuildContext context,
     String groupDescription}) {
   Navigator.push(
       context, MaterialPageRoute(builder: (context) => GroupDashboard()));
+}
+
+class Result extends StatefulWidget {
+  final users;
+  final groupId;
+  final groupName;
+  final groupBanner;
+  final myUsername;
+  final screenWidth;
+
+  Result(this.groupId, this.groupName, this.groupBanner, this.myUsername,this.screenWidth,
+      this.users);
+
+  @override
+  _ResultState createState() => _ResultState();
+}
+
+class _ResultState extends State<Result> {
+  final collectionRefs = FirebaseFirestore.instance;
+
+  @override
+  initState(){
+    super.initState();
+    getInvitationData(widget.users.userId);
+  }
+
+  List pendingList = [];
+  List requestList = [];
+  bool showInvite = true;
+  bool buttonLoading = false;
+
+  cancelInvitation(String userID) async {
+    await collectionRefs.collection('users').doc(userID).update({
+      'pendingList': FieldValue.arrayRemove([widget.groupId]),
+    });
+    await collectionRefs
+        .collection('users/' + userID + '/pendingRequests')
+        .doc(widget.groupId)
+        .delete();
+  }
+
+  getInvitationData(String userID) async {
+    final userData = await collectionRefs.collection('users').doc(userID).get();
+    pendingList = userData['pendingList'];
+    requestList = userData['requestList'];
+    if (pendingList.contains(widget.groupId)) {
+                                setState(() {
+                                  showInvite = false;
+                                });
+    }
+    else{
+      setState(() {
+                                  showInvite = true;
+                                });
+    }
+  }
+
+  sendInvitation(String userID) async {
+    await collectionRefs.collection('users').doc(userID).update({
+      'pendingList': FieldValue.arrayUnion([widget.groupId]),
+    });
+    await collectionRefs
+        .collection('users/' + userID + '/pendingRequests')
+        .doc(widget.groupId)
+        .set({
+      'pendingUserId': widget.groupId,
+      'SendersUsername': widget.groupName,
+      'SendersAvatar': widget.groupBanner,
+      'requestType': 'GroupRequestFromGroup',
+      'sendAt': DateTime.now(),
+      'targetName': widget.myUsername, //Username of target
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey,
+                offset: Offset(0.5, 0.5), //(x,y)
+                blurRadius: 1.0,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 5,
+              ),
+              ListTile(
+                trailing: buttonLoading
+                    ? SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : FlatButton(
+                        color: showInvite ? Colors.green : Colors.red,
+                        onPressed: () async {
+                          if (!buttonLoading) {
+                            await getInvitationData(widget.users.userId);
+                            if (pendingList.contains(widget.groupId) &&
+                                !requestList.contains(widget.groupId)) {
+                              setState(() {
+                                buttonLoading = true;
+                              });
+                              print('cancel Invitation');
+                              await cancelInvitation(widget.users.userId);
+                              await getInvitationData(widget.users.userId);
+                              if (pendingList.contains(widget.groupId)) {
+                                setState(() {
+                                  showInvite = false;
+                                });
+                              } else {
+                                showInvite = true;
+                              }
+                              setState(() {
+                                buttonLoading = false;
+                              });
+                            } else {
+                              setState(() {
+                                buttonLoading = true;
+                              });
+                              print('sending Invitation');
+                              await sendInvitation(widget.users.userId);
+                              await getInvitationData(widget.users.userId);
+                              if (!pendingList.contains(widget.groupId)) {
+                                setState(() {
+                                  showInvite = true;
+                                });
+                              } else {
+                                showInvite = false;
+                              }
+                              setState(() {
+                                buttonLoading = false;
+                              });
+                            }
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                              showInvite ? 'Invite' : 'Cancel Invitation',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontFamily: 'Monstserrat')),
+                        ),
+                      ),
+                leading: CircleAvatar(
+                  backgroundColor: Colors.grey[800],
+                  radius: widget.screenWidth * 7.5,
+                  backgroundImage: widget.users.avtar == null || widget.users.avtar == ''
+                      ? AssetImage('assets/images/user.png')
+                      : CachedNetworkImageProvider(widget.users.avtar),
+                ),
+                title: Text(widget.users.username,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontFamily: 'Monstserrat')),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Divider(
+                color: Colors.grey[600],
+                height: 1.0,
+              )
+            ],
+          ),
+        ));
+  }
 }

@@ -67,18 +67,21 @@ class _HomeScreenState extends State<HomeScreen>
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           } else if (message['data']['type'] == 'Request Accepted') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           } else if (message['data']['type'] == 'Friend Request') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           }
         }
       },
@@ -103,12 +106,14 @@ class _HomeScreenState extends State<HomeScreen>
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           } else if (message['data']['type'] == 'Friend Request') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           }
         }
       },
@@ -127,18 +132,21 @@ class _HomeScreenState extends State<HomeScreen>
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           } else if (message['data']['type'] == 'Request Accepted') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           } else if (message['data']['type'] == 'Friend Request') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
+                return;
           }
         }
       },
