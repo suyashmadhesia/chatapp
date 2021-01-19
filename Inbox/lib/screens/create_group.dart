@@ -1,5 +1,6 @@
 import 'dart:io';
 // import 'package:Inbox/helpers/send_notification.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/helpers/send_notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -257,8 +258,11 @@ class _CreateGroupState extends State<CreateGroup> {
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = MediaQuery.of(context).size.height;
-    screenWidth = MediaQuery.of(context).size.width;
+    double screenH = MediaQuery.of(context).size.height;
+    double  screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       floatingActionButton: floatingActionButton(),
       backgroundColor: Colors.white,
@@ -274,8 +278,8 @@ class _CreateGroupState extends State<CreateGroup> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
-                height: screenHeight * 0.4,
-                width: screenWidth,
+                height: screenHeight * 378,
+                width: screenW,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
                   image: DecorationImage(

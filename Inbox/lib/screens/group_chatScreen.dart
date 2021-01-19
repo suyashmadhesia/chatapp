@@ -488,7 +488,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         radius: 20,
                         backgroundImage: widget.groupBanner == '' ||
                                 widget.groupBanner == null
-                            ? AssetImage('assets/images/user.png')
+                            ? AssetImage('assets/images/group.png')
                             : CachedNetworkImageProvider(widget.groupBanner),
                       ),
                     ),

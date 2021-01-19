@@ -1,7 +1,7 @@
 // import 'dart:io';
 
 import 'package:Inbox/components/screen_size.dart';
-import 'package:Inbox/models/constant.dart';
+// import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -67,7 +67,7 @@ class _GroupDashboardState extends State<GroupDashboard> {
         decoration: BoxDecoration(
           color: Colors.grey[200],
           image: DecorationImage(
-            image: AssetImage('assets/images/user.png'),
+            image: AssetImage('assets/images/group.png'),
             fit: BoxFit.contain,
           ),
         ),

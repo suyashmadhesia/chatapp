@@ -61,7 +61,7 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
         decoration: BoxDecoration(
           color: Colors.grey[200],
           image: DecorationImage(
-            image: AssetImage('assets/images/user.png'),
+            image: AssetImage('assets/images/group.png'),
             fit: BoxFit.contain,
           ),
         ),

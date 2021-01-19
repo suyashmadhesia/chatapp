@@ -27,7 +27,7 @@ class GroupResult extends StatelessWidget {
                 radius: 32,
                 backgroundImage:
                     groups.groupBanner == null || groups.groupBanner == ''
-                        ? AssetImage('assets/images/groups.png')
+                        ? AssetImage('assets/images/group.png')
                         : CachedNetworkImageProvider(groups.groupBanner),
               ),
               title: Text(groups.groupName,

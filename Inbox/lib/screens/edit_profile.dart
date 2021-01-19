@@ -339,7 +339,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           children: [
                             Stack(
                               children: [
-                                loadImage(screenH * 0.4, screenW),
+                                loadImage(screenHeight * 378, screenW),
                                 Positioned(
                                   top: 0,
                                   right: 0,
