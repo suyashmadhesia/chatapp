@@ -232,10 +232,10 @@ class _GroupDashboardState extends State<GroupDashboard> {
               );
               memberWidgetList.add(memberWidget);
             }
-            return Column(
+          }
+          return Column(
               children: memberWidgetList,
             );
-          }
         }
       },
     );
