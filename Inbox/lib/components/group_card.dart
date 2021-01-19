@@ -17,31 +17,29 @@ class GroupCard extends StatefulWidget {
   final List adminList;
   final String groupDescription;
 
-  GroupCard(
-      {this.groupName,
-      this.userId,
-      this.messageAt,
-      this.lastMessage,
-      this.groupBanner,
-      this.groupId,
-      this.key,
-      this.username,
-      this.adminList,
-      this.groupDescription,
-      this.membersList,
-      });
+  GroupCard({
+    this.groupName,
+    this.userId,
+    this.messageAt,
+    this.lastMessage,
+    this.groupBanner,
+    this.groupId,
+    this.key,
+    this.username,
+    this.adminList,
+    this.groupDescription,
+    this.membersList,
+  });
 
   @override
   _GroupCardState createState() => _GroupCardState();
 }
 
 class _GroupCardState extends State<GroupCard> {
-
-  initState(){
+  initState() {
     super.initState();
     getUserData();
   }
-
 
   double screenHeight;
   double screenWidth;
@@ -61,21 +59,21 @@ class _GroupCardState extends State<GroupCard> {
   checkMessageSeen() {}
 
   getUserData() async {
-    final groupInUserCollection =
-      await collectionRefs.collection('users/' + widget.userId + '/groups').doc(widget.groupId).get();
-      final joinAt = groupInUserCollection['joinedAt'];
-      joinedAt = joinAt.toDate();
-      setState(() {
-        isDataLoaded = true;
-      });
-
+    final groupInUserCollection = await collectionRefs
+        .collection('users/' + widget.userId + '/groups')
+        .doc(widget.groupId)
+        .get();
+    final joinAt = groupInUserCollection['joinedAt'];
+    joinedAt = joinAt.toDate();
+    setState(() {
+      isDataLoaded = true;
+    });
   }
 
-  compare(){
-    if(isDataLoaded){
+  compare() {
+    if (isDataLoaded) {
       return widget.messageAt.isAfter(joinedAt);
     }
-    
   }
 
   @override
@@ -94,10 +92,13 @@ class _GroupCardState extends State<GroupCard> {
           ),
           GestureDetector(
             onTap: () {
-              showGroupChat(context,
-                  groupId: widget.groupId,
-                  groupName: widget.groupName,
-                  groupBanner: widget.groupBanner);
+              showGroupChat(
+                context,
+                groupId: widget.groupId,
+                groupName: widget.groupName,
+                groupBanner: widget.groupBanner,
+                groupDescription: widget.groupDescription,
+              );
             },
             child: ListTile(
               leading: CircleAvatar(
@@ -118,7 +119,9 @@ class _GroupCardState extends State<GroupCard> {
               ),
               subtitle: isDataLoaded
                   ? Text(
-                      compare() ? widget.lastMessage : 'You have joined this group',
+                      compare()
+                          ? widget.lastMessage
+                          : 'You have joined this group',
                       style: TextStyle(
                         color: Colors.grey[400],
                         fontSize: 14,
@@ -136,7 +139,6 @@ class _GroupCardState extends State<GroupCard> {
           SizedBox(
             height: 5,
           ),
-         
         ],
       ),
     );
@@ -144,7 +146,10 @@ class _GroupCardState extends State<GroupCard> {
 }
 
 showGroupChat(BuildContext context,
-    {String groupId, String groupName, String groupBanner}) {
+    {String groupId,
+    String groupName,
+    String groupBanner,
+    String groupDescription}) {
   Navigator.push(
     context,
     MaterialPageRoute(
@@ -152,6 +157,7 @@ showGroupChat(BuildContext context,
         groupId: groupId,
         groupName: groupName,
         groupBanner: groupBanner,
+        groupDescription: groupDescription,
       ),
     ),
   );

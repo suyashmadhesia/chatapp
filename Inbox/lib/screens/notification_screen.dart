@@ -42,10 +42,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   bool empty = true;
+  String myUsername;
   getUsersFriendData() async {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     pendingList = userAccountRefs['pendingList'];
+    myUsername = userAccountRefs['username'];
     if (pendingList.isNotEmpty) {
       setState(() {
         empty = false;
@@ -105,6 +107,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
               final notificationCard = NotificationCard(
                 avatar: senderAvatar,
+                myUsername : myUsername,
                 requestType: requestType,
                 timeStamp: d,
                 id: sendersUserId,

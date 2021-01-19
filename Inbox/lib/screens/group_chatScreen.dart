@@ -16,7 +16,9 @@ class GroupChatScreen extends StatefulWidget {
   final String groupId;
   final String groupName;
   final String groupBanner;
+  final String groupDescription;
   GroupChatScreen({
+    this.groupDescription,
     this.groupId,
     this.groupName,
     this.groupBanner,
@@ -252,7 +254,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             message,
                             'Group Message',
                             tag: widget.groupId,
-                            topic: '/topics/'+widget.groupId,
+                            topic: '/topics/' + widget.groupId,
                             isMuted: false);
                         setState(() {
                           isSending = false;
@@ -308,15 +310,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               if (users.userId != userid &&
                   !users.groupList.contains(widget.groupId) &&
                   !users.requestList.contains(widget.groupId)) {
-                final widgetResult = Result(
-                  widget.groupId,
-                  widget.groupName,
-                  widget.groupBanner,
-                  myUsername,
-                  screenWidth,
-                  users
-                );
-                
+                final widgetResult = Result(widget.groupId, widget.groupName,
+                    widget.groupBanner, myUsername, screenWidth, users);
+
                 searchResult.add(widgetResult);
               }
             });
@@ -471,7 +467,18 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         backgroundColor: Colors.black,
         title: !showSearchBar
             ? GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => GroupDashboard(
+                                admin,
+                                groupDescription: widget.groupDescription,
+                                groupId: widget.groupId,
+                                groupName: widget.groupName,
+                                groupBanner: widget.groupBanner,
+                              )));
+                },
                 child: Row(
                   children: [
                     Padding(
@@ -514,14 +521,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 }
 
-showGroupDashBoard(BuildContext context,
-    {String groupId,
-    String groupName,
-    String groupBanner,
-    String groupDescription}) {
-  Navigator.push(
-      context, MaterialPageRoute(builder: (context) => GroupDashboard()));
-}
+// showGroupDashBoard(BuildContext context,
+//     {String groupId,
+//     String groupName,
+//     String groupBanner,
+//     String groupDescription}) {
+//   Navigator.push(
+//       context, MaterialPageRoute(builder: (context) => GroupDashboard(
+//         admin
+//       )));
+// }
 
 class Result extends StatefulWidget {
   final users;
@@ -531,8 +540,8 @@ class Result extends StatefulWidget {
   final myUsername;
   final screenWidth;
 
-  Result(this.groupId, this.groupName, this.groupBanner, this.myUsername,this.screenWidth,
-      this.users);
+  Result(this.groupId, this.groupName, this.groupBanner, this.myUsername,
+      this.screenWidth, this.users);
 
   @override
   _ResultState createState() => _ResultState();
@@ -542,7 +551,7 @@ class _ResultState extends State<Result> {
   final collectionRefs = FirebaseFirestore.instance;
 
   @override
-  initState(){
+  initState() {
     super.initState();
     getInvitationData(widget.users.userId);
   }
@@ -567,14 +576,13 @@ class _ResultState extends State<Result> {
     pendingList = userData['pendingList'];
     requestList = userData['requestList'];
     if (pendingList.contains(widget.groupId)) {
-                                setState(() {
-                                  showInvite = false;
-                                });
-    }
-    else{
       setState(() {
-                                  showInvite = true;
-                                });
+        showInvite = false;
+      });
+    } else {
+      setState(() {
+        showInvite = true;
+      });
     }
   }
 
@@ -592,7 +600,7 @@ class _ResultState extends State<Result> {
       'requestType': 'GroupRequestFromGroup',
       'sendAt': DateTime.now(),
       'targetName': widget.myUsername, //Username of target
-      'targetId' : userID
+      'targetId': userID
     });
   }
 
@@ -681,9 +689,10 @@ class _ResultState extends State<Result> {
                 leading: CircleAvatar(
                   backgroundColor: Colors.grey[800],
                   radius: widget.screenWidth * 7.5,
-                  backgroundImage: widget.users.avtar == null || widget.users.avtar == ''
-                      ? AssetImage('assets/images/user.png')
-                      : CachedNetworkImageProvider(widget.users.avtar),
+                  backgroundImage:
+                      widget.users.avtar == null || widget.users.avtar == ''
+                          ? AssetImage('assets/images/user.png')
+                          : CachedNetworkImageProvider(widget.users.avtar),
                 ),
                 title: Text(widget.users.username,
                     style: TextStyle(

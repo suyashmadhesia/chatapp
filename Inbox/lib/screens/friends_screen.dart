@@ -1,5 +1,6 @@
 import 'package:Inbox/components/friends_card.dart';
 import 'package:Inbox/components/group_card.dart';
+import 'package:Inbox/components/loading_skeleton.dart';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/helpers/send_notification.dart';
 // import 'package:Inbox/screens/group_chatScreen.dart';
@@ -57,12 +58,12 @@ class _FriendsScreenState extends State<FriendsScreen>
     pendingList = userAccountRefs['pendingList'];
     groupList = userAccountRefs['groupsList'];
     myUsername = userAccountRefs['username'];
-    
+
     setState(() {
       isDataLoaded = true;
     });
-    groupList.forEach((value){
-      SendNotification().topicToSuscribe('/topics/'+value);
+    groupList.forEach((value) {
+      SendNotification().topicToSuscribe('/topics/' + value);
     });
     if (groupList.isEmpty) {
       setState(() {
@@ -98,7 +99,9 @@ class _FriendsScreenState extends State<FriendsScreen>
     return FloatingActionButton(
       onPressed: () {
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => CreateGroup(username : myUsername)));
+            context,
+            MaterialPageRoute(
+                builder: (context) => CreateGroup(username: myUsername)));
       },
       elevation: 5,
       backgroundColor: Colors.white,
@@ -111,62 +114,22 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   //build no content screen for the chats tab
   buildNocontentForChats() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            isEmptyFriendList ? Text('') : CircularProgressIndicator(),
-            SizedBox(
-              height: 10,
-            ),
-            Center(
-                child: isEmptyFriendList
-                    ? Text('No friends to show....',
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: 'Mulish'))
-                    : Text('Wait while we loading .....',
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: 'Mulish'))),
-          ],
-        ),
-      ),
-    );
+    return isEmptyFriendList
+        ? Center(
+            child: Text('No friends Yet !!',
+                style: TextStyle(
+                    color: Colors.grey, fontSize: 16, fontFamily: 'Mulish')))
+        : LoadingContainer();
   }
 
   // build no content screen for group tab
   buildNoContentScreenForGroups() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            isEmptyGroupList ? Text('') : CircularProgressIndicator(),
-            SizedBox(
-              height: 10,
-            ),
-            Center(
-                child: isEmptyGroupList
-                    ? Text('No group joined yet. Tap + button to create one !!',
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: 'Mulish'))
-                    : Text('Wait while we loading .....',
-                        style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: 'Mulish'))),
-          ],
-        ),
-      ),
-    );
+    return isEmptyGroupList
+        ? Center(
+            child: Text('Not in any group !!',
+                style: TextStyle(
+                    color: Colors.grey, fontSize: 16, fontFamily: 'Mulish')))
+        : LoadingContainer();
   }
 
   //TODO: UPDATE friends list stream
@@ -178,7 +141,7 @@ class _FriendsScreenState extends State<FriendsScreen>
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: LoadingContainer());
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
             List<FriendsTile> friendsWidget = [];
@@ -224,7 +187,7 @@ class _FriendsScreenState extends State<FriendsScreen>
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: LoadingContainer());
           } else if (snapshot.hasData) {
             final groupIds = snapshot.data.documents;
             List<GroupCard> groupsWidget = [];

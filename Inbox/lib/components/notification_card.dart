@@ -16,9 +16,11 @@ class NotificationCard extends StatefulWidget {
   final String userId; //my userId,
   final String target;
   final String targetId;
+  final myUsername;
 
   NotificationCard(
       {this.avatar,
+      this.myUsername,
       this.targetId,
       this.time,
       this.id,
@@ -252,7 +254,7 @@ class _NotificationCardState extends State<NotificationCard> {
       'requestList': FieldValue.arrayRemove([widget.targetId]),
     });
     await collectionRefs
-        .collection('users/' + widget.targetId + '/groups')
+        .collection('users/' + widget.id + '/groups')
         .doc(widget.targetId)
         .set({
       'joinedAt': DateTime.now(),

@@ -67,7 +67,7 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
         ),
       );
     } else {
-      Container(
+      return Container(
         height: height,
         width: width,
         child: Image.network(widget.groupBanner),

@@ -1,13 +1,14 @@
+import 'package:Inbox/components/loading_skeleton.dart';
 import 'package:Inbox/models/group.dart';
 import 'package:Inbox/models/user.dart';
-import 'package:Inbox/screens/profile_other.dart';
-import 'package:Inbox/screens/group_profile.dart';
+// import 'package:Inbox/screens/profile_other.dart';
+// import 'package:Inbox/screens/group_profile.dart';
 import 'package:Inbox/searchResult/groupSearchResult.dart';
 import 'package:Inbox/searchResult/userSearchResult.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:Inbox/components/screen_size.dart';
@@ -92,9 +93,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       future: groupSearchResult,
       builder: (context, snapshot){
         if(!snapshot.hasData){
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return LoadingContainer();
         }
         else if(snapshot.hasData){
           if(snapshot.data.documents.length > 0){
@@ -245,7 +244,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Center(
-                child: Text('Search new user here......',
+                child: Text('Search here......',
                     style: TextStyle(
                         color: Colors.black,
                         fontSize: 18,
@@ -261,9 +260,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       future: searchResult,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return  LoadingContainer();
         } else if (snapshot.hasData) {
           if (snapshot.data.documents.length > 0) {
             List<UserResult> searchResult = [];

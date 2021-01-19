@@ -1,3 +1,4 @@
+// import 'package:Inbox/components/loading_skeleton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
@@ -231,6 +232,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           FriendsScreen(),
           SearchScreen(),
+          // LoadingContainer(),
           ProfileScreen(profileId: user.uid),
         ],
       ),

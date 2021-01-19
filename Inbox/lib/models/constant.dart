@@ -7,6 +7,14 @@ class DropDownMenu {
   static const String unBlock = 'Unblock';
   static const String unMute = 'Unmute';
 
+  // static const String remove = 'Remove';
+  // static const String createAdmin = 'Make Admin';
+
+  // static const List<String> groupAction = [
+  //   remove,
+  //   createAdmin,
+  // ];
+
   static const List<String> choices = <String>[
     block,
     muteChat,
