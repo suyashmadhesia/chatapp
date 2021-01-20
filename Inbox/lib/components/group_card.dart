@@ -142,13 +142,13 @@ class _GroupCardState extends State<GroupCard> {
                         fontSize: 14,
                       ),
                     ),
-              trailing: checkMessageSeen()
-                  ? null
-                  : Icon(
-                      Icons.fiber_manual_record,
-                      color: Colors.pink[400],
-                      size: 14,
-                    ),
+              // trailing: checkMessageSeen()
+              //     ? null
+              //     : Icon(
+              //         Icons.fiber_manual_record,
+              //         color: Colors.pink[400],
+              //         size: 14,
+              //       ),
             ),
           ),
           SizedBox(

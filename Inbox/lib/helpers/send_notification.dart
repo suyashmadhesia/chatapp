@@ -29,21 +29,21 @@ Future<void> sendGroupNotification(
 
     final data = {
       "notification": {
-        "tag" : tag,
-        "body": message,
-        "title": notificationTitle,
+        "tag" : "$tag",
+        "body": "$message",
+        "title": "$notificationTitle",
       },
       "priority": "high",
       "data": {
         "click_action": "FLUTTER_NOTIFICATION_CLICK",
         "id": "1",
         "status": "done",
-        "type": notificationType,
-        "sendersUserId": sendersUserId,
-        "receiversUserId" : receiversUserId,
-        "isMuted" : isMuted,
+        "type": "$notificationType",
+        "sendersUserId": "$sendersUserId",
+        "receiversUserId" : "$receiversUserId",
+        "isMuted" : "$isMuted",
       },
-      "to": "/topics/APP",
+      "to": "$topic",
       "collapse_key" : tag,
     };
     print(topic);
@@ -71,7 +71,7 @@ Future<void> sendGroupNotification(
       }
     } catch (e) {
       // debugPrint('exception $e');
-    }print('notification send');
+    }//print('notification send');
   }
 
   Future<List> getToken(userId) async {
@@ -95,22 +95,22 @@ Future<void> sendGroupNotification(
 
     final data = {
       "notification": {
-        "tag" : tag,
-        "body": message,
-        "title": notificationTitle,
+        "tag" : "$tag",
+        "body": "$message",
+        "title": "$notificationTitle",
       },
       "priority": "high",
       "data": {
         "click_action": "FLUTTER_NOTIFICATION_CLICK",
         "id": "1",
         "status": "done",
-        "type": notificationType,
-        "sendersUserId": sendersUserId,
-        "receiversUserId" : receiversUserId,
-        "isMuted" : isMuted,
+        "type": "$notificationType",
+        "sendersUserId": "$sendersUserId",
+        "receiversUserId" : "$receiversUserId",
+        "isMuted" : "$isMuted",
       },
       "registration_ids": tokens,
-      "collapse_key" : tag,
+      "collapse_key" : "$tag",
     };
     // print(topic);
     final headers = {
@@ -136,8 +136,9 @@ Future<void> sendGroupNotification(
         // on failure do sth
       }
     } catch (e) {
+      print(e);
       // debugPrint('exception $e');
-    }print('notification send');
+    }
   }
 
   topicToSuscribe(String topicName) async{

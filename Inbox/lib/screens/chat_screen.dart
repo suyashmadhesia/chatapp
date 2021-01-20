@@ -35,10 +35,12 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     getUserData();
-    tokens = notificationData.getToken(widget.userId);
+    
 
     setIsSeen();
   }
+
+  
 
   final messageTextController = TextEditingController();
   var tokens;
@@ -114,6 +116,8 @@ class _ChatScreenState extends State<ChatScreen> {
     isMute = receiverMessageRefs['isMuted'];
     // my user name means the name of current sender
     isSeen = receiverMessageRefs['isSeen'];
+    tokens = await notificationData.getToken(widget.userId);
+    print(tokens);
 
     setCurrentChatScreen(widget.username);
     if (block) {
@@ -366,7 +370,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                     messageTextController.clear();
 
                                     await sendMessage(message);
-                                    notificationData.sendOtherNotification(
+                                    
+
+                                    message = '';
+                                    setState(() {
+                                      isSending = false;
+                                    });
+                                    await notificationData.sendOtherNotification(
                                       '$username',
                                       user.uid,
                                       widget.userId,
@@ -376,11 +386,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                       isMuted: isMute,
                                       tokens: tokens,
                                     );
-
-                                    message = '';
-                                    setState(() {
-                                      isSending = false;
-                                    });
                                   } else {
                                     showdialog(context);
                                   }

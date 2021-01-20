@@ -1,6 +1,7 @@
 // import 'dart:io';
 
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/screens/group/groupedit_profile.dart';
 // import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -132,7 +133,7 @@ class _GroupDashboardState extends State<GroupDashboard> {
             final memberId = member['userId'];
             final isAdmin = member['isAdmin'];
             if (memberId != FirebaseAuth.instance.currentUser.uid) {
-              print('I am WOrking');
+              // print('I am WOrking');
               final memberWidget = Container(
                 color: Colors.white,
                 child: GestureDetector(
@@ -276,7 +277,7 @@ class _GroupDashboardState extends State<GroupDashboard> {
               children: [
                 Stack(
                   children: [
-                    loadGroupBanner(screenH * 0.4, screenW),
+                    loadGroupBanner(screenHeight * 378, screenW),
                     Positioned(
                       bottom: 0,
                       left: 0,
@@ -289,6 +290,20 @@ class _GroupDashboardState extends State<GroupDashboard> {
                               fontFamily: 'Montserrat',
                               fontSize: 28),
                         ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.edit,
+                          color: Colors.grey[700],
+                          size: 24,
+                        ),
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder : (context)=> GroupEditProfile(widget.groupId)));
+                        },
                       ),
                     ),
                     Positioned(
