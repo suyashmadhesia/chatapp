@@ -1,24 +1,32 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:Inbox/assets_manager/media_packet.dart';
 import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/components/video_component.dart';
 import 'package:Inbox/helpers/file_manager.dart';
+import 'package:Inbox/helpers/firestore.dart';
 import 'package:Inbox/models/message.dart';
-import 'package:Inbox/modules/text_formatter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
-class ImagePickerScreen extends StatefulWidget {
+class ImageVideoPickerScreen extends StatefulWidget {
   final Function onTapBack;
   final User user;
   final List<File> files;
-  final String avatar, recepient;
-  const ImagePickerScreen(
-      {this.onTapBack, this.files, this.user, this.avatar, this.recepient});
+  final String avatar, recepient, uniqueMessageId;
+  const ImageVideoPickerScreen(
+      {this.onTapBack,
+      this.files,
+      this.user,
+      this.avatar,
+      this.uniqueMessageId,
+      this.recepient});
   @override
-  _ImagePickerScreenState createState() => _ImagePickerScreenState();
+  _ImageVideoPickerScreenState createState() => _ImageVideoPickerScreenState();
 }
 
 enum AppState {
@@ -27,20 +35,25 @@ enum AppState {
   cropped,
 }
 
-class _ImagePickerScreenState extends State<ImagePickerScreen> {
-  List<File> images = [];
+class _ImageVideoPickerScreenState extends State<ImageVideoPickerScreen> {
+  List<File> medias = [];
   int currentIndex = 0;
   AppState state;
+
+  User currentUser;
 
   TextEditingController captionController = TextEditingController();
 
   double startX, updateX;
 
   void deleteAsset() {
-    if (images.length > 0) {
-      images.removeAt(currentIndex);
-      if (currentIndex >= images.length) {
-        currentIndex = images.length - 1;
+    if (widget.user == null) {
+      currentUser = FirebaseAuth.instance.currentUser;
+    }
+    if (medias.length > 0) {
+      medias.removeAt(currentIndex);
+      if (currentIndex >= medias.length) {
+        currentIndex = medias.length - 1;
       }
       setState(() {});
     }
@@ -56,20 +69,53 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
     });
   }
 
-  Future<void> sendMessage() async {}
+  Future<void> onSendClick() async {
+    List<Asset> assets = [];
+    for (File media in medias) {
+      Asset asset = Asset(file: media);
+      asset.setContentType();
+      asset.setNameGenerated();
+      assets.add(asset);
+    }
+    FireStore.uploadAssets(
+        userId: widget.user.uid,
+        assets: assets,
+        avatar: widget.avatar,
+        message: captionController.text.isEmpty ? '' : captionController.text,
+        receiverId: widget.recepient,
+        userUniqueMessageId: widget.uniqueMessageId);
+    widget.onTapBack();
+  }
 
   Future<void> addAsset() async {
-    List<File> pickedFiles =
-        await FileManager.pickFiles(fileType: FileType.image);
+    List<String> exts = [
+      'png',
+      'apng',
+      'jpg',
+      'jpeg',
+      'ico',
+      'mp4',
+      'mov',
+      'wmv',
+      'flv',
+      'avi',
+      'avchd',
+      'webm',
+      'mkv'
+    ];
+    List<File> pickedFiles = await FileManager.pickFiles(
+        allowMultiple: true,
+        allowedExtensions: exts,
+        fileType: FileType.custom);
     setState(() {
-      images.addAll(pickedFiles);
+      medias.addAll(pickedFiles);
     });
   }
 
   @override
   void initState() {
     if (widget.files != null) {
-      images = widget.files;
+      medias = widget.files;
     }
     state = AppState.free;
     super.initState();
@@ -83,7 +129,7 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
 
   Future<Null> _cropImage() async {
     File croppedFile = await ImageCropper.cropImage(
-        sourcePath: images[currentIndex].path,
+        sourcePath: medias[currentIndex].path,
         aspectRatioPresets: Platform.isAndroid
             ? [
                 CropAspectRatioPreset.square,
@@ -112,7 +158,7 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
           title: 'Cropper',
         ));
     if (croppedFile != null) {
-      images[currentIndex] = croppedFile;
+      medias[currentIndex] = croppedFile;
       setState(() {
         state = AppState.cropped;
       });
@@ -134,22 +180,26 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
             Icons.arrow_back,
             color: Colors.black,
           ),
-          onPressed: widget.onTapBack != null ? widget.onTapBack : () => {},
+          onPressed: widget.onTapBack != null
+              ? widget.onTapBack
+              : () => {Navigator.of(context).pop()},
         ),
         actions: [
-          if (images.length > 1)
+          if (medias.length > 1)
             IconButton(
                 icon: Icon(
                   Icons.delete,
                   color: Colors.black,
                 ),
                 onPressed: deleteAsset),
-          IconButton(
-              icon: Icon(
-                Icons.crop,
-                color: Colors.black,
-              ),
-              onPressed: onCropClick)
+          if (medias.length > 1 &&
+              FileManager.getMimeType(medias[currentIndex]).contains("image"))
+            IconButton(
+                icon: Icon(
+                  Icons.crop,
+                  color: Colors.black,
+                ),
+                onPressed: onCropClick)
         ],
       ),
       body: SingleChildScrollView(
@@ -161,7 +211,7 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
               width: scale.horizontal(100),
               height: scale.vertical(60),
               color: Colors.white,
-              child: (images.isEmpty)
+              child: (medias.isEmpty)
                   ? null
                   : GestureDetector(
                       onHorizontalDragStart: (detail) => {
@@ -172,22 +222,28 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                           {updateX = detail.globalPosition.dx},
                       onHorizontalDragEnd: (detail) => {
                         if (updateX - startX < 0 &&
-                            images.length > currentIndex + 1)
+                            medias.length > currentIndex + 1)
                           {
                             setState(() => {currentIndex += 1})
                           }
                         else if (updateX - startX > 0 &&
-                            images.length > 0 &&
+                            medias.length > 0 &&
                             currentIndex - 1 >= 0)
                           {
                             setState(() => {currentIndex -= 1})
                           }
                       },
                       child: Container(
-                          child: Image.file(
-                        images[currentIndex],
-                        fit: BoxFit.fill,
-                      )),
+                          color: Colors.white,
+                          child: FileManager.getMimeType(medias[currentIndex])
+                                  .contains("video")
+                              ? VideoPlayerWidget(
+                                  file: medias[currentIndex],
+                                )
+                              : Image.file(
+                                  medias[currentIndex],
+                                  fit: BoxFit.fill,
+                                )),
                     ),
             ),
             Padding(
@@ -202,47 +258,43 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
                     Container(
                       width: scale.horizontal(100),
                       margin: EdgeInsets.only(bottom: scale.vertical(2)),
-                      child: RawKeyboardListener(
-                        focusNode: FocusNode(),
-                        onKey: (key) => print(key),
-                        child: TextField(
-                          controller: captionController,
-                          style: TextStyle(color: Colors.black),
-                          decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Colors.grey[200],
-                              hintStyle: TextStyle(color: Colors.black),
-                              counterStyle: TextStyle(color: Colors.black),
-                              prefixIcon: IconButton(
-                                  icon: Icon(
-                                    Icons.add_box,
-                                    size: 32,
-                                    color: Colors.pink[400],
-                                  ),
-                                  onPressed: () => {addAsset()}),
-                              suffixIcon: IconButton(
-                                  icon: Icon(
-                                    Icons.send,
-                                    size: 32,
-                                    color: Colors.pink[300],
-                                  ),
-                                  onPressed: () => {sendMessage()}),
-                              hintText: 'Add Caption',
-                              border: OutlineInputBorder(
-                                  borderSide: BorderSide.none)),
-                          onChanged: (value) {
-                            print(value);
-                          },
-                        ),
+                      child: TextField(
+                        controller: captionController,
+                        style: TextStyle(color: Colors.black),
+                        decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            hintStyle: TextStyle(color: Colors.black),
+                            counterStyle: TextStyle(color: Colors.black),
+                            prefixIcon: IconButton(
+                                icon: Icon(
+                                  Icons.add_box,
+                                  size: 32,
+                                  color: Colors.pink[400],
+                                ),
+                                onPressed: () => {addAsset()}),
+                            suffixIcon: IconButton(
+                                icon: Icon(
+                                  Icons.send,
+                                  size: 32,
+                                  color: Colors.pink[300],
+                                ),
+                                onPressed: onSendClick),
+                            hintText: 'Add Caption',
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide.none)),
+                        onChanged: (value) {
+                          print(value);
+                        },
                       ),
                     ),
-                    if (images.length > 0)
+                    if (medias.length > 0)
                       Expanded(
                           child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: images.length,
+                              itemCount: medias.length,
                               itemBuilder: (context, index) => FileMediaPacket(
-                                    file: images[index],
+                                    file: medias[index],
                                     active: currentIndex == index,
                                     onTap: () => {onTapMediaPacket(index)},
                                   )))

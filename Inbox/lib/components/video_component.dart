@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:Inbox/components/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -10,6 +11,7 @@ class VideoPlayerWidget extends StatefulWidget {
   final VideoPlayerOptions videoPlayerOptions;
   final double width, height;
   final VideoFormat formatHint;
+  final Function onDispose;
   VideoPlayerWidget(
       {Key key,
       this.asset,
@@ -19,6 +21,7 @@ class VideoPlayerWidget extends StatefulWidget {
       this.url,
       this.videoPlayerOptions,
       this.formatHint,
+      this.onDispose,
       this.width})
       : super(key: key);
   @override
@@ -56,11 +59,21 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   void dispose() {
     _controller.dispose();
+    widget.onDispose();
     super.dispose();
+  }
+
+  double heightOfVideoPlayer(double width) {
+    /**
+     * aspect ration = width/height
+     * height = width/aspect_ratio
+     */
+    return width / _controller.value.aspectRatio;
   }
 
   @override
   Widget build(BuildContext context) {
+    ScreenSize scale = ScreenSize(context: context);
     return Container(
       width: widget.width,
       height: widget.height,
@@ -71,9 +84,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             future: _initializeVideoPlayerFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                return AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
+                return FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: scale.horizontal(100),
+                    height: scale.vertical(60),
+                    child: VideoPlayer(_controller),
+                  ),
                 );
               } else {
                 return Center(

@@ -53,6 +53,8 @@ dependencies:
   random_string: ^2.1.0
   flutter_image_compress: ^0.7.0
   mime: ^0.9.7
+  video_thumbnail: ^0.2.5+1
+  # audioplayers: ^0.17.2
   # extended_text_field: ^5.0.4
 
 dev_dependencies:

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:path/path.dart';
 import 'package:Inbox/helpers/file_manager.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:random_string/random_string.dart';
@@ -26,7 +26,7 @@ class Asset {
       this.progrss,
       this.url}) {
     if (this.name != null && this.contentType != null) {
-      FileManager.isMediaExist(name, getContent())
+      FileManager.isMediaExist(getCompleteName())
           .then((value) => {isAssetPresentInDevice = value});
     }
   }
@@ -52,12 +52,23 @@ class Asset {
   }
 
   String generateName() {
-    var generated = randomAlphaNumeric(18);
-    var content = getContent();
-    return '$content-$generated';
+    // var generated = randomAlphaNumeric(18);
+    var generated = basename(file.path);
+    return '$generated';
+  }
+
+  void setContentType() {
+    contentType = FileManager.getMimeType(file);
+  }
+
+  String getCompleteName() {
+    return name;
   }
 
   void setNameGenerated() {
+    if (this.contentType == null) {
+      this.setContentType();
+    }
     this.name = this.generateName();
   }
 
@@ -117,10 +128,12 @@ visibility */
       this.messageId});
 
   Message.fromJson(Map<String, dynamic> json) {
-    visibility = json['visbility'];
+    visibility = json.containsKey("visbilit") ? json['visbility'] : true;
     sender = json["sender"];
-    messageId = json["messageId"];
-    timestamp = json["timestamp"].toDate();
+    messageId = json.containsKey("messageId") ? json["messageId"] : null;
+    timestamp = json.containsKey("timestamp")
+        ? json["timestamp"].toDate()
+        : DateTime.now();
     message = json.containsKey("message") ? json["message"] : "";
     assets = json.containsKey("assets")
         ? (json["assets"]).map((value) => Asset.fromJson(value))
