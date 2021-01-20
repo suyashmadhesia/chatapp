@@ -1,5 +1,5 @@
 import 'package:Inbox/components/screen_size.dart';
-import 'package:Inbox/screens/group_chatScreen.dart';
+import 'package:Inbox/screens/group/group_chatScreen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -13,35 +13,40 @@ class GroupCard extends StatefulWidget {
   final String userId;
   final Key key;
   final String username;
+  final List membersList;
+  final List adminList;
+  final String groupDescription;
 
-  GroupCard(
-      {this.groupName,
-      this.userId,
-      this.messageAt,
-      this.lastMessage,
-      this.groupBanner,
-      this.groupId,
-      this.key,
-      this.username,
-      });
+  GroupCard({
+    this.groupName,
+    this.userId,
+    this.messageAt,
+    this.lastMessage,
+    this.groupBanner,
+    this.groupId,
+    this.key,
+    this.username,
+    this.adminList,
+    this.groupDescription,
+    this.membersList,
+  });
 
   @override
   _GroupCardState createState() => _GroupCardState();
 }
 
 class _GroupCardState extends State<GroupCard> {
-
-  initState(){
+  initState() {
     super.initState();
     getUserData();
   }
-
 
   double screenHeight;
   double screenWidth;
   bool isDataLoaded = false;
   final collectionRefs = FirebaseFirestore.instance;
   DateTime joinedAt;
+  DateTime messageAt;
 
 //Updating messageAT for cecking that message is seen or not
   updateSeen() async {
@@ -52,24 +57,30 @@ class _GroupCardState extends State<GroupCard> {
     });
   }
 
-  checkMessageSeen() {}
-
-  getUserData() async {
-    final groupInUserCollection =
-      await collectionRefs.collection('users/' + widget.userId + '/groups').doc(widget.groupId).get();
-      final joinAt = groupInUserCollection['joinedAt'];
-      joinedAt = joinAt.toDate();
-      setState(() {
-        isDataLoaded = true;
-      });
-
+  checkMessageSeen() {
+    if (isDataLoaded) {
+      return widget.messageAt.isAfter(messageAt);
+    }
   }
 
-  compare(){
-    if(isDataLoaded){
+  getUserData() async {
+    final groupInUserCollection = await collectionRefs
+        .collection('users/' + widget.userId + '/groups')
+        .doc(widget.groupId)
+        .get();
+    final joinAt = groupInUserCollection['joinedAt'];
+    final time = groupInUserCollection['messageAt'];
+    joinedAt = joinAt.toDate();
+    messageAt = time.toDate();
+    setState(() {
+      isDataLoaded = true;
+    });
+  }
+
+  compare() {
+    if (isDataLoaded) {
       return widget.messageAt.isAfter(joinedAt);
     }
-    
   }
 
   @override
@@ -80,7 +91,7 @@ class _GroupCardState extends State<GroupCard> {
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
     return Container(
-      color: Colors.grey[50],
+      color: Colors.white,
       child: Column(
         children: [
           SizedBox(
@@ -88,14 +99,18 @@ class _GroupCardState extends State<GroupCard> {
           ),
           GestureDetector(
             onTap: () {
-              showGroupChat(context,
-                  groupId: widget.groupId,
-                  groupName: widget.groupName,
-                  groupBanner: widget.groupBanner);
+              updateSeen();
+              showGroupChat(
+                context,
+                groupId: widget.groupId,
+                groupName: widget.groupName,
+                groupBanner: widget.groupBanner,
+                groupDescription: widget.groupDescription,
+              );
             },
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.grey[300],
+                backgroundColor: Colors.grey,
                 radius: screenHeight * 42,
                 backgroundImage:
                     widget.groupBanner == null || widget.groupBanner == ''
@@ -112,7 +127,9 @@ class _GroupCardState extends State<GroupCard> {
               ),
               subtitle: isDataLoaded
                   ? Text(
-                      compare() ? widget.lastMessage : 'You have joined this group',
+                      compare()
+                          ? widget.lastMessage
+                          : 'You have joined this group',
                       style: TextStyle(
                         color: Colors.grey[400],
                         fontSize: 14,
@@ -125,15 +142,18 @@ class _GroupCardState extends State<GroupCard> {
                         fontSize: 14,
                       ),
                     ),
+              trailing: checkMessageSeen()
+                  ? null
+                  : Icon(
+                      Icons.fiber_manual_record,
+                      color: Colors.pink[400],
+                      size: 14,
+                    ),
             ),
           ),
           SizedBox(
             height: 5,
           ),
-          Divider(
-            color: Colors.grey[500],
-            height: 2.0,
-          )
         ],
       ),
     );
@@ -141,7 +161,10 @@ class _GroupCardState extends State<GroupCard> {
 }
 
 showGroupChat(BuildContext context,
-    {String groupId, String groupName, String groupBanner}) {
+    {String groupId,
+    String groupName,
+    String groupBanner,
+    String groupDescription}) {
   Navigator.push(
     context,
     MaterialPageRoute(
@@ -149,6 +172,7 @@ showGroupChat(BuildContext context,
         groupId: groupId,
         groupName: groupName,
         groupBanner: groupBanner,
+        groupDescription: groupDescription,
       ),
     ),
   );

@@ -1,4 +1,6 @@
 import 'dart:io';
+// import 'package:Inbox/helpers/send_notification.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/helpers/send_notification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +14,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class CreateGroup extends StatefulWidget {
+
+  final String username;
+CreateGroup({this.username});
+
   @override
   _CreateGroupState createState() => _CreateGroupState();
 }
@@ -138,6 +144,7 @@ class _CreateGroupState extends State<CreateGroup> {
         'joinAt': DateTime.now(),
         'isAdmin': true,
         'userId': currentUserId,
+        'username' : widget.username,
       });
       await collectionRefs.collection('users').doc(currentUserId).update({
         'groupsList': FieldValue.arrayUnion(['GROUP' + groupId]),
@@ -157,6 +164,7 @@ class _CreateGroupState extends State<CreateGroup> {
         isUploading = true;
       });
     }
+    SendNotification().topicToSuscribe('/topics/GROUP'+groupId);
   }
 
   Future<String> uploadImage(image) async {
@@ -250,8 +258,11 @@ class _CreateGroupState extends State<CreateGroup> {
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = MediaQuery.of(context).size.height;
-    screenWidth = MediaQuery.of(context).size.width;
+    double screenH = MediaQuery.of(context).size.height;
+    double  screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       floatingActionButton: floatingActionButton(),
       backgroundColor: Colors.white,
@@ -264,43 +275,40 @@ class _CreateGroupState extends State<CreateGroup> {
         child: ListView(
           physics: BouncingScrollPhysics(),
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                height: screenHeight * 0.4,
-                width: screenWidth,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  image: DecorationImage(
-                    image: _image != null
-                        ? FileImage(_image)
-                        : AssetImage('assets/images/group.png'),
-                    fit: BoxFit.contain,
-                  ),
+            Container(
+              height: screenHeight * 378,
+              width: screenW,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                image: DecorationImage(
+                  image: _image != null
+                      ? FileImage(_image)
+                      : AssetImage('assets/images/group.png'),
+                  fit: BoxFit.contain,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      color: _image != null ? Colors.redAccent : Colors.green,
-                      splashRadius: 12,
-                      splashColor: Colors.white,
-                      icon: _image != null
-                          ? Icon(Icons.delete)
-                          : Icon(Icons.upload_file),
-                      onPressed: () {
-                        if (!isUploading) {
-                          if (_image == null) {
-                            selectImage(context);
-                          } else if (_image != null) {
-                            clearImage();
-                          }
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  IconButton(
+                    color: _image != null ? Colors.redAccent : Colors.green,
+                    splashRadius: 12,
+                    splashColor: Colors.white,
+                    icon: _image != null
+                        ? Icon(Icons.delete)
+                        : Icon(Icons.upload_file),
+                    onPressed: () {
+                      if (!isUploading) {
+                        if (_image == null) {
+                          selectImage(context);
+                        } else if (_image != null) {
+                          clearImage();
                         }
-                      },
-                    ),
-                  ],
-                ),
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
             SizedBox(

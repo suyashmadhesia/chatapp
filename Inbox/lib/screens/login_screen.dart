@@ -41,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _auth = FirebaseAuth.instance;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final fcm = FirebaseMessaging();
 
   final SendNotification notificationData = SendNotification();
 
@@ -63,6 +64,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   //Functions
+
+  saveDeviceToken(uid) async {
+    String fcmToken = await fcm.getToken();
+    if (fcmToken != null) {
+      final tokens = FirebaseFirestore.instance.collection('users/$uid/tokens');
+      tokens.doc(fcmToken).set({
+        'tokenId': fcmToken,
+        'createdAt': DateTime.now(),
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,11 +174,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   print(encryptedPassword);
                                   final user =
                                       await _auth.signInWithEmailAndPassword(
-                                          email: username, password: password);
-                                  await notificationData
-                                      .topicToSuscribe("/topics/APP");
+                                          email: username,
+                                          password: encryptedPassword);
+
                                   if (user != null) {
+                                    final userId = _auth.currentUser.uid;
                                     isAuth();
+                                    await saveDeviceToken(userId);
                                   }
                                   setState(() {
                                     showSnipper = false;

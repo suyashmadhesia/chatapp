@@ -4,12 +4,14 @@ import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/screens/home.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
-import 'package:dio/dio.dart';
+// import 'package:data_connection_checker/data_connection_checker.dart';
+// import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 //import 'search_screen.dart';
+
+// TODO referact code remove excess reads from firebase which checkinng functions are taking;
 
 class OthersProfile extends StatefulWidget {
   @override
@@ -31,7 +33,7 @@ class _OthersProfileState extends State<OthersProfile>
   @override
   void initState() {
     super.initState();
-    checkInternet();
+    tokens = notificationData.getToken(widget.profileId);
     getUsersFriendData();
     isRequestSent();
     checkingAccept();
@@ -40,6 +42,7 @@ class _OthersProfileState extends State<OthersProfile>
 
 //CollectionField Constant
   List userRequestList;
+  var tokens;
   List userPendingList;
   List userFriendsList;
 
@@ -60,20 +63,8 @@ class _OthersProfileState extends State<OthersProfile>
   double screenWidth;
   bool dataLoaded = false;
 
-  checkInternet() async {
-    bool result = await DataConnectionChecker().hasConnection;
-    if (result == true) {
-      setState(() {
-        isInternet = true;
-      });
-    } else {
-      setState(() {
-        isInternet = false;
-      });
-    }
-  }
-
   final SendNotification notificationData = SendNotification();
+
 
   checkingAccept() async {
     final userAccountRefs =
@@ -89,6 +80,21 @@ class _OthersProfileState extends State<OthersProfile>
       });
     }
   }
+// TODO wrap all function in one functions in checkStatus function;
+  // checkStatus() async {
+  //   final userAccountRefs =
+  //       await FirebaseFirestore.instance.collection('users').doc(user).get();
+  //   final receiverAccountRefs = await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .doc(widget.profileId)
+  //       .get();
+  //   if (userAccountRefs['pendingList'].contains(widget.profileId) &&
+  //       receiverAccountRefs['requestList'].contains(user)) {
+  //     setState(() {
+  //       showAccepted = true;
+  //     });
+  //   }
+  // }
 
   getUsersFriendData() async {
     final userAccountRefs =
@@ -165,16 +171,19 @@ class _OthersProfileState extends State<OthersProfile>
           'SendersAvatar': avatar,
           'requestType': 'FriendRequest',
           'sendAt': DateTime.now(),
+          'targetName' : rUsername,
+          'targetId' : widget.profileId,
         });
       }
     }
     //Sending notification here;
-    notificationData.sendNotification(
+    notificationData.sendOtherNotification(
         'New Friend Request',
         user,
         widget.profileId,
         '$username sent you friend request !!',
         'Friend Request',
+        tokens: tokens,
         isMuted: false);
 
     setState(() {
@@ -250,7 +259,7 @@ class _OthersProfileState extends State<OthersProfile>
           'isSeen': isSeen,
           'lastMessage': 'Say hi to $rUsername',
           'messageCollectionId': messageCollectionId,
-          'isMuted' : false,
+          'isMuted': false,
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -264,20 +273,21 @@ class _OthersProfileState extends State<OthersProfile>
           'isSeen': isSeen,
           'lastMessage': 'Say hi to $username',
           'messageCollectionId': messageCollectionId,
-          'isMuted' : false,
+          'isMuted': false,
         });
         final receiverCollectionRefs = FirebaseFirestore.instance
             .collection('users/$user/pendingRequests');
         receiverCollectionRefs.doc(widget.profileId).delete();
       }
     }
-    notificationData.sendNotification(
+    notificationData.sendOtherNotification(
         'Friend Request Accepted',
         user,
         widget.profileId,
         '$username Accepted your Friend Request !!',
         'Request Accepted',
-        isMuted : false);
+        tokens: tokens,
+        isMuted: false);
     setState(() {
       showAccepted = false;
     });
@@ -605,44 +615,26 @@ class _OthersProfileState extends State<OthersProfile>
     ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
-    return isInternet
-        ? Scaffold(
-            key: _scaffoldKey,
-            backgroundColor: Colors.white,
-            appBar: AppBar(
-              title:
-                  Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
-              automaticallyImplyLeading: true,
-              backgroundColor: Colors.grey[900],
-            ),
-            body: SafeArea(
-              child: dataLoaded
-                  ? buildProfileHeader()
-                  : Center(child: CircularProgressIndicator()),
-            ),
-          )
-        : Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('No internet :(',
-                    style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
-                        fontFamily: 'Mulish')),
-                FlatButton(
-                    padding: EdgeInsets.all(8.0),
-                    color: Colors.greenAccent[700],
-                    onPressed: () => checkInternet(),
-                    child: Text('Retry',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontFamily: 'Mulish')))
-              ],
-            )),
-          );
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        title: Text('Profile',
+            style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.pop(context);
+            }),
+        backgroundColor: Colors.white,
+      ),
+      body: SafeArea(
+        child: dataLoaded
+            ? buildProfileHeader()
+            : Center(child: CircularProgressIndicator()),
+      ),
+    );
   }
 }

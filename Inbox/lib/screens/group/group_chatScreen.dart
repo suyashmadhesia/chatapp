@@ -2,6 +2,7 @@ import 'package:Inbox/components/group_message_bubble.dart';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/user.dart';
+import 'package:Inbox/screens/group/group_dashboard.dart';
 // import 'package:Inbox/screens/search_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,7 +16,9 @@ class GroupChatScreen extends StatefulWidget {
   final String groupId;
   final String groupName;
   final String groupBanner;
+  final String groupDescription;
   GroupChatScreen({
+    this.groupDescription,
     this.groupId,
     this.groupName,
     this.groupBanner,
@@ -52,10 +55,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Future<QuerySnapshot> searchResult;
   bool buttonLoading = false;
   DateTime joinAt;
-  bool showInvite = true;
-  bool sendRequest = true;
-  List pendingList = [];
-  List requestList = [];
 
   messageStream() {
     return StreamBuilder(
@@ -248,8 +247,15 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           isSending = true;
                         });
                         await sendMessage(message);
-                        await notificationData.sendNotification('New Message from '+widget.groupName, userid,
-                            widget.groupId, message, 'Group Message',isMuted: false);
+                        await notificationData.sendGroupNotification(
+                            widget.groupName,
+                            userid,
+                            widget.groupId,
+                            message,
+                            'Group Message',
+                            tag: widget.groupId,
+                            topic: '/topics/' + widget.groupId,
+                            isMuted: false);
                         setState(() {
                           isSending = false;
                         });
@@ -267,91 +273,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   onAddAssetClick() {}
-
-  getInvitationData(String userID) async {
-    final userData = await collectionRefs.collection('users').doc(userID).get();
-    pendingList = userData['pendingList'];
-    requestList = userData['requestList'];
-  }
-
-  sendInvitation(String userID) async {
-    await collectionRefs.collection('users').doc(userID).update({
-      'pendingList': FieldValue.arrayUnion([widget.groupId]),
-    });
-    await collectionRefs
-        .collection('users/' + userID + '/pendingRequests')
-        .doc(widget.groupId)
-        .set({
-      'pendingUserId': widget.groupId,
-      'SendersUsername': widget.groupName,
-      'SendersAvatar': widget.groupBanner,
-      'requestType': 'GroupRequestFromGroup',
-      'sendAt': DateTime.now(),
-    });
-  }
-
-  cancelInvitation(String userID) async {
-    await collectionRefs.collection('users').doc(userID).update({
-      'pendingList': FieldValue.arrayRemove([widget.groupId]),
-    });
-    await collectionRefs
-        .collection('users/' + userID + '/pendingRequests')
-        .doc(widget.groupId)
-        .delete();
-  }
-
-  inviteButton(String userID) {
-    return FlatButton(
-      color: showInvite ? Colors.green : Colors.red,
-      onPressed: () async {
-        if (!buttonLoading) {
-          await getInvitationData(userID);
-          if (pendingList.contains(widget.groupId) &&
-              !requestList.contains(widget.groupId)) {
-            setState(() {
-              buttonLoading = true;
-            });
-            print('cancel Invitation');
-            await cancelInvitation(userID);
-            await getInvitationData(userID);
-            if (pendingList.contains(widget.groupId)) {
-              setState(() {
-                showInvite = false;
-              });
-            } else {
-              showInvite = true;
-            }
-            setState(() {
-              buttonLoading = false;
-            });
-          } else {
-            setState(() {
-              buttonLoading = true;
-            });
-            print('sending Invitation');
-            await sendInvitation(userID);
-            await getInvitationData(userID);
-            if (!pendingList.contains(widget.groupId)) {
-              setState(() {
-                showInvite = true;
-              });
-            } else {
-              showInvite = false;
-            }
-            setState(() {
-              buttonLoading = false;
-            });
-          }
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Text(showInvite ? 'Invite' : 'Cancel Invitation',
-            style: TextStyle(
-                color: Colors.white, fontSize: 12, fontFamily: 'Monstserrat')),
-      ),
-    );
-  }
 
   buildSearchResult() {
     if (isSearching) {
@@ -382,65 +303,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           );
         } else if (snapshot.hasData) {
           if (snapshot.data.documents.length > 0) {
-            List<Widget> searchResult = [];
+            List<Result> searchResult = [];
             snapshot.data.documents.forEach((doc) {
               Account users = Account.fromDocument(doc);
 
               if (users.userId != userid &&
                   !users.groupList.contains(widget.groupId) &&
                   !users.requestList.contains(widget.groupId)) {
-                final widgetResult = Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[700],
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(0.5, 0.5), //(x,y)
-                            blurRadius: 1.0,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 5,
-                          ),
-                          ListTile(
-                            trailing: buttonLoading
-                                ? SizedBox(
-                                    height: 16,
-                                    width: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : inviteButton(users.userId),
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.grey[800],
-                              radius: screenWidth * 7.5,
-                              backgroundImage:
-                                  users.avtar == null || users.avtar == ''
-                                      ? AssetImage('assets/images/user.png')
-                                      : CachedNetworkImageProvider(users.avtar),
-                            ),
-                            title: Text(users.username,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontFamily: 'Monstserrat')),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Divider(
-                            color: Colors.grey[600],
-                            height: 1.0,
-                          )
-                        ],
-                      ),
-                    ));
+                final widgetResult = Result(widget.groupId, widget.groupName,
+                    widget.groupBanner, myUsername, screenWidth, users);
+
                 searchResult.add(widgetResult);
               }
             });
@@ -556,7 +428,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       backgroundColor: Color(0xff111111),
       key: _scaffoldKey,
       appBar: AppBar(
-        elevation: 5,
+        elevation: 0,
         automaticallyImplyLeading: showSearchBar ? false : true,
         actions: [
           if (admin)
@@ -595,7 +467,18 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         backgroundColor: Colors.black,
         title: !showSearchBar
             ? GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => GroupDashboard(
+                                admin,
+                                groupDescription: widget.groupDescription,
+                                groupId: widget.groupId,
+                                groupName: widget.groupName,
+                                groupBanner: widget.groupBanner,
+                              )));
+                },
                 child: Row(
                   children: [
                     Padding(
@@ -605,7 +488,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         radius: 20,
                         backgroundImage: widget.groupBanner == '' ||
                                 widget.groupBanner == null
-                            ? AssetImage('assets/images/user.png')
+                            ? AssetImage('assets/images/group.png')
                             : CachedNetworkImageProvider(widget.groupBanner),
                       ),
                     ),
@@ -635,5 +518,197 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         ],
       ),
     );
+  }
+}
+
+// showGroupDashBoard(BuildContext context,
+//     {String groupId,
+//     String groupName,
+//     String groupBanner,
+//     String groupDescription}) {
+//   Navigator.push(
+//       context, MaterialPageRoute(builder: (context) => GroupDashboard(
+//         admin
+//       )));
+// }
+
+class Result extends StatefulWidget {
+  final users;
+  final groupId;
+  final groupName;
+  final groupBanner;
+  final myUsername;
+  final screenWidth;
+
+  Result(this.groupId, this.groupName, this.groupBanner, this.myUsername,
+      this.screenWidth, this.users);
+
+  @override
+  _ResultState createState() => _ResultState();
+}
+
+class _ResultState extends State<Result> {
+  final collectionRefs = FirebaseFirestore.instance;
+
+  @override
+  initState() {
+    super.initState();
+    getInvitationData(widget.users.userId);
+  }
+
+  List pendingList = [];
+  List requestList = [];
+  bool showInvite = true;
+  bool buttonLoading = false;
+
+  cancelInvitation(String userID) async {
+    await collectionRefs.collection('users').doc(userID).update({
+      'pendingList': FieldValue.arrayRemove([widget.groupId]),
+    });
+    await collectionRefs
+        .collection('users/' + userID + '/pendingRequests')
+        .doc(widget.groupId)
+        .delete();
+  }
+
+  getInvitationData(String userID) async {
+    final userData = await collectionRefs.collection('users').doc(userID).get();
+    pendingList = userData['pendingList'];
+    requestList = userData['requestList'];
+    if (pendingList.contains(widget.groupId)) {
+      setState(() {
+        showInvite = false;
+      });
+    } else {
+      setState(() {
+        showInvite = true;
+      });
+    }
+  }
+
+  sendInvitation(String userID) async {
+    await collectionRefs.collection('users').doc(userID).update({
+      'pendingList': FieldValue.arrayUnion([widget.groupId]),
+    });
+    await collectionRefs
+        .collection('users/' + userID + '/pendingRequests')
+        .doc(widget.groupId)
+        .set({
+      'pendingUserId': widget.groupId,
+      'SendersUsername': widget.groupName,
+      'SendersAvatar': widget.groupBanner,
+      'requestType': 'GroupRequestFromGroup',
+      'sendAt': DateTime.now(),
+      'targetName': widget.myUsername, //Username of target
+      'targetId': userID
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey,
+                offset: Offset(0.5, 0.5), //(x,y)
+                blurRadius: 1.0,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 5,
+              ),
+              ListTile(
+                trailing: buttonLoading
+                    ? SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : FlatButton(
+                        color: showInvite ? Colors.green : Colors.red,
+                        onPressed: () async {
+                          if (!buttonLoading) {
+                            await getInvitationData(widget.users.userId);
+                            if (pendingList.contains(widget.groupId) &&
+                                !requestList.contains(widget.groupId)) {
+                              setState(() {
+                                buttonLoading = true;
+                              });
+                              print('cancel Invitation');
+                              await cancelInvitation(widget.users.userId);
+                              await getInvitationData(widget.users.userId);
+                              if (pendingList.contains(widget.groupId)) {
+                                setState(() {
+                                  showInvite = false;
+                                });
+                              } else {
+                                showInvite = true;
+                              }
+                              setState(() {
+                                buttonLoading = false;
+                              });
+                            } else {
+                              setState(() {
+                                buttonLoading = true;
+                              });
+                              print('sending Invitation');
+                              await sendInvitation(widget.users.userId);
+                              await getInvitationData(widget.users.userId);
+                              if (!pendingList.contains(widget.groupId)) {
+                                setState(() {
+                                  showInvite = true;
+                                });
+                              } else {
+                                showInvite = false;
+                              }
+                              setState(() {
+                                buttonLoading = false;
+                              });
+                            }
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                              showInvite ? 'Invite' : 'Cancel Invitation',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontFamily: 'Monstserrat')),
+                        ),
+                      ),
+                leading: CircleAvatar(
+                  backgroundColor: Colors.grey[800],
+                  radius: widget.screenWidth * 7.5,
+                  backgroundImage:
+                      widget.users.avtar == null || widget.users.avtar == ''
+                          ? AssetImage('assets/images/user.png')
+                          : CachedNetworkImageProvider(widget.users.avtar),
+                ),
+                title: Text(widget.users.username,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontFamily: 'Monstserrat')),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Divider(
+                color: Colors.grey[600],
+                height: 1.0,
+              )
+            ],
+          ),
+        ));
   }
 }

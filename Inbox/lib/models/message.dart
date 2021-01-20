@@ -31,7 +31,7 @@ class Asset {
     }
   }
 
-  Asset.fromJson(Map<String, String> json) {
+  Asset.fromJson(dynamic json) {
     thumbnail = json["thumbnail"];
     url = json["url"];
     contentType = json["contentType"];
@@ -76,7 +76,7 @@ class Asset {
     return {
       "name": name,
       "thumbnail": thumbnail,
-      "ulr": url,
+      "url": url,
       "contentType": contentType
     };
   }

@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //import 'package:Inbox/models/user.dart';
 // import 'package:Inbox/screens/home.dart';
-import 'package:Inbox/screens/profile_other.dart';
+// import 'package:Inbox/screens/profile_other.dart';
 // import 'package:Inbox/screens/profile_screen.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/services.dart';
@@ -42,10 +42,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   bool empty = true;
+  String myUsername;
   getUsersFriendData() async {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     pendingList = userAccountRefs['pendingList'];
+    myUsername = userAccountRefs['username'];
     if (pendingList.isNotEmpty) {
       setState(() {
         empty = false;
@@ -91,6 +93,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
               final senderAvatar = userid['SendersAvatar'];
               final requestType = userid['requestType'];
               final timeStamp = userid['sendAt'];
+              final targetName = userid['targetName'];
+              final targetId = userid['targetId'];
 
               String time = '';
 
@@ -103,12 +107,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
               final notificationCard = NotificationCard(
                 avatar: senderAvatar,
+                myUsername : myUsername,
                 requestType: requestType,
                 timeStamp: d,
                 id: sendersUserId,
                 username: sendersUsername,
                 time: time,
                 userId: _userId,
+                target: targetName,
+                targetId: targetId,
               );
               notificationWidget.add(notificationCard);
               notificationWidget.reversed;
@@ -139,12 +146,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        elevation: 0,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
+         leading: IconButton(icon: Icon(Icons.arrow_back, color: Colors.black), onPressed: (){
+                Navigator.pop(context);
+              }),
         title: Text(
           'Notifications',
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontFamily: 'Montserrat',
             fontSize: 20.0,
           ),

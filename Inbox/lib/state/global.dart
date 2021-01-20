@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:Inbox/components/message_bubble.dart';
 import 'package:Inbox/models/message.dart';
 
 class GlobalState {
@@ -25,7 +26,6 @@ class GlobalState {
       _state[key].add(value);
     } else {
       _state[key] = [value];
-      controllers[key].add(value);
     }
   }
 
@@ -66,13 +66,11 @@ class GlobalState {
 
   Stream getUserMessages(String userId) {
     String key = '${userId}_messages';
-
     void start() {
-      if (_state.containsKey(key) || _state[key] == null) {
-        _state[key] = [];
-      }
-      for (var message in _state[key]) {
-        controllers[userId].add(message);
+      if (_state[key] != null) {
+        for (var message in _state[key]) {
+          controllers[userId].add(message);
+        }
       }
     }
 

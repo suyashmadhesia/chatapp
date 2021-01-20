@@ -20,17 +20,19 @@ class MessageBubble extends StatelessWidget {
   List<Asset> assets;
 
   String get time => '${timestamp.hour}:${timestamp.minute}';
+  final String lastMessage;
 
   MessageBubble(
       {this.message,
+      this.lastMessage,
       this.sender,
       this.myMessageId,
       this.senderId,
       this.receiverId,
       this.timestamp,
-      this.visibility,
+      this.visibility = true,
       this.uniqueMessageId,
-      this.assets});
+      this.assets = const []});
 
   // Function to dissolve date time into Date | Time format
   // Herby using if DateTime.now().date() == d.date() then Today
@@ -58,6 +60,10 @@ class MessageBubble extends StatelessWidget {
       return 'Today | $time';
     }
     return '${timestamp.day} ${months[timestamp.month]} | $time';
+  }
+
+  String str() {
+    return 'MessageBubble(id:$myMessageId, msg: $message, asstes: $assets)';
   }
 
   //Function
@@ -92,24 +98,31 @@ class MessageBubble extends StatelessWidget {
   }
 
   unsendMessage() async {
+    final senderMessageRefs = await FirebaseFirestore.instance
+        .collection('users/' + senderId + '/friends')
+        .doc(receiverId)
+        .get();
+    String lstMsg = senderMessageRefs['lastMessage'];
     await FirebaseFirestore.instance
         .collection('messages/$uniqueMessageId/conversation')
         .doc(myMessageId)
         .update({
       'visibility': false,
     });
-    await FirebaseFirestore.instance
-        .collection('users/$senderId/friends/')
-        .doc(receiverId)
-        .update({
-      'lastMessage': 'This message was deleted',
-    });
-    await FirebaseFirestore.instance
-        .collection('users/$receiverId/friends/')
-        .doc(senderId)
-        .update({
-      'lastMessage': 'This message was deleted',
-    });
+    if (lstMsg == message) {
+      await FirebaseFirestore.instance
+          .collection('users/$senderId/friends/')
+          .doc(receiverId)
+          .update({
+        'lastMessage': 'This message was deleted',
+      });
+      await FirebaseFirestore.instance
+          .collection('users/$receiverId/friends/')
+          .doc(senderId)
+          .update({
+        'lastMessage': 'This message was deleted',
+      });
+    }
   }
 
   Widget uploadingWidget() {
@@ -129,10 +142,10 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     // final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    if (assets.length > 0 && myMessageId != null) {
-      return uploadingWidget();
-    }
-    return visibility || visibility == null
+    // if (assets != null && assets.length > 0 && myMessageId != null) {
+    //   return uploadingWidget();
+    // }
+    return visibility == null || visibility
         ? Padding(
             padding:
                 const EdgeInsets.only(right: 8, top: 12, bottom: 4, left: 8),
@@ -205,12 +218,17 @@ class MessageBubble extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 15, vertical: 12),
-                              child: Text(
-                                message,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'Montserrat'),
+                              child: Column(
+                                children: [
+                                  messageBody(),
+                                  Text(
+                                    message,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontFamily: 'Montserrat'),
+                                  ),
+                                ],
                               ),
                             ),
                           ),

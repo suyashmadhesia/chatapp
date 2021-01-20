@@ -57,88 +57,101 @@ class _AssetWidgetState extends State<AssetWidget> {
     });
   }
 
-  Future<File> getFile() async {
+  Future<bool> fileExist() async {
     await setMediaPath();
+
+    String mediaPath = await FileManager.getDirPath();
+    mediaPath +=
+        (widget.sent) ? '/sent/${widget.asset.name}' : '/${widget.asset.name}';
+    bool exist = await File(mediaPath).exists();
+  }
+
+  Future<File> getFile() async {
     if (widget.asset.file != null) {
       return widget.asset.file;
     }
-    bool exist = await File(mediaPath).exists();
-    if (!exist) {
+
+    // print(exist.toString() +
+    //     ' ' +
+    //     widget.sent.toString() +
+    //     " " +
+    //     mediaPath +
+    //     " " +
+    //     widget.asset.name);
+    if (!await fileExist()) {
       // Start downloading file
       File file = await FileManager.downloadFile(
           widget.asset.url,
           (widget.sent)
-              ? '/media/sent/${widget.asset.name}'
-              : '/media/${widget.asset.name}');
+              ? '/sent/${widget.asset.name}'
+              : '/${widget.asset.name}');
       return file;
     }
 
     return File(mediaPath);
   }
 
-  Widget mediaWidget(bool loading) {
-    /* If Media is not present in folder show thumbnail and ask for download
-    download it then show media from folder.
-    */
-    return FutureBuilder(
-      future: getFile(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Container();
-        }
-        bool isDone = snapshot.connectionState == ConnectionState.done;
-        // If Image
-        if (widget.asset.contentType.contains("image")) {
-          return isDone
-              ? Image.file(
-                  snapshot.data,
-                  fit: BoxFit.fill,
-                )
-              : Image.network(
-                  widget.asset.thumbnail,
-                  fit: BoxFit.fill,
-                );
-        } else if (widget.asset.contentType.contains("video")) {
-          VideoPlayerController controller =
-              VideoPlayerController.network(widget.asset.thumbnail);
-          return SizedBox(
-            width: scale.horizontal(40),
-            child: VideoPlayer(controller),
-          );
-        } else if (widget.asset.contentType.contains("audio")) {}
-      },
-    );
+  Widget completedMediaWidget() {
+    if (widget.asset.contentType.contains("image")) {
+      // getFile();
+      return Container(
+        width: scale.horizontal(50),
+        // height: scale.vertical(20),
+        child: Image.network(
+          widget.asset.thumbnail,
+          fit: BoxFit.fill,
+        ),
+      );
+    }
   }
 
-  Widget uploadingWidget() {
+  Widget mediaWidget() {
+    Future queue = fileExist();
     return FutureBuilder(
-      future: widget.asset.task,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          // File uploaded now show the image
-          return Container(
-              width: scale.horizontal(50), child: mediaWidget(false));
-        } else {
-          return InkWell(
-            onTap: () {
-              widget.asset.task.cancel();
-              state.popAssetUsingHash(
-                  widget.receiverId, widget.messageHash, widget.asset);
-            },
-            child: Container(
-              width: scale.horizontal(50),
-              child: mediaWidget(true),
-            ),
-          );
-        }
-      },
-    );
+        future: queue,
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data == true) {
+          } else {
+            return Container(
+              width: scale.horizontal(40),
+              // height: scale.vertical(20),
+              child: Stack(
+                children: [
+                  Image.network(
+                    widget.asset.thumbnail,
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    width: scale.horizontal(40),
+                    // height: double.maxFinite,
+                    color: Colors.black.withOpacity(0.2),
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(shape: BoxShape.circle),
+                        child: IconButton(
+                            icon: Icon(
+                              Icons.download_outlined,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                            onPressed: null),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+        });
   }
 
   double width, height;
   @override
   Widget build(BuildContext context) {
     scale = ScreenSize(context: context);
-    return uploadingWidget();
+    if (widget.asset.file != null) {
+      return Image.file(widget.asset.file);
+    }
+    return mediaWidget();
   }
 }

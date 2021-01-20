@@ -36,16 +36,18 @@ class FireStore {
       String avatar,
       List<Asset> assets = const [],
       String userUniqueMessageId}) async {
-    String messageCollectionPath = 'messages/$userUniqueMessageId/coverstaion';
+    // print(
+    //     '$userId, $receiverId, $message, $avatar, $assets, $userUniqueMessageId');
+    String messageCollectionPath = 'messages/$userUniqueMessageId/conversation';
     final messageDocument =
         await FirebaseFirestore.instance.collection(messageCollectionPath).add({
       'sender': userId,
       'message': message,
       'timestamp': DateTime.now(),
       'messageId': '',
-      'assets': assets.map((e) => e.toJson()),
+      'assets': assets.map((e) => e.toJson()).toList(),
       'visibility': true,
-      'avatar': avatar,
+      'avatar': avatar == null ? '' : avatar,
     });
     final String messageId = messageDocument.id;
     await FirebaseFirestore.instance

@@ -14,7 +14,7 @@ import 'package:Inbox/screens/profile_other.dart';
 import 'package:Inbox/state/global.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+//import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
@@ -49,9 +49,16 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     // globalState[stateName()] = [];
     getUserData();
-    checkInternet();
-
+    tokens = notificationData.getToken(widget.userId);
+    chatStreamController = StreamController();
     setIsSeen();
+  }
+
+  @override
+  void dispose() {
+    chatStreamController.close();
+    messageTextController.dispose();
+    super.dispose();
   }
 
   StreamController<dynamic> chatStreamController;
@@ -79,6 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   final messageTextController = TextEditingController();
+  var tokens;
   final SendNotification notificationData = SendNotification();
   final user = FirebaseAuth.instance.currentUser;
   final sendersMessageRefs = FirebaseFirestore.instance;
@@ -87,7 +95,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final DateTime timeStamp = DateTime.now();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  String rUsername;
   bool isMute;
   bool isBlocked = false;
   bool isLoaded = false;
@@ -115,19 +122,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   bool isInternet = true;
-
-  checkInternet() async {
-    bool result = await DataConnectionChecker().hasConnection;
-    if (result == true) {
-      setState(() {
-        isInternet = true;
-      });
-    } else {
-      setState(() {
-        isInternet = false;
-      });
-    }
-  }
 
   Future<bool> _onWillPop() async {
     if (isLoaded && isInternet) {
@@ -166,8 +160,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .get();
     final block = receiverMessageRefs['isBlocked'];
     isMute = receiverMessageRefs['isMuted'];
-    rUsername = receiverMessageRefs[
-        'username']; // my user name means the name of current sender
+    // my user name means the name of current sender
     isSeen = receiverMessageRefs['isSeen'];
 
     setCurrentChatScreen(widget.username);
@@ -269,13 +262,22 @@ class _ChatScreenState extends State<ChatScreen> {
               onTap: () async {
                 List<File> files = await FileManager.pickMediaFile();
                 if (files.length > 0) {
+                  print('avatar is $avatar');
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => ImageVideoPickerScreen(
                                 user: user,
                                 avatar: avatar,
+                                recepient: widget.userId,
+                                uniqueMessageId: uniqueMessageId,
                                 files: files,
+                                onTapBack: () {
+                                  setState(() {
+                                    isShowingBS = false;
+                                  });
+                                  Navigator.of(context).pop();
+                                },
                               )));
                 }
               },
@@ -315,6 +317,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   MessageBubble getBubble(dynamic message, {List<Asset> assets = const []}) {
+    // print('from buble $assets ${message["messageId"]}');
     return MessageBubble(
         timestamp: message['timestamp'].toDate(),
         senderId: user.uid,
@@ -327,18 +330,31 @@ class _ChatScreenState extends State<ChatScreen> {
         assets: assets);
   }
 
+  Stream getMessageStream() {
+    messageCollectionRefs
+        .collection('messages/$uniqueMessageId/conversation')
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .listen((event) {
+      chatStreamController.add(event.docs);
+    });
+
+    globalState.getUserMessages(widget.userId).listen((event) {
+      // print(event);
+      chatStreamController.add(event);
+    });
+
+    return chatStreamController.stream;
+  }
+
   messageStream() {
     return StreamBuilder(
-      stream: messageCollectionRefs
-          .collection('messages/$uniqueMessageId/conversation')
-          .orderBy('timestamp', descending: false)
-          .snapshots(),
+      stream: getMessageStream(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          List messages = snapshot.data.documents;
-
+          List messages = snapshot.data;
           List<MessageBubble> messageBubbles = [];
           for (var message in messages) {
             List<Asset> assets = [];
@@ -346,8 +362,9 @@ class _ChatScreenState extends State<ChatScreen> {
               if (message["assets"].length > 0 &&
                   message["assets"].length <= 4) {
                 for (var asset in message["assets"]) {
-                  messageBubbles
-                      .add(getBubble(message, assets: [Asset.fromJson(asset)]));
+                  MessageBubble bubble =
+                      getBubble(message, assets: [Asset.fromJson(asset)]);
+                  messageBubbles.add(bubble);
                 }
               } else {
                 assets = (message["assets"] as List)
@@ -360,7 +377,10 @@ class _ChatScreenState extends State<ChatScreen> {
           if (globalState[stateName()] != null &&
               globalState[stateName()].length > 0) {
             print(globalState[stateName()]);
-            messageBubbles.addAll(globalState[stateName()]);
+            for (MessageBubble stateBubble in globalState[stateName()]) {
+              print('from state ${stateBubble.str()}');
+              messageBubbles.add(stateBubble);
+            }
           }
 
           messageBubbles.sort((a, b) => a.timestamp.compareTo(b.timestamp));
@@ -385,7 +405,7 @@ class _ChatScreenState extends State<ChatScreen> {
       'message': message,
       'timestamp': DateTime.now(),
       'messageId': '',
-      'assets': assets.map((e) => e.toJson()),
+      'assets': providedAssets.map((e) => e.toJson()).toList(),
       'visibility': true,
       'avatar': avatar,
     });
@@ -540,24 +560,25 @@ class _ChatScreenState extends State<ChatScreen> {
                                       isSending = true;
                                     });
 //Sender Collections
-                                    // sendNotification(widget.userId, message,
-                                    //     rUsername, user.uid);
-                                    messageTextController.clear();
-                                    //TODO here messege is save in senders db
-                                    await sendMessage(message);
 
-                                    setState(() {
-                                      isSending = false;
-                                    });
-                                    await notificationData.sendNotification(
-                                      'New message from $rUsername',
+                                    messageTextController.clear();
+
+                                    await sendMessage(message);
+                                    notificationData.sendOtherNotification(
+                                      '$username',
                                       user.uid,
                                       widget.userId,
                                       message,
                                       'Private Message',
+                                      tag: user.uid,
                                       isMuted: isMute,
+                                      tokens: tokens,
                                     );
+
                                     message = '';
+                                    setState(() {
+                                      isSending = false;
+                                    });
                                   } else {
                                     showdialog(context);
                                   }
@@ -605,11 +626,16 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  unMuteChat() {
+  unMuteChat() async {
+    await FirebaseFirestore.instance
+        .collection('users/' + widget.userId + '/friends')
+        .doc(user.uid)
+        .update({
+      'isMute': false,
+    });
     setState(() {
       isMute = false;
     });
-    debugPrint('un muted');
   }
 
   blockUser() async {
@@ -671,10 +697,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   muteChat() async {
+    await FirebaseFirestore.instance
+        .collection('users/' + widget.userId + '/friends')
+        .doc(user.uid)
+        .update({
+      'isMute': true,
+    });
     setState(() {
       isMute = true;
     });
-    debugPrint('Muted');
   }
 
   appbarActionButton() {

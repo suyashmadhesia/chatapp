@@ -1,3 +1,4 @@
+// import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/edit_profile.dart';
 import 'package:Inbox/components/screen_size.dart';
 //import 'package:Inbox/screens/home.dart';
@@ -79,6 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               onPressed: () async {
                 _auth.signOut();
+                // SendNotification().topicToUnsuscribe('/topics/APP');
                 final SharedPreferences sharedPreferences =
                     await SharedPreferences.getInstance();
                 sharedPreferences.remove('email');
@@ -169,23 +171,28 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           onPressed: () {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EditProfileScreen()));
           },
-          icon: Icon(Icons.edit, color: Colors.white),
+          icon: Icon(Icons.edit, color: Colors.black),
         ),
-        title: Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
+        title: Text('Profile',
+            style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: IconButton(
                 splashRadius: 16.0,
                 onPressed: () => _showDialog(context),
-                icon: Icon(Icons.logout)),
+                icon: Icon(
+                  Icons.logout,
+                  color: Colors.black,
+                ),),
           )
         ],
       ),

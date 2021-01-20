@@ -10,10 +10,29 @@ import 'package:path/path.dart' as pathModule;
 import 'package:path_provider/path_provider.dart';
 import 'package:Inbox/models/constant.dart' show isFileExist;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+// import 'package:permission_handler/permission_handler.dart';
 
 class FileManager {
-  static Future<String> getDirPath() async {
-    return (await getApplicationDocumentsDirectory()).path;
+  static Future<String> getDirPath({StorageDirectory type}) async {
+    Directory dir = ((Platform.isAndroid)
+        ? (await getExternalStorageDirectories(type: type))[0]
+        : await getApplicationDocumentsDirectory());
+    // print(dir.path);
+    // if (Platform.isAndroid) {
+    //   while (true) {
+    //     if (!dir.path.contains("Android")) {
+    //       break;
+    //     } else {
+    //       dir = dir.parent;
+    //     }
+    //   }
+    // }
+    String path = dir.path;
+    Directory appDir = Directory('${path}/media');
+    if (!await appDir.exists()) {
+      appDir.create(recursive: true);
+    }
+    return appDir.path;
   }
 
   static Future<Uint8List> compressImage(File file, {int quality = 10}) async {
@@ -47,7 +66,8 @@ class FileManager {
   }
 
   static Future<String> getFileName(String name) async {
-    return ((await FileManager.getDirPath()) + '/media/$name');
+    String path = await FileManager.getDirPath();
+    return path + '/media/$name';
   }
 
   static Future<bool> isMediaExist(String name) async {
@@ -92,19 +112,28 @@ class FileManager {
   }
 
   static Future<File> downloadFile(String url, String fileName) async {
-    var request = await HttpClient().getUrl(Uri.parse(url));
-    var response = await request.close();
-    var bytes = await consolidateHttpClientResponseBytes(response);
-    File file = new File(await FileManager.getFileName(fileName));
-    await file.writeAsBytes(bytes);
-    return file;
+    // var request = await HttpClient().getUrl(Uri.parse(url));
+    // var response = await request.close();
+    // var bytes = await consolidateHttpClientResponseBytes(response);
+    var dir = await FileManager.getDirPath();
+    // var mediaDir =
+    //     await new Directory('${dir.path}/Inbox/media').create(recursive: true);
+    // print(mediaDir.path);
+    print('did it againa');
+    await Dio().download(url, '${dir}/$fileName');
+    return File('${dir}/$fileName');
   }
 
   static Future<void> copyFile(Asset asset) async {
     String newPath = await FileManager.getDirPath();
-    newPath += '/media/sent/${asset.name}';
-    File file = File(newPath);
+    newPath += '/media/sent';
+    Directory dir = Directory(newPath);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    File file = File('${dir.path}/${asset.name}');
     await file.writeAsBytes(await asset.file.readAsBytes());
+    // await file.writeAsBytes(await asset.file.readAsBytes());
   }
 
   static Future<List<File>> pickMediaFile() async {
