@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/models/user.dart';
 import 'package:Inbox/screens/home.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:firebase_auth/firebase_auth.dart';

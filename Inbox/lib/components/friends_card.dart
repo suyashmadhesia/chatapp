@@ -81,7 +81,7 @@ class _FriendsTileState extends State<FriendsTile> {
                   ? Icon(
                       Icons.fiber_manual_record,
                       color: Colors.pink[400],
-                      size: 12,
+                      size: 14,
                     )
                   : Icon(Icons.fiber_manual_record, color: Colors.white),
               title: Text(widget.sendersUsername,

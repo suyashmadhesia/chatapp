@@ -1,5 +1,5 @@
 import 'package:Inbox/components/screen_size.dart';
-import 'package:Inbox/screens/group_chatScreen.dart';
+import 'package:Inbox/screens/group/group_chatScreen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +46,7 @@ class _GroupCardState extends State<GroupCard> {
   bool isDataLoaded = false;
   final collectionRefs = FirebaseFirestore.instance;
   DateTime joinedAt;
+  DateTime messageAt;
 
 //Updating messageAT for cecking that message is seen or not
   updateSeen() async {
@@ -56,7 +57,11 @@ class _GroupCardState extends State<GroupCard> {
     });
   }
 
-  checkMessageSeen() {}
+  checkMessageSeen() {
+    if (isDataLoaded) {
+      return widget.messageAt.isAfter(messageAt);
+    }
+  }
 
   getUserData() async {
     final groupInUserCollection = await collectionRefs
@@ -64,7 +69,9 @@ class _GroupCardState extends State<GroupCard> {
         .doc(widget.groupId)
         .get();
     final joinAt = groupInUserCollection['joinedAt'];
+    final time = groupInUserCollection['messageAt'];
     joinedAt = joinAt.toDate();
+    messageAt = time.toDate();
     setState(() {
       isDataLoaded = true;
     });
@@ -92,6 +99,7 @@ class _GroupCardState extends State<GroupCard> {
           ),
           GestureDetector(
             onTap: () {
+              updateSeen();
               showGroupChat(
                 context,
                 groupId: widget.groupId,
@@ -133,6 +141,13 @@ class _GroupCardState extends State<GroupCard> {
                         color: Colors.blue,
                         fontSize: 14,
                       ),
+                    ),
+              trailing: checkMessageSeen()
+                  ? null
+                  : Icon(
+                      Icons.fiber_manual_record,
+                      color: Colors.pink[400],
+                      size: 14,
                     ),
             ),
           ),

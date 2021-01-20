@@ -50,7 +50,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final DateTime timeStamp = DateTime.now();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-
   bool isMute;
   bool isBlocked = false;
   bool isLoaded = false;
@@ -75,7 +74,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   bool isInternet = true;
-
 
   Future<bool> _onWillPop() async {
     if (isLoaded && isInternet) {
@@ -208,6 +206,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
             final messageBubble = MessageBubble(
               timestamp: d,
+              lastMessage: lastMessage,
               senderId: user.uid,
               receiverId: widget.userId,
               myMessageId: messageId,
@@ -363,9 +362,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                       isSending = true;
                                     });
 //Sender Collections
-                                  
+
                                     messageTextController.clear();
-                                    //TODO here messege is save in senders db
+
                                     await sendMessage(message);
                                     notificationData.sendOtherNotification(
                                       '$username',
@@ -377,7 +376,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       isMuted: isMute,
                                       tokens: tokens,
                                     );
-                                   
+
                                     message = '';
                                     setState(() {
                                       isSending = false;
@@ -429,11 +428,16 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  unMuteChat() {
+  unMuteChat() async {
+    await FirebaseFirestore.instance
+        .collection('users/' + widget.userId + '/friends')
+        .doc(user.uid)
+        .update({
+      'isMute': false,
+    });
     setState(() {
       isMute = false;
     });
-    debugPrint('un muted');
   }
 
   blockUser() async {
@@ -495,10 +499,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   muteChat() async {
+    await FirebaseFirestore.instance
+        .collection('users/' + widget.userId + '/friends')
+        .doc(user.uid)
+        .update({
+      'isMute': true,
+    });
     setState(() {
       isMute = true;
     });
-    debugPrint('Muted');
   }
 
   appbarActionButton() {

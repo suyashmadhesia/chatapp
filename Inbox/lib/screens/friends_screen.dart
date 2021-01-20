@@ -9,7 +9,7 @@ import 'package:Inbox/screens/notification_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'create_group.dart';
+import 'group/create_group.dart';
 
 class FriendsScreen extends StatefulWidget {
   @override

@@ -1,4 +1,4 @@
-import 'package:Inbox/screens/group_profile.dart';
+import 'package:Inbox/screens/group/group_profile.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 

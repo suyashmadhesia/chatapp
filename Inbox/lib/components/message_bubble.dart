@@ -16,9 +16,12 @@ class MessageBubble extends StatelessWidget {
   final DateTime timestamp;
   final String uniqueMessageId;
   final List<Asset> assets;
+  final String lastMessage;
+  
 
   MessageBubble(
       {this.message,
+      this.lastMessage,
       this.sender,
       this.time,
       this.myMessageId,
@@ -60,13 +63,19 @@ class MessageBubble extends StatelessWidget {
   //Function
 
   unsendMessage() async {
+    final senderMessageRefs = await FirebaseFirestore.instance
+        .collection('users/' + senderId + '/friends')
+        .doc(receiverId)
+        .get();
+        String lstMsg = senderMessageRefs['lastMessage'];
     await FirebaseFirestore.instance
         .collection('messages/$uniqueMessageId/conversation')
         .doc(myMessageId)
         .update({
       'visibility': false,
     });
-    await FirebaseFirestore.instance
+    if(lstMsg == message){
+      await FirebaseFirestore.instance
         .collection('users/$senderId/friends/')
         .doc(receiverId)
         .update({
@@ -78,6 +87,7 @@ class MessageBubble extends StatelessWidget {
         .update({
       'lastMessage': 'This message was deleted',
     });
+    }
   }
 
   @override

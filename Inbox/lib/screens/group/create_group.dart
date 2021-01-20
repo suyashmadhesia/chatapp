@@ -275,43 +275,40 @@ class _CreateGroupState extends State<CreateGroup> {
         child: ListView(
           physics: BouncingScrollPhysics(),
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                height: screenHeight * 378,
-                width: screenW,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  image: DecorationImage(
-                    image: _image != null
-                        ? FileImage(_image)
-                        : AssetImage('assets/images/group.png'),
-                    fit: BoxFit.contain,
-                  ),
+            Container(
+              height: screenHeight * 378,
+              width: screenW,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                image: DecorationImage(
+                  image: _image != null
+                      ? FileImage(_image)
+                      : AssetImage('assets/images/group.png'),
+                  fit: BoxFit.contain,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      color: _image != null ? Colors.redAccent : Colors.green,
-                      splashRadius: 12,
-                      splashColor: Colors.white,
-                      icon: _image != null
-                          ? Icon(Icons.delete)
-                          : Icon(Icons.upload_file),
-                      onPressed: () {
-                        if (!isUploading) {
-                          if (_image == null) {
-                            selectImage(context);
-                          } else if (_image != null) {
-                            clearImage();
-                          }
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  IconButton(
+                    color: _image != null ? Colors.redAccent : Colors.green,
+                    splashRadius: 12,
+                    splashColor: Colors.white,
+                    icon: _image != null
+                        ? Icon(Icons.delete)
+                        : Icon(Icons.upload_file),
+                    onPressed: () {
+                      if (!isUploading) {
+                        if (_image == null) {
+                          selectImage(context);
+                        } else if (_image != null) {
+                          clearImage();
                         }
-                      },
-                    ),
-                  ],
-                ),
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
             SizedBox(

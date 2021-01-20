@@ -1,4 +1,4 @@
-import 'package:Inbox/helpers/send_notification.dart';
+// import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/edit_profile.dart';
 import 'package:Inbox/components/screen_size.dart';
 //import 'package:Inbox/screens/home.dart';
@@ -80,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               onPressed: () async {
                 _auth.signOut();
-                SendNotification().topicToUnsuscribe('/topics/APP');
+                // SendNotification().topicToUnsuscribe('/topics/APP');
                 final SharedPreferences sharedPreferences =
                     await SharedPreferences.getInstance();
                 sharedPreferences.remove('email');
