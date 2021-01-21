@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:Inbox/components/screen_size.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image/image.dart' as Im;
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -49,7 +50,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
   String descriptionField;
   String nameField;
   String deletingImgPath;
-  bool isLoading = false;
+  // bool isLoading = false;
   double screenHeight;
   double screenWidth;
   PickedFile imageFile;
@@ -119,6 +120,9 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     imageField = groupData.groupBanner;
     nameField = groupData.groupName;
     descriptionField = groupData.groupDescription;
+    setState(() {
+      isDataLoaded = true;
+    });
   }
 
   Future<String> uploadImage(image) async {
@@ -195,7 +199,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
         decoration: BoxDecoration(
           color: Colors.grey[200],
           image: DecorationImage(
-            image: AssetImage('assets/images/user.png'),
+            image: AssetImage('assets/images/group.png'),
             fit: BoxFit.contain,
           ),
         ),
@@ -251,8 +255,42 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     }
   }
 
-  cropImage() async{
-    
+ Future<Null> cropImage() async {
+    File croppedFile = await ImageCropper.cropImage(
+        sourcePath: imageFile.path,
+        aspectRatioPresets: Platform.isAndroid
+            ? [
+                CropAspectRatioPreset.square,
+                CropAspectRatioPreset.ratio3x2,
+                CropAspectRatioPreset.original,
+                CropAspectRatioPreset.ratio4x3,
+                CropAspectRatioPreset.ratio16x9
+              ]
+            : [
+                CropAspectRatioPreset.original,
+                CropAspectRatioPreset.square,
+                CropAspectRatioPreset.ratio3x2,
+                CropAspectRatioPreset.ratio4x3,
+                CropAspectRatioPreset.ratio5x3,
+                CropAspectRatioPreset.ratio5x4,
+                CropAspectRatioPreset.ratio7x5,
+                CropAspectRatioPreset.ratio16x9
+              ],
+        androidUiSettings: AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.deepOrange,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false),
+        iosUiSettings: IOSUiSettings(
+          title: 'Cropper',
+        ));
+    if (croppedFile != null) {
+      _image = croppedFile;
+      setState(() {
+        state = AppState.cropped;
+      });
+    }
   }
 
   Widget buildButtonIcon() {
@@ -272,14 +310,14 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
         context: parentContext,
         builder: (builder) {
           return new Container(
-            height: screenHeight * 120,
-            color: Colors.white,
+            height: screenHeight * 250,
+            color: Color(0xff767676),
             child: new Container(
               decoration: new BoxDecoration(
                 color: Colors.white,
                 borderRadius: new BorderRadius.only(
-                  topLeft: Radius.circular(screenHeight * 20),
-                  topRight: Radius.circular(screenHeight * 20),
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
                 ),
               ),
               child: Column(
@@ -287,9 +325,12 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Select Image',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      Padding(
+                        padding: EdgeInsets.all(screenWidth * 4),
+                        child: Text(
+                          'Select Image',
+                          style: TextStyle(color: Colors.black,fontSize: 18, fontFamily: 'Mulish'),
+                        ),
                       ),
                       IconButton(
                         icon: Icon(Icons.close, color: Colors.red),
@@ -300,18 +341,22 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
                     ],
                   ),
                   ListTile(
-                    onLongPress: (){},
+                    onTap: () async{
+                      await pickImageFromCamera();
+                    },
                     title: Text(
                         'Camera',
-                        style: TextStyle(color: Colors.white, fontSize: 14),
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
                       ),
                       leading: Icon(Icons.camera_alt, color: Colors.grey),
                   ),
                   ListTile(
-                    onLongPress: (){},
+                    onTap: () async {
+                      await pickImageFromGallery();
+                    },
                     title: Text(
                         'Gallery',
-                        style: TextStyle(color: Colors.white, fontSize: 14),
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
                       ),
                       leading: Icon(Icons.image, color: Colors.grey),
                   ),
@@ -329,6 +374,161 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
-    return Container();
-  }
-}
+    return Scaffold(
+            key: _scaffoldKey,
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              elevation: 0,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: IconButton(
+                    onPressed: isUploading ? null : () => handleSubmit(),
+                    icon: Icon(
+                      Icons.done,
+                      color: Colors.black,
+                    ),
+                  ),
+                )
+              ],
+              leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  if (_image != null) {
+                    clearImage();
+                  }
+                },
+                icon: Icon(Icons.close, color: Colors.black),
+              ),
+              backgroundColor: Colors.white,
+              title: Text(
+                'Edit Group Info',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontFamily: 'Montserrat',
+                  fontSize: 20.0,
+                ),
+              ),
+            ),
+            body:isDataLoaded ? Center(
+              child: ListView(
+                physics: BouncingScrollPhysics(),
+                children: [
+                  isUploading ? LinearProgressIndicator() : Text(''),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        Column(
+                          children: [
+                            Stack(
+                              children: [
+                                loadImage(screenHeight * 378, screenW),
+                                if(_image != null || imageField != null || imageField != '')
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () {
+                                      if (_image != null) {
+                                        clearImage();
+                                      } else {
+                                        removeProfile();
+                                        getGroupData();
+                                      }
+                                    },
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: IconButton(
+                                    icon: Icon(Icons.edit, color: Colors.grey[700]),
+                                    onPressed: () {
+                                      selectImage(context);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: screenWidth * 5),
+                        
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextFormField(
+                            onChanged: (value) {
+                              name = value;
+                            },
+                            //validator: emailValidator,
+                            cursorColor: Colors.grey,
+                            autofocus: false,
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey,
+                                fontFamily: 'Montserrat'),
+                            decoration: InputDecoration(
+                              enabledBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              hintText: 'Group Name',
+                              hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16.0,
+                                  fontFamily: 'Montserrat'),
+                              
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: screenWidth * 5),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextField(
+                            onChanged: (value) {
+                              description = value;
+                            },
+                            maxLength: 100,
+                            maxLines: 4,
+                            minLines: 1,
+                            cursorColor: Colors.grey,
+                            autofocus: false,
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.grey,
+                                fontFamily: 'Montserrat'),
+                            decoration: InputDecoration(
+                              enabledBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.grey, width: 2)),
+                              hintText: 'Description',
+                              hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16.0,
+                                  fontFamily: 'Montserrat'),
+                              helperText: 'Write something about your group....',
+                              helperStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12.0,
+                                  fontFamily: 'Montserrat'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ) : Center(
+            child: CircularProgressIndicator(),
+          ),
+          );
+}}

@@ -27,22 +27,28 @@ no of topic to suscribing topic
 
     final data = {
       "notification": {
-        "tag": tag,
-        "body": message,
-        "title": notificationTitle,
+
+
+
+        "tag" : "$tag",
+        "body": "$message",
+        "title": "$notificationTitle",
+
       },
       "priority": "high",
       "data": {
         "click_action": "FLUTTER_NOTIFICATION_CLICK",
         "id": "1",
         "status": "done",
-        "type": notificationType,
-        "sendersUserId": sendersUserId,
-        "receiversUserId": receiversUserId,
-        "isMuted": isMuted,
+
+        "type": "$notificationType",
+        "sendersUserId": "$sendersUserId",
+        "receiversUserId" : "$receiversUserId",
+        "isMuted" : "$isMuted",
       },
-      "to": "/topics/APP",
-      "collapse_key": tag,
+      "to": "$topic",
+      "collapse_key" : tag,
+
     };
     print(topic);
     final headers = {
@@ -69,8 +75,12 @@ no of topic to suscribing topic
       }
     } catch (e) {
       // debugPrint('exception $e');
+
     }
     print('notification send');
+
+    }//print('notification send');
+
   }
 
   Future<List> getToken(userId) async {
@@ -95,22 +105,26 @@ no of topic to suscribing topic
 
     final data = {
       "notification": {
-        "tag": tag,
-        "body": message,
-        "title": notificationTitle,
+
+        "tag" : "$tag",
+        "body": "$message",
+        "title": "$notificationTitle",
+
       },
       "priority": "high",
       "data": {
         "click_action": "FLUTTER_NOTIFICATION_CLICK",
         "id": "1",
         "status": "done",
-        "type": notificationType,
-        "sendersUserId": sendersUserId,
-        "receiversUserId": receiversUserId,
-        "isMuted": isMuted,
+
+        "type": "$notificationType",
+        "sendersUserId": "$sendersUserId",
+        "receiversUserId" : "$receiversUserId",
+        "isMuted" : "$isMuted",
       },
       "registration_ids": tokens,
-      "collapse_key": tag,
+      "collapse_key" : "$tag",
+
     };
     // print(topic);
     final headers = {
@@ -136,9 +150,12 @@ no of topic to suscribing topic
         // on failure do sth
       }
     } catch (e) {
+      print(e);
       // debugPrint('exception $e');
     }
+
     print('notification send');
+
   }
 
   topicToSuscribe(String topicName) async {

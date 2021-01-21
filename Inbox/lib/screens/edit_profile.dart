@@ -22,15 +22,23 @@ class EditProfileScreen extends StatefulWidget {
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
+enum AppState {
+  free,
+  picked,
+  cropped,
+}
+
 class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
+    state = AppState.free;
     getUserData();
   }
 
 //Constant
   final _picker = ImagePicker();
+  AppState state;
   bool isDataLoaded = false;
   File _image;
   String profileImageId = Uuid().v4();
@@ -42,6 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool isUploading = false;
   final storageRefs = FirebaseStorage.instance.ref();
   final userRefs = FirebaseFirestore.instance.collection('users');
+  PickedFile imageFile;
 
 //Functions
   compressImage() async {
@@ -181,53 +190,84 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  selectImage(parentContext) {
-    return showDialog(
+  Future<Null> pickImageFromGallery() async {
+    imageFile = await _picker.getImage(source: ImageSource.gallery);
+    if(imageFile != null){
+      setState(() {
+        state = AppState.picked;
+      });
+    }
+  }
+
+   Future<Null> pickImageFromCamera() async {
+    imageFile = await _picker.getImage(source: ImageSource.camera);
+    if(imageFile != null){
+      setState(() {
+        state = AppState.picked;
+      });
+    }
+  }
+
+   selectImage(parentContext) {
+    return showModalBottomSheet(
+        enableDrag: false,
         context: parentContext,
-        builder: (context) {
-          return SimpleDialog(
-              title: Text(
-                'Upload Profile Image',
-                style: TextStyle(color: Colors.tealAccent),
+        builder: (builder) {
+          return new Container(
+            height: screenHeight * 250,
+            color: Color(0xff767676),
+            child: new Container(
+              decoration: new BoxDecoration(
+                color: Colors.white,
+                borderRadius: new BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
               ),
-              children: <Widget>[
-                SimpleDialogOption(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    final pickedFile = await _picker.getImage(
-                        source: ImageSource.camera,
-                        maxHeight: 500,
-                        maxWidth: 500);
-
-                    setState(() {
-                      _image = File(pickedFile.path);
-                    });
-                  },
-                  //handleTakeImage,
-                  child: Text('Photo with Camera'),
-                ),
-                SimpleDialogOption(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    final pickedFile = await _picker.getImage(
-                        source: ImageSource.gallery,
-                        maxHeight: 500,
-                        maxWidth: 500);
-
-                    setState(() {
-                      _image = File(pickedFile.path);
-                    });
-                  }, //handleChooseFromGallery,
-                  child: Text('Choose from Gallery'),
-                ),
-                SimpleDialogOption(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.red),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(screenWidth * 4),
+                        child: Text(
+                          'Select Image',
+                          style: TextStyle(color: Colors.black,fontSize: 18, fontFamily: 'Mulish'),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: Colors.red),
+                        onPressed: (){
+                          Navigator.of(context).pop();
+                        },
+                      )
+                    ],
                   ),
-                )
-              ]);
+                  ListTile(
+                    onTap: () async{
+                      await pickImageFromCamera();
+                    },
+                    title: Text(
+                        'Camera',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      leading: Icon(Icons.camera_alt, color: Colors.grey),
+                  ),
+                  ListTile(
+                    onTap: () async {
+                      await pickImageFromGallery();
+                    },
+                    title: Text(
+                        'Gallery',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      leading: Icon(Icons.image, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
         });
   }
 
