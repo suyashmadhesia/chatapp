@@ -53,7 +53,8 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
   // bool isLoading = false;
   double screenHeight;
   double screenWidth;
-  PickedFile imageFile;
+  var imageFile;
+	File pickedImage;
 
   //Functions
   compressImage() async {
@@ -192,7 +193,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
   }
 
   loadImage(double height, double width) {
-    if (imageField.isEmpty && _image == null) {
+    if (imageField.isEmpty && _image == null && imageFile==null) {
       return Container(
         height: height,
         width: width,
@@ -204,13 +205,25 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
           ),
         ),
       );
-    } else if (imageField.isNotEmpty && _image == null) {
+    } else if (imageField.isNotEmpty && imageFile == null && imageFile== null) {
       return Container(
         height: height,
         width: width,
         child: Image.network(imageField),
       );
-    } else if (imageField.isNotEmpty && _image != null) {
+    } else if (imageField.isNotEmpty && imageFile != null && _image == null) {
+      return Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          image: DecorationImage(
+            image: FileImage(pickedImage),
+            fit: BoxFit.contain,
+          ),
+        ),
+      );
+    } else if (imageField.isEmpty && imageFile != null && _image != null) {
       return Container(
         height: height,
         width: width,
@@ -222,7 +235,8 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
           ),
         ),
       );
-    } else if (imageField.isEmpty && _image != null) {
+    }
+    else if (imageField.isEmpty && _image == null && pickedImage != null) {
       return Container(
         height: height,
         width: width,
@@ -242,6 +256,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     if(imageFile != null){
       setState(() {
         state = AppState.picked;
+				pickedImage = imageFile.path;
       });
     }
   }
@@ -251,6 +266,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     if(imageFile != null){
       setState(() {
         state = AppState.picked;
+				pickedImage = imageFile.path;
       });
     }
   }
@@ -278,7 +294,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
               ],
         androidUiSettings: AndroidUiSettings(
             toolbarTitle: 'Cropper',
-            toolbarColor: Colors.deepOrange,
+            toolbarColor: Colors.white,
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.original,
             lockAspectRatio: false),
@@ -343,6 +359,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
                   ListTile(
                     onTap: () async{
                       await pickImageFromCamera();
+                      Navigator.pop(context);
                     },
                     title: Text(
                         'Camera',
@@ -353,6 +370,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
                   ListTile(
                     onTap: () async {
                       await pickImageFromGallery();
+                      Navigator.pop(context);
                     },
                     title: Text(
                         'Gallery',
@@ -425,7 +443,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
                             Stack(
                               children: [
                                 loadImage(screenHeight * 378, screenW),
-                                if(_image != null || imageField != null || imageField != '')
+                                
                                 Positioned(
                                   top: 0,
                                   right: 0,
@@ -445,9 +463,20 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
                                   bottom: 0,
                                   right: 0,
                                   child: IconButton(
-                                    icon: Icon(Icons.edit, color: Colors.grey[700]),
+                                    icon: buildButtonIcon(),
                                     onPressed: () {
-                                      selectImage(context);
+                                      if(state == AppState.free){
+                                         selectImage(context);
+                                      }
+                                     else if(state == AppState.picked){
+                                       cropImage();
+                                     }
+                                     else{
+                                       clearImage();
+																			 setState((){
+																				 state = AppState.free;
+																			 });
+                                     }
                                     },
                                   ),
                                 ),
