@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+
+
 import 'package:Inbox/assets_manager/image_picker.dart';
 import 'package:Inbox/components/message_bubble.dart';
 import 'package:Inbox/components/screen_size.dart';
@@ -88,8 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     
 
-    setIsSeen();
-  }
+    
 
   
 

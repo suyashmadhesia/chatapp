@@ -81,7 +81,7 @@ no of topic to suscribing topic
 
     }//print('notification send');
 
-  }
+
 
   Future<List> getToken(userId) async {
     final db = FirebaseFirestore.instance;
