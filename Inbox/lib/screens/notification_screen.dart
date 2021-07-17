@@ -1,16 +1,18 @@
 //import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/notification_card.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //import 'package:Inbox/models/user.dart';
 // import 'package:Inbox/screens/home.dart';
-import 'package:Inbox/screens/profile_other.dart';
+// import 'package:Inbox/screens/profile_other.dart';
 // import 'package:Inbox/screens/profile_screen.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/services.dart';
 // import 'package:flutter_svg/svg.dart';
 // import 'package:Inbox/screens/friends_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:skeleton_text/skeleton_text.dart';
@@ -40,10 +42,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   bool empty = true;
+  String myUsername;
   getUsersFriendData() async {
     final userAccountRefs =
         await FirebaseFirestore.instance.collection('users').doc(_userId).get();
     pendingList = userAccountRefs['pendingList'];
+    myUsername = userAccountRefs['username'];
     if (pendingList.isNotEmpty) {
       setState(() {
         empty = false;
@@ -82,48 +86,36 @@ class _NotificationScreenState extends State<NotificationScreen> {
             return LinearProgressIndicator();
           } else if (snapshot.hasData) {
             final userIds = snapshot.data.documents;
-            List<Widget> notificationWidget = [];
+            List<NotificationCard> notificationWidget = [];
             for (var userid in userIds) {
               final sendersUsername = userid['SendersUsername'];
               final sendersUserId = userid['pendingUserId'];
               final senderAvatar = userid['SendersAvatar'];
-              final notificationCard = Container(
-                color: Colors.grey[50],
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 5,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        showProfile(context, profileId: sendersUserId);
-                      },
-                      child: ListTile(
-                        leading: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            radius: 32,
-                            backgroundImage: senderAvatar == '' ||
-                                    senderAvatar == null
-                                ? AssetImage('assets/images/profile-user.png')
-                                : CachedNetworkImageProvider(senderAvatar)),
-                        title: Text(
-                            sendersUsername +
-                                ' sent you friend request tap to accept or reject',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'Monstserrat')),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Divider(
-                      color: Colors.grey[500],
-                      height: 2.0,
-                    )
-                  ],
-                ),
+              final requestType = userid['requestType'];
+              final timeStamp = userid['sendAt'];
+              final targetName = userid['targetName'];
+              final targetId = userid['targetId'];
+
+              String time = '';
+
+              DateTime d = timeStamp.toDate();
+              final String dateTOstring = d.toString();
+
+              for (int i = 11; i <= 15; i++) {
+                time = time + dateTOstring[i];
+              }
+
+              final notificationCard = NotificationCard(
+                avatar: senderAvatar,
+                myUsername : myUsername,
+                requestType: requestType,
+                timeStamp: d,
+                id: sendersUserId,
+                username: sendersUsername,
+                time: time,
+                userId: _userId,
+                target: targetName,
+                targetId: targetId,
               );
               notificationWidget.add(notificationCard);
               notificationWidget.reversed;
@@ -142,17 +134,28 @@ class _NotificationScreenState extends State<NotificationScreen> {
         });
   }
 
+  double screenHeight;
+  double screenWidth;
   @override
   Widget build(BuildContext context) {
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        elevation: 0,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
+         leading: IconButton(icon: Icon(Icons.arrow_back, color: Colors.black), onPressed: (){
+                Navigator.pop(context);
+              }),
         title: Text(
           'Notifications',
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontFamily: 'Montserrat',
             fontSize: 20.0,
           ),
@@ -161,15 +164,4 @@ class _NotificationScreenState extends State<NotificationScreen> {
       body: empty ? buildNoContentScreen() : notficationStream(),
     );
   }
-}
-
-showProfile(BuildContext context, {String profileId}) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => OthersProfile(
-        profileId: profileId,
-      ),
-    ),
-  );
 }

@@ -1,4 +1,6 @@
+// import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/edit_profile.dart';
+import 'package:Inbox/components/screen_size.dart';
 //import 'package:Inbox/screens/home.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -33,26 +35,16 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    controller =
-        AnimationController(duration: Duration(microseconds: 200), vsync: this);
-
-    animation = ColorTween(begin: Colors.grey[200], end: Colors.white)
-        .animate(controller);
-    controller.forward();
     setCurrentScreen();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    controller.dispose();
-  }
+  Account user;
 
   final _auth = FirebaseAuth.instance;
   final userRefs = FirebaseFirestore.instance.collection('users');
-  Animation animation;
-  AnimationController controller;
 
+  double screenHeight;
+  double screenWidth;
 //Functions
 
   _showDialog(parentContext) async {
@@ -88,6 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               onPressed: () async {
                 _auth.signOut();
+                // SendNotification().topicToUnsuscribe('/topics/APP');
                 final SharedPreferences sharedPreferences =
                     await SharedPreferences.getInstance();
                 sharedPreferences.remove('email');
@@ -118,16 +111,18 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           );
         }
-        Account user = Account.fromDocument(snapshot.data);
+        user = Account.fromDocument(snapshot.data);
+        // return (true)
+        //     ? ProfileBody(user: user)
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             CircleAvatar(
-              radius: 50.0,
+              radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
-                  ? AssetImage('assets/images/profile-user.png')
+                  ? AssetImage('assets/images/user.png')
                   : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(
@@ -141,13 +136,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: screenHeight * 26.66),
             Text(
               user.email == '' ? 'Email: Add your email....' : user.email,
               style: TextStyle(
                   color: Colors.black54, fontFamily: 'Mulish', fontSize: 16.0),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: screenHeight * 26.67),
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(left: 32, right: 32),
@@ -168,26 +163,36 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           onPressed: () {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EditProfileScreen()));
           },
-          icon: Icon(Icons.edit, color: Colors.white),
+          icon: Icon(Icons.edit, color: Colors.black),
         ),
-        title: Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
+        title: Text('Profile',
+            style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: IconButton(
                 splashRadius: 16.0,
                 onPressed: () => _showDialog(context),
-                icon: Icon(Icons.logout)),
+                icon: Icon(
+                  Icons.logout,
+                  color: Colors.black,
+                ),),
           )
         ],
       ),
@@ -195,6 +200,36 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Center(
           child: buildProfileHeader(),
         ),
+      ),
+    );
+  }
+}
+
+class ProfileBody extends StatelessWidget {
+  final Account user;
+
+  ProfileBody({this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    ScreenSize screen = ScreenSize(context: context);
+    return Container(
+      color: Colors.grey[900],
+      height: screen.vertical(1000),
+      width: screen.horizontal(100),
+      child: ListView(
+        children: [
+          Container(
+            width: screen.horizontal(100),
+            height: screen.vertical(40),
+            child: (user.avtar.isNotEmpty || true)
+                ? Image.network(
+                    "https://i.pinimg.com/originals/00/3b/c0/003bc0694886d2021ad14bd500a6cfc3.jpg",
+                    fit: BoxFit.fill,
+                  )
+                : Image.asset('assets/images/user.png'),
+          ),
+        ],
       ),
     );
   }

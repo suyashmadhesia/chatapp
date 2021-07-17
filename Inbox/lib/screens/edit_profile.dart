@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:Inbox/models/user.dart';
 import 'package:Inbox/screens/home.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+//import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image/image.dart' as Im;
@@ -20,15 +22,24 @@ class EditProfileScreen extends StatefulWidget {
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
+enum AppState {
+  free,
+  picked,
+  cropped,
+}
+
 class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    checkInternet();
+    state = AppState.free;
+    getUserData();
   }
 
 //Constant
   final _picker = ImagePicker();
+  AppState state;
+  bool isDataLoaded = false;
   File _image;
   String profileImageId = Uuid().v4();
   String bio;
@@ -39,11 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool isUploading = false;
   final storageRefs = FirebaseStorage.instance.ref();
   final userRefs = FirebaseFirestore.instance.collection('users');
-
-//Validators
-  // final emailValidator = MultiValidator([
-  //   EmailValidator(errorText: 'Invalid Email...'),
-  // ]);
+  PickedFile imageFile;
 
 //Functions
   compressImage() async {
@@ -84,6 +91,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     imageField = userData.avtar;
     bioField = userData.bio;
     emailField = userData.email;
+    setState(() {
+      isDataLoaded = true;
+    });
   }
 
   removeProfile() async {
@@ -127,26 +137,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool isInternet = true;
 
-  checkInternet() async {
-    bool result = await DataConnectionChecker().hasConnection;
-    if (result == true) {
-      setState(() {
-        isInternet = true;
-      });
-      setState(() {
-        isLoading = false;
-      });
-      // debugPrint('internet hai ');
-    } else {
-      setState(() {
-        isInternet = false;
-      });
-      // debugPrint('internet nhi hai');
-    }
-  }
-
   handleSubmit() async {
-    await checkInternet();
     if (isInternet) {
       setState(() {
         isUploading = true;
@@ -178,8 +169,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
       if (_image == null) {
         userRefs.doc(user.uid).update({
-          'bio': bio == null || bio == '' ? bioField : bio,
-          'email': email == null || email == '' ? emailField : email,
+          'bio': bio == null || bio == '' || bio.isEmpty ? bioField : bio,
+          'email': email == null || email == '' || email.isEmpty ? emailField : email,
         });
       }
       setState(() {
@@ -199,63 +190,150 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  selectImage(parentContext) {
-    return showDialog(
+  Future<Null> pickImageFromGallery() async {
+    imageFile = await _picker.getImage(source: ImageSource.gallery);
+    if(imageFile != null){
+      setState(() {
+        state = AppState.picked;
+      });
+    }
+  }
+
+   Future<Null> pickImageFromCamera() async {
+    imageFile = await _picker.getImage(source: ImageSource.camera);
+    if(imageFile != null){
+      setState(() {
+        state = AppState.picked;
+      });
+    }
+  }
+
+   selectImage(parentContext) {
+    return showModalBottomSheet(
+        enableDrag: false,
         context: parentContext,
-        builder: (context) {
-          return SimpleDialog(
-              title: Text(
-                'Upload Profile Image',
-                style: TextStyle(color: Colors.tealAccent),
+        builder: (builder) {
+          return new Container(
+            height: screenHeight * 250,
+            color: Color(0xff767676),
+            child: new Container(
+              decoration: new BoxDecoration(
+                color: Colors.white,
+                borderRadius: new BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
               ),
-              children: <Widget>[
-                SimpleDialogOption(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    final pickedFile = await _picker.getImage(
-                        source: ImageSource.camera,
-                        maxHeight: 500,
-                        maxWidth: 500);
-
-                    setState(() {
-                      _image = File(pickedFile.path);
-                    });
-                  },
-                  //handleTakeImage,
-                  child: Text('Photo with Camera'),
-                ),
-                SimpleDialogOption(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    final pickedFile = await _picker.getImage(
-                        source: ImageSource.gallery,
-                        maxHeight: 500,
-                        maxWidth: 500);
-
-                    setState(() {
-                      _image = File(pickedFile.path);
-                    });
-                  }, //handleChooseFromGallery,
-                  child: Text('Choose from Gallery'),
-                ),
-                SimpleDialogOption(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.red),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(screenWidth * 4),
+                        child: Text(
+                          'Select Image',
+                          style: TextStyle(color: Colors.black,fontSize: 18, fontFamily: 'Mulish'),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: Colors.red),
+                        onPressed: (){
+                          Navigator.of(context).pop();
+                        },
+                      )
+                    ],
                   ),
-                )
-              ]);
+                  ListTile(
+                    onTap: () async{
+                      await pickImageFromCamera();
+                    },
+                    title: Text(
+                        'Camera',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      leading: Icon(Icons.camera_alt, color: Colors.grey),
+                  ),
+                  ListTile(
+                    onTap: () async {
+                      await pickImageFromGallery();
+                    },
+                    title: Text(
+                        'Gallery',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      leading: Icon(Icons.image, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
         });
   }
 
+  loadImage(double height, double width) {
+    if (imageField.isEmpty && _image == null) {
+      return Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          image: DecorationImage(
+            image: AssetImage('assets/images/user.png'),
+            fit: BoxFit.contain,
+          ),
+        ),
+      );
+    } else if (imageField.isNotEmpty && _image == null) {
+      return Container(
+        height: height,
+        width: width,
+        child: Image.network(imageField),
+      );
+      
+    } else if (imageField.isNotEmpty && _image != null) {
+      return Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          image: DecorationImage(
+            image: FileImage(_image),
+            fit: BoxFit.contain,
+          ),
+        ),
+      );
+    } else if (imageField.isEmpty && _image != null) {
+      return Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          image: DecorationImage(
+            image: FileImage(_image),
+            fit: BoxFit.contain,
+          ),
+        ),
+      );
+    }
+  }
+
+  double screenHeight;
+  double screenWidth;
+
   @override
   Widget build(BuildContext context) {
-    return isInternet
-        ? Scaffold(
+    double screenW = MediaQuery.of(context).size.width;
+    double screenH = MediaQuery.of(context).size.height;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
+    return 
+        Scaffold(
             key: _scaffoldKey,
             backgroundColor: Colors.white,
             appBar: AppBar(
+              elevation: 0,
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12.0),
@@ -263,7 +341,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     onPressed: isUploading ? null : () => handleSubmit(),
                     icon: Icon(
                       Icons.done,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                   ),
                 )
@@ -275,19 +353,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     clearImage();
                   }
                 },
-                icon: Icon(Icons.close, color: Colors.white),
+                icon: Icon(Icons.close, color: Colors.black),
               ),
-              backgroundColor: Colors.grey[900],
+              backgroundColor: Colors.white,
               title: Text(
                 'Edit Profile',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontFamily: 'Montserrat',
                   fontSize: 20.0,
                 ),
               ),
             ),
-            body: Center(
+            body:isDataLoaded ? Center(
               child: ListView(
                 physics: BouncingScrollPhysics(),
                 children: [
@@ -297,33 +375,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: <Widget>[
-                        SizedBox(
-                          height: 150,
-                        ),
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.grey[600],
-                          child: IconButton(
-                            splashColor: Colors.grey[900],
-                            splashRadius: 50.0,
-                            onPressed: () => selectImage(context),
-                            icon: Icon(
-                              Icons.file_upload,
-                              color: Colors.white,
-                              size: 30.0,
+                        Column(
+                          children: [
+                            Stack(
+                              children: [
+                                loadImage(screenHeight * 378, screenW),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () {
+                                      if (_image != null) {
+                                        clearImage();
+                                      } else {
+                                        removeProfile();
+                                        getUserData();
+                                      }
+                                    },
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: IconButton(
+                                    icon: Icon(Icons.edit, color: Colors.black),
+                                    onPressed: () {
+                                      selectImage(context);
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
-                        SizedBox(height: 20),
-                        Text(
-                          _image == null
-                              ? 'No Image Selected, Select one !'
-                              : 'Image Selected tap to change selected image',
-                          style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 12.0,
-                              fontFamily: 'Montserrat'),
-                        ),
+                        SizedBox(height: screenWidth * 5),
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: TextField(
@@ -395,55 +481,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: FlatButton(
-                            color: Colors.red,
-                            onPressed: removeProfile,
-                            child: Text('Remove Profile Image',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 10))),
-                      )
-                    ],
-                  )
                 ],
               ),
-            ),
-          )
-        : Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isLoading) CircularProgressIndicator(),
-                Text('No internet :(',
-                    style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
-                        fontFamily: 'Mulish')),
-                FlatButton(
-                    padding: EdgeInsets.all(8.0),
-                    color: Colors.greenAccent[700],
-                    onPressed: () {
-                      setState(() {
-                        isLoading = true;
-                      });
-                      checkInternet();
-                    },
-                    child: Text('Retry',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontFamily: 'Mulish')))
-              ],
-            )),
+            ) : Center(
+            child: CircularProgressIndicator(),
+          ),
           );
+        
   }
 }

@@ -1,14 +1,13 @@
 import 'dart:async';
-import 'dart:io';
-
-// import 'package:Inbox/screens/friends_screen.dart';
-// import 'package:Inbox/screens/home.dart';
+import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/crypto.dart';
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/screens/registration_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:Inbox/reusable/components.dart'; //first read this file to understand all classes
+import 'package:Inbox/components/reusable.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -42,7 +41,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _auth = FirebaseAuth.instance;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final FirebaseMessaging _fcm = FirebaseMessaging();
+  final fcm = FirebaseMessaging();
+
+  final SendNotification notificationData = SendNotification();
 
   final passwordValidator = MultiValidator([
     RequiredValidator(errorText: 'Password is required'),
@@ -57,23 +58,20 @@ class _LoginScreenState extends State<LoginScreen> {
   String username;
   String password;
   String userUid;
+  double screenHeight;
+  double screenWidth;
 
   final _formKey = GlobalKey<FormState>();
 
   //Functions
 
-  saveDeviceToken(uid) async {
-    
-
-    // Get the token for this device
-    String fcmToken = await _fcm.getToken();
-
-    // Save it to Firestore
-    if (fcmToken != null) {
-      final tokens = FirebaseFirestore.instance
-          .collection('users/'+uid+'/tokens');
+  saveDeviceToken(uid) async{
+    String fcmToken = await fcm.getToken();
+    if(fcmToken != null){
+      final tokens = FirebaseFirestore.instance.collection('users/$uid/tokens');
       tokens.doc(fcmToken).set({
-	      'tokenId' : fcmToken,
+        'tokenId' : fcmToken,
+        'createdAt' : DateTime.now(),
       });
     }
   }
@@ -83,6 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
@@ -95,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ListView(
               physics: BouncingScrollPhysics(),
               children: <Widget>[
-                SizedBox(height: 150),
+                SizedBox(height: screenHeight * 200),
                 Form(
                   key: _formKey,
                   child: Column(
@@ -109,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 36,
                           ),
                         ),
-                        SizedBox(height: 40.0),
+                        SizedBox(height: screenHeight * 60),
                         //Username
                         Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
@@ -122,11 +125,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               icons: Icons.person_outline,
                               regExp: '[a-z0-9_]'),
                         ),
-                        SizedBox(height: 50.0),
+                        SizedBox(height: screenHeight * 60),
                         //Password
                         Padding(
                           padding: const EdgeInsets.only(left: 32, right: 32),
                           child: PasswordFields(
+                              obsecure: true,
                               onChanged: (value) {
                                 password = value;
                               },
@@ -155,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         //     ),
                         //   ],
                         // ),
-                        SizedBox(height: 60),
+                        SizedBox(height: screenHeight * 70),
                         //login button
                         Buttons(
                             buttonName: 'Sign In',
@@ -165,15 +169,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   showSnipper = true;
                                 });
                                 try {
+                                  var encryptedPassword =
+                                      Encrypt.encrypt(password);
+                                  print(encryptedPassword);
                                   final user =
                                       await _auth.signInWithEmailAndPassword(
                                           email: username, password: password);
+                                  
                                   if (user != null) {
-                                    final currentUserId = _auth.currentUser.uid;
-                                   
+                                    final userId = _auth.currentUser.uid;
                                     isAuth();
-				    await saveDeviceToken(currentUserId);
-				    
+                                    await saveDeviceToken(userId);
                                   }
                                   setState(() {
                                     showSnipper = false;
@@ -199,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               }
                             }),
                         SizedBox(
-                          height: 50,
+                          height: screenHeight * 60,
                         ),
                         // Don't Have Account Line
                         Padding(

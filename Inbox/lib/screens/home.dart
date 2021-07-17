@@ -1,18 +1,19 @@
+// import 'package:Inbox/components/loading_skeleton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+//import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
-//import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/screen_size.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:Inbox/screens/friends_screen.dart';
 import 'package:Inbox/screens/profile_screen.dart';
 import 'package:Inbox/screens/search_screen.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+// import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'chat_screen.dart';
-import 'notification_screen.dart';
+// import 'notification_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 // final StorageReference storageRef = FirebaseStorage.instance.ref();
@@ -26,16 +27,19 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  PageController pageController;
-  int pageIndex = 0;
-
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  TabController tabController;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   var flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
 
+  // TODO: BUG Bigger than cock
+  User user = FirebaseAuth.instance.currentUser;
+//Init state
   @override
   void initState() {
     super.initState();
+    tabController = TabController(length: 3, vsync: this);
     Firebase.initializeApp().whenComplete(() {
       setState(() {});
     });
@@ -50,57 +54,118 @@ class _HomeScreenState extends State<HomeScreen> {
         onSelectNotification: onSelectNotification);
     _fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
-        // print("onMessage: $message");
-        if (message['data']['type'] == 'Message') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        } else if (message['data']['type'] == 'Profile' &&
-            message['notification']['title'] == 'Request Accepted') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
+        if (message['data']['isMuted'] == false) {
+          if (message['data']['type'] == 'Private Message') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+            return;
+          } else if (message['data']['type'] == 'Group Message') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          } else if (message['data']['type'] == 'Request Accepted') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          } else if (message['data']['type'] == 'Friend Request') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          }
         }
       },
       onLaunch: (Map<String, dynamic> message) async {
-        if (message['data']['type'] == 'Message') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        } else if (message['data']['type'] == 'Profile' &&
-            message['notification']['title'] == 'Request Accepted') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
+        if (message['data']['isMuted'] == false) {
+          if (message['data']['type'] == 'Private Message') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+            return;
+          } else if (message['data']['type'] == 'Group Message') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+          } else if (message['data']['type'] == 'Request Accepted') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          } else if (message['data']['type'] == 'Friend Request') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          }
         }
       },
       onResume: (Map<String, dynamic> message) async {
-        // print("onResume: $message");
-        if (message['data']['type'] == 'Message') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
-        } else if (message['data']['type'] == 'Profile' &&
-            message['notification']['title'] == 'Request Accepted') {
-          shownotification(1234, message['notification']['title'],
-              message['notification']['body'], message['data']['userId']);
-          return;
+        if (message['data']['isMuted'] == false) {
+          if (message['data']['type'] == 'Private Message') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+            return;
+          } else if (message['data']['type'] == 'Group Message') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          } else if (message['data']['type'] == 'Request Accepted') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          } else if (message['data']['type'] == 'Friend Request') {
+            shownotification(
+                1234,
+                message['notification']['title'],
+                message['notification']['body'],
+                message['data']['sendersUserId']);
+                return;
+          }
         }
       },
     );
-    getUserData();
-    checkInternet();
-    pageController = PageController();
   }
 
-  bool isLoading = false;
-
-  bool isInternet = true;
+  @override
+  void dispose() {
+    super.dispose();
+    tabController.dispose();
+  }
 
   Future<dynamic> onSelectNotification(String payload) async {
     //do something,
-    showChatScreen(context, profileId: payload);
-    debugPrint(payload);
+    if (payload != null) {
+      showChatScreen(context, profileId: payload);
+      debugPrint(payload);
+    }
   }
 
   Future<void> shownotification(
@@ -145,162 +210,84 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  checkInternet() async {
-    bool result = await DataConnectionChecker().hasConnection;
-    if (result == true) {
-      setState(() {
-        isInternet = true;
-      });
-      setState(() {
-        isLoading = false;
-      });
-      // debugPrint('internet hai ');
-    } else {
-      setState(() {
-        isInternet = false;
-      });
-      // debugPrint('internet nhi hai');
-    }
-  }
 
-  // TODO: BUG Bigger than cock
-  User user = FirebaseAuth.instance.currentUser;
 
-  @override
-  void dispose() {
-    pageController.dispose();
-    super.dispose();
-  }
-
-  onPageChanged(int pageIndex) {
-    setState(() {
-      this.pageIndex = pageIndex;
-    });
-  }
-
-  onTap(int pageIndex) {
-    pageController.jumpToPage(
-      pageIndex,
-    );
-    getUserData();
-    checkInternet();
-  }
-
-  List userPendingList;
-  bool showNotification = false;
-
-  getUserData() async {
-    final userAccountRefs = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-    userPendingList = userAccountRefs['pendingList'];
-    if (userPendingList.isNotEmpty) {
-      setState(() {
-        showNotification = true;
-      });
-    } else {
-      setState(() {
-        showNotification = false;
-      });
-    }
-  }
-
-  Scaffold buildAuthScreen() {
-    return Scaffold(
-      body: PageView(
-        physics: NeverScrollableScrollPhysics(),
-        children: <Widget>[
-          FriendsScreen(),
-          SearchScreen(),
-          NotificationScreen(),
-          ProfileScreen(profileId: user?.uid),
-        ],
-        controller: pageController,
-        onPageChanged: onPageChanged,
-      ),
-      bottomNavigationBar: CurvedNavigationBar(
-        animationDuration: Duration(milliseconds: 400),
-        color: Colors.grey[900],
-        backgroundColor: Colors.white,
-        height: 50,
-        items: <Widget>[
-          Icon(
-            Icons.favorite_rounded,
-            size: 20,
-            color: Colors.white,
-          ),
-          Icon(
-            Icons.search,
-            size: 20,
-            color: Colors.white,
-          ),
-          Stack(
-            children: [
-              Icon(
-                Icons.notifications,
-                size: 20,
-                color: Colors.white,
-              ),
-              showNotification
-                  ? Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.redAccent,
-                          border:
-                              Border.all(color: Colors.redAccent, width: 1)))
-                  : Container(width: 4, height: 4, color: Colors.grey[900]),
-            ],
-          ),
-          Icon(
-            Icons.person,
-            size: 20,
-            color: Colors.white,
-          ),
-        ],
-        // animationDuration: Duration(milliseconds: 200),
-
-        // animationCurve: Curves.bounceInOut,
-        onTap: onTap,
-      ),
-    );
-  }
+  double screenHeight;
+  double screenWidth;
 
   @override
   Widget build(BuildContext context) {
-    return isInternet
-        ? buildAuthScreen()
-        : Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isLoading) CircularProgressIndicator(),
-                Text('No internet :(',
-                    style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
-                        fontFamily: 'Mulish')),
-                FlatButton(
-                    padding: EdgeInsets.all(8.0),
-                    color: Colors.greenAccent[700],
-                    onPressed: () {
-                      setState(() {
-                        isLoading = true;
-                      });
-                      checkInternet();
-                    },
-                    child: Text('Retry',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontFamily: 'Mulish')))
-              ],
-            )),
-          );
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: height, width: width);
+
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: TabBarView(
+        physics: NeverScrollableScrollPhysics(),
+        controller: tabController,
+        children: [
+          FriendsScreen(),
+          SearchScreen(),
+          // LoadingContainer(),
+          ProfileScreen(profileId: user.uid),
+        ],
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(left: screenWidth * 25,right: screenWidth * 25,bottom: screenWidth * 3.5),
+        child: Material(
+          elevation: 10,
+          borderRadius: BorderRadius.all(
+            Radius.circular(screenWidth * 13),
+          ),
+          child: Container(
+            child: ClipRRect(
+          borderRadius: BorderRadius.all(
+            Radius.circular(screenWidth * 13),
+          ),
+          child: Container(
+            height: screenHeight * 75,
+            color: Colors.white,
+            child: TabBar(
+          indicatorColor: Colors.white,
+          controller: tabController,
+          labelColor: Colors.pink[400],
+          unselectedLabelColor: Colors.grey,
+          labelStyle: TextStyle(fontSize: 10.0),
+          tabs: <Widget>[
+            Tab(
+              icon: Icon(
+                Icons.question_answer,
+                size: 24.0,
+              ),
+            ),
+            Tab(
+              icon: Icon(
+                Icons.add,
+                size: 24.0,
+              ),
+            ),
+            Tab(
+              icon: Icon(
+                Icons.person,
+                size: 24.0,
+              ),
+            ),
+          ],
+          // indicator: UnderlineTabIndicator(
+          //   borderSide: BorderSide(color: Colors.black54, width: 0.0),
+          //   insets: EdgeInsets.fromLTRB(50.0, 0.0, 50.0, 40.0),
+          // ),
+            ),
+          ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -1,22 +1,26 @@
+import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/user.dart';
-//import 'package:Inbox/reusable/components.dart';
+import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/screens/home.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
-import 'package:dio/dio.dart';
+// import 'package:data_connection_checker/data_connection_checker.dart';
+// import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:skeleton_text/skeleton_text.dart';
-import 'home.dart';
 //import 'search_screen.dart';
+
+// TODO referact code remove excess reads from firebase which checkinng functions are taking;
 
 class OthersProfile extends StatefulWidget {
   @override
   _OthersProfileState createState() => _OthersProfileState();
   final String profileId;
-  OthersProfile({this.profileId});
+  final String profileUrl;
+  final String profileDescription;
+
+  OthersProfile({this.profileId, this.profileDescription, this.profileUrl});
 }
 
 class _OthersProfileState extends State<OthersProfile>
@@ -24,21 +28,12 @@ class _OthersProfileState extends State<OthersProfile>
   // final _auth = FirebaseAuth.instance;
   String user = FirebaseAuth.instance.currentUser.uid;
   final userRefs = FirebaseFirestore.instance.collection('users');
-  Animation animation;
-  AnimationController controller;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
-    checkInternet();
-    controller =
-        AnimationController(duration: Duration(microseconds: 200), vsync: this);
-
-    animation = ColorTween(begin: Colors.grey[200], end: Colors.white)
-        .animate(controller);
-    controller.forward();
-
+    tokens = notificationData.getToken(widget.profileId);
     getUsersFriendData();
     isRequestSent();
     checkingAccept();
@@ -47,6 +42,7 @@ class _OthersProfileState extends State<OthersProfile>
 
 //CollectionField Constant
   List userRequestList;
+  var tokens;
   List userPendingList;
   List userFriendsList;
 
@@ -62,82 +58,13 @@ class _OthersProfileState extends State<OthersProfile>
   String rUsername;
   bool isSeen = false;
   bool isInternet = true;
+  bool isLoading = false;
+  double screenHeight;
+  double screenWidth;
+  bool dataLoaded = false;
 
-  checkInternet() async {
-    bool result = await DataConnectionChecker().hasConnection;
-    if (result == true) {
-      setState(() {
-        isInternet = true;
-      });
-    } else {
-      setState(() {
-        isInternet = false;
-      });
-    }
-  }
+  final SendNotification notificationData = SendNotification();
 
-  Future<List> getToken(userId) async {
-    final db = FirebaseFirestore.instance;
-
-    var token;
-    List listofTokens = [];
-    await db.collection('users/' + userId + '/tokens').get().then((snapshot) {
-      snapshot.docs.forEach((doc) {
-        token = doc.id;
-        listofTokens.add(token);
-      });
-    });
-
-    return listofTokens;
-  }
-
-  Future<void> sendNotification(receiver, username, head,receiversUserId) async {
-    var token = await getToken(receiver);
-    // debugPrint('token : $token');
-
-    final data = {
-      "notification": {
-        "body": username,
-        "title": head,
-      },
-      "priority": "high",
-      "data": {
-        "click_action": "FLUTTER_NOTIFICATION_CLICK",
-        "id": "1",
-        "status": "done",
-        "type": "Profile",
-        "userId" : receiversUserId,
-      },
-      'registration_ids': token,
-      "collapse_key" : "$receiversUserId profile",
-    };
-
-    final headers = {
-      'content-type': 'application/json',
-      'Authorization':
-          'key=AAAAdFdVbjo:APA91bGYkVTkUUKVcOk5O5jz2WZAwm8d1losRaJVEYKF5yspBahEWf-2oMhrnyWhi5pOumnSB0k8Lkb24ibUyawsYhD-P2H6gDUMOgflpQonYMKx9Ov6JmqbtY2uylIo2Moo4-9XbzfV'
-    };
-
-    BaseOptions options = new BaseOptions(
-      connectTimeout: 5000,
-      receiveTimeout: 3000,
-      headers: headers,
-    );
-
-    final postUrl = 'https://fcm.googleapis.com/fcm/send';
-    try {
-      final response = await Dio(options).post(postUrl, data: data);
-
-      if (response.statusCode == 200) {
-        // debugPrint('message sent');
-      } else {
-        // debugPrint('notification sending failed');
-        // on failure do sth
-      }
-    } catch (e) {
-      // debugPrint('exception $e');
-    }
-  }
 
   checkingAccept() async {
     final userAccountRefs =
@@ -153,6 +80,21 @@ class _OthersProfileState extends State<OthersProfile>
       });
     }
   }
+// TODO wrap all function in one functions in checkStatus function;
+  // checkStatus() async {
+  //   final userAccountRefs =
+  //       await FirebaseFirestore.instance.collection('users').doc(user).get();
+  //   final receiverAccountRefs = await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .doc(widget.profileId)
+  //       .get();
+  //   if (userAccountRefs['pendingList'].contains(widget.profileId) &&
+  //       receiverAccountRefs['requestList'].contains(user)) {
+  //     setState(() {
+  //       showAccepted = true;
+  //     });
+  //   }
+  // }
 
   getUsersFriendData() async {
     final userAccountRefs =
@@ -170,6 +112,9 @@ class _OthersProfileState extends State<OthersProfile>
     receiverRequestList = receiverAccountRefs['requestList'];
     receiverFriendsList = receiverAccountRefs['friendsList'];
     rUsername = receiverAccountRefs['username'];
+    setState(() {
+      dataLoaded = true;
+    });
   }
 
   isRequestSent() async {
@@ -224,10 +169,23 @@ class _OthersProfileState extends State<OthersProfile>
           'pendingUserId': user,
           'SendersUsername': username,
           'SendersAvatar': avatar,
+          'requestType': 'FriendRequest',
+          'sendAt': DateTime.now(),
+          'targetName' : rUsername,
+          'targetId' : widget.profileId,
         });
-        sendNotification(widget.profileId, '$username has sent you request !!', 'Friend Request', user);
       }
     }
+    //Sending notification here;
+    notificationData.sendOtherNotification(
+        'New Friend Request',
+        user,
+        widget.profileId,
+        '$username sent you friend request !!',
+        'Friend Request',
+        tokens: tokens,
+        isMuted: false);
+
     setState(() {
       isSentRequest = true;
     });
@@ -269,6 +227,12 @@ class _OthersProfileState extends State<OthersProfile>
         !receiverFriendsList.contains(user)) {
       if (userPendingList.contains(widget.profileId) &&
           receiverRequestList.contains(user)) {
+        final messageCollection =
+            await FirebaseFirestore.instance.collection('messages').add({
+          'userId1': user,
+          'userId2': widget.profileId,
+        });
+        final messageCollectionId = messageCollection.id;
         userRefs.doc(user).update({
           'pendingList': FieldValue.arrayRemove(userIdOfReceiver),
         });
@@ -293,7 +257,9 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage' : 'Say hi to $rUsername'
+          'lastMessage': 'Say hi to $rUsername',
+          'messageCollectionId': messageCollectionId,
+          'isMuted': false,
         });
         final receiverCollectionRef = FirebaseFirestore.instance
             .collection('users/' + widget.profileId + '/friends');
@@ -305,22 +271,26 @@ class _OthersProfileState extends State<OthersProfile>
           'friendsAt': DateTime.now(),
           'messageAt': DateTime.now(),
           'isSeen': isSeen,
-          'lastMessage' : 'Say hi to $username'
+          'lastMessage': 'Say hi to $username',
+          'messageCollectionId': messageCollectionId,
+          'isMuted': false,
         });
-        // final receiverCollectionsRefs = FirebaseFirestore.instance
-        //     .collection('users/' + widget.profileId + '/pendingRequests');
-        // receiverCollectionRef.doc(user).set({
-        //   'user': username,
-        // });
         final receiverCollectionRefs = FirebaseFirestore.instance
             .collection('users/$user/pendingRequests');
         receiverCollectionRefs.doc(widget.profileId).delete();
       }
     }
+    notificationData.sendOtherNotification(
+        'Friend Request Accepted',
+        user,
+        widget.profileId,
+        '$username Accepted your Friend Request !!',
+        'Request Accepted',
+        tokens: tokens,
+        isMuted: false);
     setState(() {
       showAccepted = false;
     });
-    sendNotification(widget.profileId, '$username has accepted your request !!', 'Request Accepted', user);
   }
 
   unfriending() async {
@@ -412,6 +382,7 @@ class _OthersProfileState extends State<OthersProfile>
                   _scaffoldKey.currentState.showSnackBar(snackBar);
                   await Future.delayed(Duration(seconds: 1));
                   Navigator.pop(context);
+                  //Navigator.pushNamed(context,'chat_screen');
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -466,7 +437,15 @@ class _OthersProfileState extends State<OthersProfile>
         color: Colors.white,
         splashColor: Colors.blue[200],
         onPressed: () async {
-          await unfriending();
+          if (!isLoading) {
+            setState(() {
+              isLoading = true;
+            });
+            await unfriending();
+            setState(() {
+              isLoading = false;
+            });
+          }
           SnackBar snackBar = SnackBar(
             behavior: SnackBarBehavior.floating,
             duration: Duration(seconds: 2),
@@ -477,7 +456,6 @@ class _OthersProfileState extends State<OthersProfile>
                 )),
           );
           _scaffoldKey.currentState.showSnackBar(snackBar);
-          await Future.delayed(Duration(seconds: 1));
           Navigator.pop(context);
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -488,10 +466,18 @@ class _OthersProfileState extends State<OthersProfile>
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
-          child: Text(
-            "Unfriend",
-            style: TextStyle(color: Colors.blue[900], fontFamily: 'Montserrat'),
-          ),
+          child: !isLoading
+              ? Text(
+                  "Unfriend",
+                  style: TextStyle(
+                      color: Colors.blue[900], fontFamily: 'Montserrat'),
+                )
+              : SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  )),
         ),
       );
     } else {
@@ -500,7 +486,17 @@ class _OthersProfileState extends State<OthersProfile>
         splashColor: Colors.blue[600],
         onPressed: () async {
           if (isSentRequest) {
+            if (!isLoading)
+              setState(() {
+                isLoading = true;
+              });
             await cancelFriendRequest();
+            await getUsersFriendData();
+            await isRequestSent();
+            setState(() {
+              isLoading = false;
+              isSentRequest = false;
+            });
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 2),
@@ -511,10 +507,18 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
-            Navigator.pop(context);
           } else if (!isSentRequest) {
+            if (!isLoading)
+              setState(() {
+                isLoading = true;
+              });
             await sendFriendRequest();
+            await getUsersFriendData();
+            await isRequestSent();
+            setState(() {
+              isLoading = false;
+              isSentRequest = true;
+            });
             SnackBar snackBar = SnackBar(
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 1),
@@ -525,8 +529,6 @@ class _OthersProfileState extends State<OthersProfile>
                   )),
             );
             _scaffoldKey.currentState.showSnackBar(snackBar);
-            await Future.delayed(Duration(seconds: 1));
-            Navigator.pop(context);
           }
         },
         shape: RoundedRectangleBorder(
@@ -534,11 +536,22 @@ class _OthersProfileState extends State<OthersProfile>
           side: BorderSide(color: Colors.blue[900], width: 2),
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-          child: Text(
-            isSentRequest ? 'Cancel Request' : 'Add Friend',
-            style: TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
-          ),
+          padding: !isLoading
+              ? const EdgeInsets.fromLTRB(16, 16, 16, 16)
+              : const EdgeInsets.fromLTRB(32, 16, 32, 16),
+          child: !isLoading
+              ? Text(
+                  isSentRequest ? 'Cancel Request' : 'Add Friend',
+                  style:
+                      TextStyle(color: Colors.white, fontFamily: 'Montserrat'),
+                )
+              : SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
         ),
       );
     }
@@ -557,14 +570,14 @@ class _OthersProfileState extends State<OthersProfile>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             CircleAvatar(
-              radius: 50.0,
+              radius: screenHeight * 70,
               backgroundColor: Colors.grey[100],
               backgroundImage: user.avtar == ''
-                  ? AssetImage('assets/images/profile-user.png')
+                  ? AssetImage('assets/images/user.png')
                   : CachedNetworkImageProvider(user.avtar),
             ),
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(screenHeight * 21.34),
               child: Text(
                 user.username,
                 style: TextStyle(
@@ -574,9 +587,9 @@ class _OthersProfileState extends State<OthersProfile>
                 ),
               ),
             ),
-            SizedBox(height: 20.0),
+            SizedBox(height: screenHeight * 26),
             buildProfileButton(),
-            SizedBox(height: 40.0),
+            SizedBox(height: screenHeight * 50),
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(left: 32, right: 32),
@@ -597,42 +610,31 @@ class _OthersProfileState extends State<OthersProfile>
 
   @override
   Widget build(BuildContext context) {
-    return isInternet
-        ? Scaffold(
-            key: _scaffoldKey,
-            backgroundColor: Colors.white,
-            appBar: AppBar(
-              title:
-                  Text('Profile', style: TextStyle(fontFamily: 'Montserrat')),
-              automaticallyImplyLeading: true,
-              backgroundColor: Colors.grey[900],
-            ),
-            body: SafeArea(
-              child: buildProfileHeader(),
-            ),
-          )
-        : Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('No internet :(',
-                    style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
-                        fontFamily: 'Mulish')),
-                FlatButton(
-                    padding: EdgeInsets.all(8.0),
-                    color: Colors.greenAccent[700],
-                    onPressed: () => checkInternet(),
-                    child: Text('Retry',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontFamily: 'Mulish')))
-              ],
-            )),
-          );
+    double screenH = MediaQuery.of(context).size.height;
+    double screenW = MediaQuery.of(context).size.width;
+    ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
+    screenHeight = screenSize.dividingHeight();
+    screenWidth = screenSize.dividingWidth();
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        title: Text('Profile',
+            style: TextStyle(fontFamily: 'Montserrat', color: Colors.black)),
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.pop(context);
+            }),
+        backgroundColor: Colors.white,
+      ),
+      body: SafeArea(
+        child: dataLoaded
+            ? buildProfileHeader()
+            : Center(child: CircularProgressIndicator()),
+      ),
+    );
   }
 }
