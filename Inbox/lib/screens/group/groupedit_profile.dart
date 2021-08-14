@@ -53,7 +53,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
   // bool isLoading = false;
   double screenHeight;
   double screenWidth;
-  var imageFile;
+  PickedFile imageFile;
 	File pickedImage;
 
   //Functions
@@ -218,7 +218,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
         decoration: BoxDecoration(
           color: Colors.grey[200],
           image: DecorationImage(
-            image: FileImage(pickedImage),
+            image: FileImage(File(imageFile.path)),
             fit: BoxFit.contain,
           ),
         ),
@@ -256,7 +256,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     if(imageFile != null){
       setState(() {
         state = AppState.picked;
-				pickedImage = imageFile.path;
+				pickedImage = File(imageFile.path);
       });
     }
   }
@@ -266,7 +266,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     if(imageFile != null){
       setState(() {
         state = AppState.picked;
-				pickedImage = imageFile.path;
+				pickedImage = File(imageFile.path);
       });
     }
   }
@@ -313,7 +313,7 @@ class _GroupEditProfileState extends State<GroupEditProfile> {
     if (state == AppState.free)
       return Icon(Icons.edit);
     else if (state == AppState.picked)
-      return Icon(Icons.crop);
+      return Icon(Icons.clear);
     else if (state == AppState.cropped)
       return Icon(Icons.clear);
     else

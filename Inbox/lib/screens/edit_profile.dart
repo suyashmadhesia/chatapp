@@ -170,7 +170,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (_image == null) {
         userRefs.doc(user.uid).update({
           'bio': bio == null || bio == '' || bio.isEmpty ? bioField : bio,
-          'email': email == null || email == '' || email.isEmpty ? emailField : email,
+          'email': email == null || email == '' || email.isEmpty
+              ? emailField
+              : email,
         });
       }
       setState(() {
@@ -192,23 +194,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<Null> pickImageFromGallery() async {
     imageFile = await _picker.getImage(source: ImageSource.gallery);
-    if(imageFile != null){
+    if (imageFile != null) {
       setState(() {
         state = AppState.picked;
+        _image = File(imageFile.path);
       });
     }
   }
 
-   Future<Null> pickImageFromCamera() async {
+  Future<Null> pickImageFromCamera() async {
     imageFile = await _picker.getImage(source: ImageSource.camera);
-    if(imageFile != null){
+    if (imageFile != null) {
       setState(() {
         state = AppState.picked;
+        _image = File(imageFile.path);
       });
     }
   }
 
-   selectImage(parentContext) {
+  selectImage(parentContext) {
     return showModalBottomSheet(
         enableDrag: false,
         context: parentContext,
@@ -233,36 +237,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         padding: EdgeInsets.all(screenWidth * 4),
                         child: Text(
                           'Select Image',
-                          style: TextStyle(color: Colors.black,fontSize: 18, fontFamily: 'Mulish'),
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 18,
+                              fontFamily: 'Mulish'),
                         ),
                       ),
                       IconButton(
                         icon: Icon(Icons.close, color: Colors.red),
-                        onPressed: (){
+                        onPressed: () {
                           Navigator.of(context).pop();
                         },
                       )
                     ],
                   ),
                   ListTile(
-                    onTap: () async{
+                    onTap: () async {
                       await pickImageFromCamera();
+                      Navigator.of(context).pop();
                     },
                     title: Text(
-                        'Camera',
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
-                      ),
-                      leading: Icon(Icons.camera_alt, color: Colors.grey),
+                      'Camera',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    leading: Icon(Icons.camera_alt, color: Colors.grey),
                   ),
                   ListTile(
                     onTap: () async {
                       await pickImageFromGallery();
+                      Navigator.of(context).pop();
                     },
                     title: Text(
-                        'Gallery',
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
-                      ),
-                      leading: Icon(Icons.image, color: Colors.grey),
+                      'Gallery',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    leading: Icon(Icons.image, color: Colors.grey),
                   ),
                 ],
               ),
@@ -290,7 +299,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         width: width,
         child: Image.network(imageField),
       );
-      
     } else if (imageField.isNotEmpty && _image != null) {
       return Container(
         height: height,
@@ -328,44 +336,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     ScreenSize screenSize = ScreenSize(height: screenH, width: screenW);
     screenHeight = screenSize.dividingHeight();
     screenWidth = screenSize.dividingWidth();
-    return 
-        Scaffold(
-            key: _scaffoldKey,
-            backgroundColor: Colors.white,
-            appBar: AppBar(
-              elevation: 0,
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: IconButton(
-                    onPressed: isUploading ? null : () => handleSubmit(),
-                    icon: Icon(
-                      Icons.done,
-                      color: Colors.black,
-                    ),
-                  ),
-                )
-              ],
-              leading: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  if (_image != null) {
-                    clearImage();
-                  }
-                },
-                icon: Icon(Icons.close, color: Colors.black),
-              ),
-              backgroundColor: Colors.white,
-              title: Text(
-                'Edit Profile',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontFamily: 'Montserrat',
-                  fontSize: 20.0,
-                ),
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: IconButton(
+              onPressed: isUploading ? null : () => handleSubmit(),
+              icon: Icon(
+                Icons.done,
+                color: Colors.black,
               ),
             ),
-            body:isDataLoaded ? Center(
+          )
+        ],
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+            if (_image != null) {
+              clearImage();
+            }
+          },
+          icon: Icon(Icons.close, color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        title: Text(
+          'Edit Profile',
+          style: TextStyle(
+            color: Colors.black,
+            fontFamily: 'Montserrat',
+            fontSize: 20.0,
+          ),
+        ),
+      ),
+      body: isDataLoaded
+          ? Center(
               child: ListView(
                 physics: BouncingScrollPhysics(),
                 children: [
@@ -400,8 +408,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   right: 0,
                                   child: IconButton(
                                     icon: Icon(Icons.edit, color: Colors.black),
-                                    onPressed: () {
-                                      selectImage(context);
+                                    onPressed: () async {
+                                      await selectImage(context);
                                     },
                                   ),
                                 ),
@@ -483,10 +491,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ],
               ),
-            ) : Center(
-            child: CircularProgressIndicator(),
-          ),
-          );
-        
+            )
+          : Center(
+              child: CircularProgressIndicator(),
+            ),
+    );
   }
 }

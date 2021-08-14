@@ -158,7 +158,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   AppBar buildSearchField() {
     return AppBar(
       elevation: 0,
-      toolbarHeight: screenHeight * 170,
+      toolbarHeight: screenHeight * 120,
       backgroundColor: Colors.white,
       automaticallyImplyLeading: false,
       title: Material(
@@ -179,7 +179,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 isSearching = true;
               });
               handleSearch(value);
-              handleGroupSearch(value);
+              // handleGroupSearch(value);
             }
           },
           cursorColor: Colors.black,
@@ -217,22 +217,22 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           ),
         ),
       ),
-      bottom : TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.grey[200],
-          tabs: [
-            Tab(
-              child: Text('People',
-                  style: TextStyle(
-                      fontFamily: 'Mulish', fontSize: 15, color: Colors.black)),
-            ),
-            Tab(
-              child: Text('Groups',
-                  style: TextStyle(
-                      fontFamily: 'Mulish', fontSize: 15, color: Colors.black)),
-            )
-          ],
-        ),
+      // bottom : TabBar(
+      //     controller: _tabController,
+      //     indicatorColor: Colors.grey[200],
+      //     tabs: [
+      //       Tab(
+      //         child: Text('People',
+      //             style: TextStyle(
+      //                 fontFamily: 'Mulish', fontSize: 15, color: Colors.black)),
+      //       ),
+      //       Tab(
+      //         child: Text('Groups',
+      //             style: TextStyle(
+      //                 fontFamily: 'Mulish', fontSize: 15, color: Colors.black)),
+      //       )
+      //     ],
+      //   ),
     );
   }
 
