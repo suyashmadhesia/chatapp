@@ -35,7 +35,6 @@ class NotificationCard extends StatefulWidget {
 }
 
 class _NotificationCardState extends State<NotificationCard> {
-  
   final collectionRefs = FirebaseFirestore.instance;
 
   List adminsList = [];
@@ -148,7 +147,7 @@ class _NotificationCardState extends State<NotificationCard> {
                 ),
               ],
             );
-    }else if (widget.requestType == 'GroupJoiningFromUser'){
+    } else if (widget.requestType == 'GroupJoiningFromUser') {
       bool isLoading = false;
       return isLoading
           ? Center(
@@ -266,7 +265,7 @@ class _NotificationCardState extends State<NotificationCard> {
     });
   }
 
-  cancelRequest() async{
+  cancelRequest() async {
     await collectionRefs.collection('users').doc(widget.userId).update({
       'pendingList': FieldValue.arrayRemove([widget.id]),
     });

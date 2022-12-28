@@ -1,3 +1,6 @@
+import 'package:Inbox/components/asset/asset.dart';
+import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/file_manager.dart';
 import 'package:Inbox/models/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,29 +11,28 @@ import 'package:focused_menu/modals.dart';
 class MessageBubble extends StatelessWidget {
   final String message;
   final bool sender;
-  final String time;
   final String myMessageId;
   final bool visibility;
   final String senderId;
   final String receiverId;
   final DateTime timestamp;
   final String uniqueMessageId;
-  final List<Asset> assets;
+  List<Asset> assets;
+
+  String get time => '${timestamp.hour}:${timestamp.minute}';
   final String lastMessage;
-  
 
   MessageBubble(
       {this.message,
       this.lastMessage,
       this.sender,
-      this.time,
       this.myMessageId,
       this.senderId,
       this.receiverId,
       this.timestamp,
-      this.visibility,
+      this.visibility = true,
       this.uniqueMessageId,
-      this.assets});
+      this.assets = const []});
 
   // Function to dissolve date time into Date | Time format
   // Herby using if DateTime.now().date() == d.date() then Today
@@ -60,41 +62,90 @@ class MessageBubble extends StatelessWidget {
     return '${timestamp.day} ${months[timestamp.month]} | $time';
   }
 
+  String str() {
+    return 'MessageBubble(id:$myMessageId, msg: $message, asstes: $assets)';
+  }
+
   //Function
+
+  Widget messageBody() {
+    // if length of asset is 0 return Text is length of asset is 1 return AssetWidget
+    // else return AssetWidget[1] along with multiple files sign
+    if (assets.isEmpty) {
+      return Container(
+        width: 0,
+        height: 0,
+      );
+    } else if (assets.length == 1) {
+      return AssetWidget(
+        assets[0],
+        messageHash: this.hashCode,
+        onTap: () {},
+        receiverId: receiverId,
+        sent: sender,
+        uploading: assets[0].task != null,
+      );
+    } else {
+      return AssetWidget(
+        assets[0],
+        messageHash: this.hashCode,
+        onTap: () {},
+        receiverId: receiverId,
+        sent: sender,
+        uploading: assets[0].task != null,
+      );
+    }
+  }
 
   unsendMessage() async {
     final senderMessageRefs = await FirebaseFirestore.instance
         .collection('users/' + senderId + '/friends')
         .doc(receiverId)
         .get();
-        String lstMsg = senderMessageRefs['lastMessage'];
+    String lstMsg = senderMessageRefs['lastMessage'];
     await FirebaseFirestore.instance
         .collection('messages/$uniqueMessageId/conversation')
         .doc(myMessageId)
         .update({
       'visibility': false,
     });
-    if(lstMsg == message){
+    if (lstMsg == message) {
       await FirebaseFirestore.instance
-        .collection('users/$senderId/friends/')
-        .doc(receiverId)
-        .update({
-      'lastMessage': 'This message was deleted',
-    });
-    await FirebaseFirestore.instance
-        .collection('users/$receiverId/friends/')
-        .doc(senderId)
-        .update({
-      'lastMessage': 'This message was deleted',
-    });
+          .collection('users/$senderId/friends/')
+          .doc(receiverId)
+          .update({
+        'lastMessage': 'This message was deleted',
+      });
+      await FirebaseFirestore.instance
+          .collection('users/$receiverId/friends/')
+          .doc(senderId)
+          .update({
+        'lastMessage': 'This message was deleted',
+      });
     }
+  }
+
+  Widget uploadingWidget() {
+    // If len_asset > 4 and return BunchAssetWidget
+    if (assets.length > 4) {
+      return BunchAssetWidget(assets);
+    } else {
+      return AssetWidget(
+        assets[0],
+        uploading: myMessageId == null,
+      );
+    }
+    // else show AssetWidget
   }
 
   @override
   Widget build(BuildContext context) {
     // final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    return visibility || visibility == null
+    // if (assets != null && assets.length > 0 && myMessageId != null) {
+    //   return uploadingWidget();
+    // }
+    return visibility == null || visibility
         ? Padding(
             padding:
                 const EdgeInsets.only(right: 8, top: 12, bottom: 4, left: 8),
@@ -143,12 +194,17 @@ class MessageBubble extends StatelessWidget {
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 15, vertical: 12),
-                                child: Text(
-                                  message,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontFamily: 'Montserrat'),
+                                child: Column(
+                                  children: [
+                                    messageBody(),
+                                    Text(
+                                      message,
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontFamily: 'Montserrat'),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -162,12 +218,17 @@ class MessageBubble extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 15, vertical: 12),
-                              child: Text(
-                                message,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'Montserrat'),
+                              child: Column(
+                                children: [
+                                  messageBody(),
+                                  Text(
+                                    message,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontFamily: 'Montserrat'),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -229,5 +290,14 @@ class MessageBubble extends StatelessWidget {
               ],
             ),
           );
+  }
+}
+
+class BunchAssetWidget extends StatelessWidget {
+  final List<Asset> assets;
+  const BunchAssetWidget(this.assets);
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }

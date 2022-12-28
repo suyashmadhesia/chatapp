@@ -1,9 +1,19 @@
+import 'dart:async';
+import 'dart:io';
+
+
+
+import 'package:Inbox/assets_manager/image_picker.dart';
 import 'package:Inbox/components/message_bubble.dart';
+import 'package:Inbox/components/screen_size.dart';
+import 'package:Inbox/helpers/file_manager.dart';
+import 'package:Inbox/helpers/firestore.dart';
 import 'package:Inbox/helpers/send_notification.dart';
 import 'package:Inbox/models/message.dart';
 // import 'package:dio/dio.dart';
 import 'package:Inbox/models/constant.dart';
 import 'package:Inbox/screens/profile_other.dart';
+import 'package:Inbox/state/global.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:data_connection_checker/data_connection_checker.dart';
@@ -30,17 +40,60 @@ setCurrentChatScreen(String username) async {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  GlobalState globalState = GlobalState();
+
+  String stateName() {
+    return "${widget.userId}_messages";
+  }
+
   @override
   void initState() {
     super.initState();
-
+    // globalState[stateName()] = [];
     getUserData();
-    
 
+    tokens = notificationData.getToken(widget.userId);
+    chatStreamController = StreamController();
     setIsSeen();
   }
 
+  @override
+  void dispose() {
+    chatStreamController.close();
+    messageTextController.dispose();
+    super.dispose();
+  }
+
+  StreamController<dynamic> chatStreamController;
+
+  Stream<dynamic> getChatStream(Iterable<dynamic> datas) {
+    void start() {
+      for (var data in datas) {
+        chatStreamController.add(data);
+      }
+    }
+
+    void stop() {
+      chatStreamController.close();
+    }
+
+    if (chatStreamController == null) {
+      chatStreamController = StreamController<dynamic>(
+        onListen: start,
+        onPause: stop,
+        onResume: start,
+        onCancel: start,
+      );
+    }
+    return chatStreamController.stream;
+  }
+
+    
+
+    
+
   
+
 
   final messageTextController = TextEditingController();
   var tokens;
@@ -63,6 +116,9 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isSeen = false;
   String lastMessage;
   String username;
+  ScreenSize scale;
+  List<Asset> assets = [];
+  bool isShowingBS = false;
 
   setIsSeen() async {
     if (isInternet) {
@@ -179,50 +235,168 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String message;
 
+  Widget showModalBottomSheet(BuildContext context) {
+    return Container(
+        width: scale.horizontal(100),
+        height: scale.vertical(40),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(52), topRight: Radius.circular(12)),
+        ),
+        padding: EdgeInsets.symmetric(
+            horizontal: scale.horizontal(2), vertical: scale.vertical(1.2)),
+        margin: EdgeInsets.only(bottom: scale.vertical(10)),
+        child: Column(
+          children: [
+            ListTile(
+              trailing: IconButton(
+                icon: Icon(
+                  Icons.clear,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    isShowingBS = false;
+                  });
+                },
+              ),
+            ),
+            ListTile(
+              title: Text('Photo / Video'),
+              leading: Container(
+                  padding: EdgeInsets.symmetric(
+                      vertical: scale.vertical(2),
+                      horizontal: scale.horizontal(4)),
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.deepPurple, width: 2)),
+                  child: Icon(Icons.image)),
+              onTap: () async {
+                List<File> files = await FileManager.pickMediaFile();
+                if (files.length > 0) {
+                  print('avatar is $avatar');
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ImageVideoPickerScreen(
+                                user: user,
+                                avatar: avatar,
+                                recepient: widget.userId,
+                                uniqueMessageId: uniqueMessageId,
+                                files: files,
+                                onTapBack: () {
+                                  setState(() {
+                                    isShowingBS = false;
+                                  });
+                                  Navigator.of(context).pop();
+                                },
+                              )));
+                }
+              },
+            ),
+            Container(
+              margin: EdgeInsets.only(top: scale.vertical(2)),
+              child: ListTile(
+                title: Text('Audio'),
+                leading: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: scale.vertical(2),
+                        horizontal: scale.horizontal(4)),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.green[600], width: 2)),
+                    child: Icon(Icons.audiotrack)),
+                onTap: () {},
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: scale.vertical(2)),
+              child: ListTile(
+                title: Text('Documents'),
+                leading: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: scale.vertical(2),
+                        horizontal: scale.horizontal(4)),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.deepOrange, width: 2)),
+                    child: Icon(Icons.file_copy)),
+                onTap: () {},
+              ),
+            )
+          ],
+        ));
+  }
+
+  MessageBubble getBubble(dynamic message, {List<Asset> assets = const []}) {
+    // print('from buble $assets ${message["messageId"]}');
+    return MessageBubble(
+        timestamp: message['timestamp'].toDate(),
+        senderId: user.uid,
+        receiverId: widget.userId,
+        myMessageId: message['messageId'],
+        message: message['message'],
+        sender: message['sender'] == user.uid,
+        visibility: message['visibility'],
+        uniqueMessageId: uniqueMessageId,
+        assets: assets);
+  }
+
+  Stream getMessageStream() {
+    messageCollectionRefs
+        .collection('messages/$uniqueMessageId/conversation')
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .listen((event) {
+      chatStreamController.add(event.docs);
+    });
+
+    globalState.getUserMessages(widget.userId).listen((event) {
+      // print(event);
+      chatStreamController.add(event);
+    });
+
+    return chatStreamController.stream;
+  }
+
   messageStream() {
     return StreamBuilder(
-      stream: messageCollectionRefs
-          .collection('messages/$uniqueMessageId/conversation')
-          .orderBy('timestamp', descending: false)
-          .snapshots(),
+      stream: getMessageStream(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          final messages = snapshot.data.documents.reversed;
+          List messages = snapshot.data;
           List<MessageBubble> messageBubbles = [];
           for (var message in messages) {
-            final messageText = message['message'];
-            final messageSender = message['sender'];
-            final timeStamp = message['timestamp'];
-            final messageId = message['messageId'];
-            final visibility = message['visibility'];
-            // print(visibility);
-
-            String time = '';
-
-            DateTime d = timeStamp.toDate();
-            final String dateTOstring = d.toString();
-
-            for (int i = 11; i <= 15; i++) {
-              time = time + dateTOstring[i];
+            List<Asset> assets = [];
+            if (message.data().containsKey("assets")) {
+              if (message["assets"].length > 0 &&
+                  message["assets"].length <= 4) {
+                for (var asset in message["assets"]) {
+                  MessageBubble bubble =
+                      getBubble(message, assets: [Asset.fromJson(asset)]);
+                  messageBubbles.add(bubble);
+                }
+              } else {
+                assets = (message["assets"] as List)
+                    .map((e) => Asset.fromJson(e))
+                    .toList();
+                messageBubbles.add(getBubble(message, assets: assets));
+              }
             }
-
-            final messageBubble = MessageBubble(
-              timestamp: d,
-              lastMessage: lastMessage,
-              senderId: user.uid,
-              receiverId: widget.userId,
-              myMessageId: messageId,
-              message: messageText,
-              sender: user.uid == messageSender, //bool checking is sender;
-              time: time,
-              visibility: visibility,
-              uniqueMessageId: uniqueMessageId,
-              // avatar: widget.avatar
-            );
-            messageBubbles.add(messageBubble);
           }
+          if (globalState[stateName()] != null &&
+              globalState[stateName()].length > 0) {
+            print(globalState[stateName()]);
+            for (MessageBubble stateBubble in globalState[stateName()]) {
+              print('from state ${stateBubble.str()}');
+              messageBubbles.add(stateBubble);
+            }
+          }
+
+          messageBubbles.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          messageBubbles = messageBubbles.reversed.toList();
           return Expanded(
             child: ListView(
               physics: BouncingScrollPhysics(),
@@ -235,7 +409,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  sendMessage(String message, {List<Asset> assets = const []}) async {
+  sendMessage(String message, {List<Asset> providedAssets = const []}) async {
     final messageDoc = await messageCollectionRefs
         .collection('messages/$uniqueMessageId/conversation')
         .add({
@@ -243,7 +417,7 @@ class _ChatScreenState extends State<ChatScreen> {
       'message': message,
       'timestamp': DateTime.now(),
       'messageId': '',
-      'assets': assets,
+      'assets': providedAssets.map((e) => e.toJson()).toList(),
       'visibility': true,
       'avatar': avatar,
     });
@@ -280,7 +454,36 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void onAddAssetClick() {}
+  Future<List<Asset>> uploadAssets(List<File> files) async {
+    List<Asset> assets = [];
+    for (File file in files) {
+      assets.add(Asset(file: file));
+      int index = assets.length - 1;
+      print('$index ${assets.length}');
+      assets[index].contentType = FileManager.getMimeType(file);
+      assets[index].setNameGenerated();
+      if (FileManager.isImage(file)) {
+        assets[index].thumbnailFile = await FileManager.compressImage(file);
+        var ref = FireStore.getAssetRef(
+            'media/${assets[index].name}-thumb.${assets[index].getContent()}');
+        var task =
+            FireStore.getUploadTaskUni8List(ref, assets[index].thumbnailFile);
+        task.whenComplete(() async =>
+            {assets[index].thumbnail = await FireStore.getDownloadUrl(task)});
+      }
+      var fileRef = FireStore.getAssetRef(
+          'media/${assets[index].name}.${assets[index].getContent()}');
+      var fileTask = FireStore.getUploadTask(fileRef, file);
+      assets[index].task = fileTask;
+      assets[index].task.whenComplete(() async =>
+          {assets[index].url = await FireStore.getDownloadUrl(fileTask)});
+    }
+    return assets;
+  }
+
+  void onAddAssetClick(BuildContext context) async {
+    showModalBottomSheet(context);
+  }
 
   bodyToBuild() {
     return GestureDetector(
@@ -340,7 +543,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                 color: Colors.white,
                               ),
                               onPressed: () {
-                                onAddAssetClick();
+                                setState(() {
+                                  isShowingBS = true;
+                                  FocusScope.of(context).unfocus();
+                                });
                               },
                             ),
                             suffixIcon: IconButton(
@@ -544,11 +750,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    scale = ScreenSize(context: context);
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: Color(0xff111111),
+        bottomSheet: (isShowingBS) ? showModalBottomSheet(context) : null,
         appBar: AppBar(
           elevation: 5,
           backgroundColor: Colors.black,

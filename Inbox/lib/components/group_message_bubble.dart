@@ -77,16 +77,16 @@ class GroupMessageBubble extends StatelessWidget {
                   sender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 if (visibility)
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        sender ? 'You' : usernameOfSender,
-                        style: TextStyle(
-                            color: Colors.grey[300],
-                            fontSize: 11,
-                            fontFamily: 'Montserrat'),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      sender ? 'You' : usernameOfSender,
+                      style: TextStyle(
+                          color: Colors.grey[300],
+                          fontSize: 11,
+                          fontFamily: 'Montserrat'),
                     ),
+                  ),
                 if (visibility)
                   Padding(
                     padding: sender
@@ -178,16 +178,16 @@ class GroupMessageBubble extends StatelessWidget {
               crossAxisAlignment:
                   sender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                 Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        sender ? 'You' : usernameOfSender,
-                        style: TextStyle(
-                            color: Colors.grey[300],
-                            fontSize: 11,
-                            fontFamily: 'Montserrat'),
-                      ),
-                    ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Text(
+                    sender ? 'You' : usernameOfSender,
+                    style: TextStyle(
+                        color: Colors.grey[300],
+                        fontSize: 11,
+                        fontFamily: 'Montserrat'),
+                  ),
+                ),
                 Padding(
                   padding: sender
                       ? EdgeInsets.only(left: screenWidth * 0.2)

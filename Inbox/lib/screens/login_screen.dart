@@ -65,13 +65,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   //Functions
 
-  saveDeviceToken(uid) async{
+  saveDeviceToken(uid) async {
     String fcmToken = await fcm.getToken();
-    if(fcmToken != null){
+    if (fcmToken != null) {
       final tokens = FirebaseFirestore.instance.collection('users/$uid/tokens');
       tokens.doc(fcmToken).set({
-        'tokenId' : fcmToken,
-        'createdAt' : DateTime.now(),
+        'tokenId': fcmToken,
+        'createdAt': DateTime.now(),
       });
     }
   }
@@ -174,8 +174,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   print(encryptedPassword);
                                   final user =
                                       await _auth.signInWithEmailAndPassword(
-                                          email: username, password: password);
-                                  
+                                          email: username,
+                                          password: encryptedPassword);
+
                                   if (user != null) {
                                     final userId = _auth.currentUser.uid;
                                     isAuth();

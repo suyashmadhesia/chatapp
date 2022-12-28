@@ -2,12 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-
-class SendNotification{
-
-
-List <String> topics =['/topics/APP'];
-final fcm = FirebaseMessaging();
+class SendNotification {
+  List<String> topics = ['/topics/APP'];
+  final fcm = FirebaseMessaging();
 
 /*
 collapse key
@@ -23,21 +20,27 @@ no of topic to suscribing topic
 5> accept notification // common to all users every body going to suscribe it ;
 */
 
-Future<void> sendGroupNotification(
-     notificationTitle, sendersUserId, receiversUserId, message, notificationType, {bool isMuted, String topic, String tag}) async {
+  Future<void> sendGroupNotification(notificationTitle, sendersUserId,
+      receiversUserId, message, notificationType,
+      {bool isMuted, String topic, String tag}) async {
     // debugPrint('token : $token');
 
     final data = {
       "notification": {
+
+
+
         "tag" : "$tag",
         "body": "$message",
         "title": "$notificationTitle",
+
       },
       "priority": "high",
       "data": {
         "click_action": "FLUTTER_NOTIFICATION_CLICK",
         "id": "1",
         "status": "done",
+
         "type": "$notificationType",
         "sendersUserId": "$sendersUserId",
         "receiversUserId" : "$receiversUserId",
@@ -45,6 +48,7 @@ Future<void> sendGroupNotification(
       },
       "to": "$topic",
       "collapse_key" : tag,
+
     };
     print(topic);
     final headers = {
@@ -71,8 +75,13 @@ Future<void> sendGroupNotification(
       }
     } catch (e) {
       // debugPrint('exception $e');
+
+    }
+    print('notification send');
+
     }//print('notification send');
-  }
+
+
 
   Future<List> getToken(userId) async {
     final db = FirebaseFirestore.instance;
@@ -89,21 +98,25 @@ Future<void> sendGroupNotification(
     return listofTokens;
   }
 
-  Future<void> sendOtherNotification(
-     notificationTitle, sendersUserId, receiversUserId, message, notificationType, {bool isMuted, var tokens, String tag}) async {
+  Future<void> sendOtherNotification(notificationTitle, sendersUserId,
+      receiversUserId, message, notificationType,
+      {bool isMuted, var tokens, String tag}) async {
     // debugPrint('token : $token');
 
     final data = {
       "notification": {
+
         "tag" : "$tag",
         "body": "$message",
         "title": "$notificationTitle",
+
       },
       "priority": "high",
       "data": {
         "click_action": "FLUTTER_NOTIFICATION_CLICK",
         "id": "1",
         "status": "done",
+
         "type": "$notificationType",
         "sendersUserId": "$sendersUserId",
         "receiversUserId" : "$receiversUserId",
@@ -111,6 +124,7 @@ Future<void> sendGroupNotification(
       },
       "registration_ids": tokens,
       "collapse_key" : "$tag",
+
     };
     // print(topic);
     final headers = {
@@ -139,15 +153,16 @@ Future<void> sendGroupNotification(
       print(e);
       // debugPrint('exception $e');
     }
+
+    print('notification send');
+
   }
 
-  topicToSuscribe(String topicName) async{
+  topicToSuscribe(String topicName) async {
     await fcm.subscribeToTopic(topicName);
   }
 
-  topicToUnsuscribe(String topicName){
+  topicToUnsuscribe(String topicName) {
     fcm.unsubscribeFromTopic(topicName);
   }
-
 }
-

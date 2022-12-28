@@ -1,4 +1,9 @@
-import 'constant.dart' show isMediaExist;
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:path/path.dart';
+import 'package:Inbox/helpers/file_manager.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:random_string/random_string.dart';
 
 class Asset {
   String thumbnail;
@@ -6,21 +11,79 @@ class Asset {
   String contentType;
   String name;
   bool isAssetPresentInDevice;
-
+  File file;
+  Uint8List thumbnailFile;
+  UploadTask task;
+  double progrss;
   Asset(
       {this.name,
-      this.thumbnail,
+      this.thumbnail = "",
       this.isAssetPresentInDevice = false,
       this.contentType,
+      this.file,
+      this.task,
+      this.thumbnailFile,
+      this.progrss,
       this.url}) {
-    this.isAssetPresentInDevice = isMediaExist(name);
+    if (this.name != null && this.contentType != null) {
+      FileManager.isMediaExist(getCompleteName())
+          .then((value) => {isAssetPresentInDevice = value});
+    }
   }
 
-  Asset.fromJson(Map<String, String> json) {
+  Asset.fromJson(dynamic json) {
     thumbnail = json["thumbnail"];
     url = json["url"];
     contentType = json["contentType"];
     name = json["name"];
+  }
+
+  void updateProgress(double pg) {
+    this.progrss = pg;
+  }
+
+  static String _getContent(String content) {
+    var splitted = content.split("/");
+    return splitted[splitted.length - 1];
+  }
+
+  String getContent() {
+    return Asset._getContent(contentType);
+  }
+
+  String generateName() {
+    // var generated = randomAlphaNumeric(18);
+    var generated = basename(file.path);
+    return '$generated';
+  }
+
+  void setContentType() {
+    contentType = FileManager.getMimeType(file);
+  }
+
+  String getCompleteName() {
+    return name;
+  }
+
+  void setNameGenerated() {
+    if (this.contentType == null) {
+      this.setContentType();
+    }
+    this.name = this.generateName();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "name": name,
+      "thumbnail": thumbnail,
+      "url": url,
+      "contentType": contentType
+    };
+  }
+
+  @override
+  String toString() {
+    return "Asset(name:$name, contentType: $contentType)";
   }
 }
 
@@ -65,10 +128,12 @@ visibility */
       this.messageId});
 
   Message.fromJson(Map<String, dynamic> json) {
-    visibility = json['visbility'];
+    visibility = json.containsKey("visbilit") ? json['visbility'] : true;
     sender = json["sender"];
-    messageId = json["messageId"];
-    timestamp = json["timestamp"].toDate();
+    messageId = json.containsKey("messageId") ? json["messageId"] : null;
+    timestamp = json.containsKey("timestamp")
+        ? json["timestamp"].toDate()
+        : DateTime.now();
     message = json.containsKey("message") ? json["message"] : "";
     assets = json.containsKey("assets")
         ? (json["assets"]).map((value) => Asset.fromJson(value))

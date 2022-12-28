@@ -198,7 +198,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 final newUser =
                                     await _auth.createUserWithEmailAndPassword(
                                         email: username, password: password);
-                                await notificationData.topicToSuscribe('/topics/APP');
+                                await notificationData
+                                    .topicToSuscribe('/topics/APP');
 
 //Saving data to firestore
                                 if (newUser != null) {

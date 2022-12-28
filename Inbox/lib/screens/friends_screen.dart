@@ -285,7 +285,11 @@ class _FriendsScreenState extends State<FriendsScreen>
         elevation: 0,
         title: Text('Inbox',
             style: TextStyle(
-                fontFamily: 'Mulish', color: Colors.black, fontSize: 32)),
+              fontFamily: 'Mulish',
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+            )),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         // bottom: TabBar(

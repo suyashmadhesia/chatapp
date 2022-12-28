@@ -68,21 +68,21 @@ class _HomeScreenState extends State<HomeScreen>
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           } else if (message['data']['type'] == 'Request Accepted') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           } else if (message['data']['type'] == 'Friend Request') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           }
         }
       },
@@ -107,14 +107,14 @@ class _HomeScreenState extends State<HomeScreen>
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           } else if (message['data']['type'] == 'Friend Request') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           }
         }
       },
@@ -133,21 +133,21 @@ class _HomeScreenState extends State<HomeScreen>
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           } else if (message['data']['type'] == 'Request Accepted') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           } else if (message['data']['type'] == 'Friend Request') {
             shownotification(
                 1234,
                 message['notification']['title'],
                 message['notification']['body'],
                 message['data']['sendersUserId']);
-                return;
+            return;
           }
         }
       },
@@ -210,8 +210,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-
-
   double screenHeight;
   double screenWidth;
 
@@ -237,7 +235,10 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(left: screenWidth * 25,right: screenWidth * 25,bottom: screenWidth * 3.5),
+        padding: EdgeInsets.only(
+            left: screenWidth * 25,
+            right: screenWidth * 25,
+            bottom: screenWidth * 3.5),
         child: Material(
           elevation: 10,
           borderRadius: BorderRadius.all(
@@ -245,44 +246,44 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: Container(
             child: ClipRRect(
-          borderRadius: BorderRadius.all(
-            Radius.circular(screenWidth * 13),
-          ),
-          child: Container(
-            height: screenHeight * 75,
-            color: Colors.white,
-            child: TabBar(
-          indicatorColor: Colors.white,
-          controller: tabController,
-          labelColor: Colors.pink[400],
-          unselectedLabelColor: Colors.grey,
-          labelStyle: TextStyle(fontSize: 10.0),
-          tabs: <Widget>[
-            Tab(
-              icon: Icon(
-                Icons.question_answer,
-                size: 24.0,
+              borderRadius: BorderRadius.all(
+                Radius.circular(screenWidth * 13),
               ),
-            ),
-            Tab(
-              icon: Icon(
-                Icons.add,
-                size: 24.0,
+              child: Container(
+                height: screenHeight * 75,
+                color: Colors.white,
+                child: TabBar(
+                  indicatorColor: Colors.white,
+                  controller: tabController,
+                  labelColor: Colors.pink[400],
+                  unselectedLabelColor: Colors.grey,
+                  labelStyle: TextStyle(fontSize: 10.0),
+                  tabs: <Widget>[
+                    Tab(
+                      icon: Icon(
+                        Icons.question_answer,
+                        size: 24.0,
+                      ),
+                    ),
+                    Tab(
+                      icon: Icon(
+                        Icons.add,
+                        size: 24.0,
+                      ),
+                    ),
+                    Tab(
+                      icon: Icon(
+                        Icons.person,
+                        size: 24.0,
+                      ),
+                    ),
+                  ],
+                  // indicator: UnderlineTabIndicator(
+                  //   borderSide: BorderSide(color: Colors.black54, width: 0.0),
+                  //   insets: EdgeInsets.fromLTRB(50.0, 0.0, 50.0, 40.0),
+                  // ),
+                ),
               ),
-            ),
-            Tab(
-              icon: Icon(
-                Icons.person,
-                size: 24.0,
-              ),
-            ),
-          ],
-          // indicator: UnderlineTabIndicator(
-          //   borderSide: BorderSide(color: Colors.black54, width: 0.0),
-          //   insets: EdgeInsets.fromLTRB(50.0, 0.0, 50.0, 40.0),
-          // ),
-            ),
-          ),
             ),
           ),
         ),
